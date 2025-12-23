@@ -1,0 +1,663 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SysDept {
+  id        Int           @id @default(autoincrement())
+  parentId  Int           @default(0) @map("parent_id")
+  ancestors String?       @db.VarChar(500)
+  name      String        @db.VarChar(50)
+  sort      Int           @default(0)
+  leader    String?       @db.VarChar(20)
+  phone     String?       @db.VarChar(11)
+  email     String?       @db.VarChar(50)
+  status    Status        @default(ENABLED)
+  createdBy String?       @map("created_by") @db.VarChar(64)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedBy String?       @map("updated_by") @db.VarChar(64)
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deleted   Boolean       @default(false)
+  deletedAt DateTime?     @map("deleted_at")
+  roles     SysRoleDept[]
+  users     SysUser[]
+
+  @@index([parentId])
+  @@index([deleted])
+  @@map("sys_dept")
+}
+
+model SysMenu {
+  id        Int           @id @default(autoincrement())
+  parentId  Int           @default(0) @map("parent_id")
+  name      String        @db.VarChar(50)
+  path      String?       @db.VarChar(200)
+  component String?       @db.VarChar(255)
+  query     String?       @db.VarChar(255)
+  perms     String?       @db.VarChar(100)
+  type      MenuType
+  icon      String?       @db.VarChar(100)
+  sort      Int           @default(0)
+  visible   Boolean       @default(true)
+  status    Status        @default(ENABLED)
+  isFrame   Boolean       @default(false) @map("is_frame")
+  isCache   Boolean       @default(true) @map("is_cache")
+  remark    String?       @db.VarChar(500)
+  createdBy String?       @map("created_by") @db.VarChar(64)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedBy String?       @map("updated_by") @db.VarChar(64)
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deleted   Boolean       @default(false)
+  deletedAt DateTime?     @map("deleted_at")
+  roles     SysRoleMenu[]
+
+  @@index([parentId])
+  @@index([deleted])
+  @@map("sys_menu")
+}
+
+model SysRole {
+  id        Int           @id @default(autoincrement())
+  name      String        @db.VarChar(30)
+  key       String        @db.VarChar(100)
+  sort      Int           @default(0)
+  dataScope DataScope     @default(ALL) @map("data_scope")
+  status    Status        @default(ENABLED)
+  remark    String?       @db.VarChar(500)
+  createdBy String?       @map("created_by") @db.VarChar(64)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedBy String?       @map("updated_by") @db.VarChar(64)
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deleted   Boolean       @default(false)
+  deletedAt DateTime?     @map("deleted_at")
+  depts     SysRoleDept[]
+  menus     SysRoleMenu[]
+  users     SysUserRole[]
+
+  @@unique([key, deleted])
+  @@index([deleted])
+  @@index([status])
+  @@map("sys_role")
+}
+
+model SysRoleMenu {
+  roleId Int     @map("role_id")
+  menuId Int     @map("menu_id")
+  menu   SysMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  role   SysRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, menuId])
+  @@map("sys_role_menu")
+}
+
+model SysRoleDept {
+  roleId Int     @map("role_id")
+  deptId Int     @map("dept_id")
+  dept   SysDept @relation(fields: [deptId], references: [id], onDelete: Cascade)
+  role   SysRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, deptId])
+  @@map("sys_role_dept")
+}
+
+model SysUser {
+  id        Int           @id @default(autoincrement())
+  deptId    Int?          @map("dept_id")
+  username  String        @db.VarChar(30)
+  password  String        @db.VarChar(100)
+  nickname  String?       @db.VarChar(30)
+  email     String?       @db.VarChar(50)
+  phone     String?       @db.VarChar(11)
+  gender    Gender        @default(UNKNOWN)
+  avatar    String?       @db.VarChar(200)
+  status    Status        @default(ENABLED)
+  loginIp   String?       @map("login_ip") @db.VarChar(128)
+  loginTime DateTime?     @map("login_time")
+  remark    String?       @db.VarChar(500)
+  createdBy String?       @map("created_by") @db.VarChar(64)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedBy String?       @map("updated_by") @db.VarChar(64)
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deleted   Boolean       @default(false)
+  deletedAt DateTime?     @map("deleted_at")
+  dept      SysDept?      @relation(fields: [deptId], references: [id])
+  roles     SysUserRole[]
+
+  @@unique([username, deleted])
+  @@index([deptId])
+  @@index([deleted])
+  @@index([status])
+  @@map("sys_user")
+}
+
+model SysUserRole {
+  userId Int     @map("user_id")
+  roleId Int     @map("role_id")
+  role   SysRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user   SysUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("sys_user_role")
+}
+
+/// 运营配置表
+model Banner {
+  id        Int       @id @default(autoincrement())
+  /// 轮播图名称
+  name      String    @db.VarChar(100)
+  /// 编码
+  code      String?   @db.VarChar(50)
+  /// 图片地址
+  image     String    @db.VarChar(500)
+  /// 跳转链接
+  linkUrl   String?   @map("link_url") @db.VarChar(500)
+  /// 类型：1-图片 2-视频
+  type      Int       @default(1)
+  /// 展示位置：首页、分类页等
+  position  String?   @db.VarChar(50)
+  /// 开始时间
+  startTime DateTime? @map("start_time")
+  /// 结束时间
+  endTime   DateTime? @map("end_time")
+  /// 描述
+  content   String?
+  /// 排序
+  sort      Int       @default(0)
+  /// 状态
+  status    Status    @default(ENABLED)
+  /// 备注
+  remark    String?   @db.VarChar(500)
+  /// 创建者ID
+  createdBy String?   @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt DateTime  @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy String?   @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted   Boolean   @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([position])
+  @@index([sort])
+  @@map("mall_banner")
+}
+
+/// 商品分类表
+model Category {
+  id        Int        @id @default(autoincrement())
+  /// 分类名称
+  name      String     @db.VarChar(100)
+  /// 分类编码
+  code      String?    @db.VarChar(50)
+  /// 父分类ID
+  parentId  Int?       @map("parent_id")
+  /// 祖先节点ID列表
+  ancestors String?    @db.VarChar(500)
+  /// 层级
+  level     Int        @default(1)
+  /// 分类图片
+  image     String?    @db.VarChar(500)
+  /// 分类描述
+  content   String?
+  /// 排序
+  sort      Int        @default(0)
+  /// 状态
+  status    Status     @default(ENABLED)
+  /// 备注
+  remark    String?    @db.VarChar(500)
+  /// 创建者ID
+  createdBy String?    @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt DateTime   @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy String?    @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted   Boolean    @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt DateTime?  @map("deleted_at")
+  parent    Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryToCategory")
+  products  Product[]
+
+  @@index([parentId])
+  @@index([ancestors])
+  @@map("mall_category")
+}
+
+/// 会员管理表
+model Member {
+  id            Int       @id @default(autoincrement())
+  /// 用户名
+  username      String    @unique @db.VarChar(50)
+  /// 昵称
+  nickname      String?   @db.VarChar(100)
+  /// 手机号
+  phone         String?   @unique @db.VarChar(20)
+  /// 邮箱
+  email         String?   @unique @db.VarChar(100)
+  /// 头像
+  avatar        String?   @db.VarChar(500)
+  /// 性别：0-未知 1-男 2-女
+  gender        Int?
+  /// 生日
+  birthday      DateTime?
+  /// 会员等级
+  level         Int       @default(1)
+  /// 积分
+  points        Int       @default(0)
+  /// 余额
+  balance       Decimal?  @db.Decimal(10, 2)
+  /// 累计消费
+  totalAmount   Decimal?  @map("total_amount") @db.Decimal(10, 2)
+  /// 状态
+  status        Status    @default(ENABLED)
+  /// 最后登录时间
+  lastLoginTime DateTime? @map("last_login_time")
+  /// 最后登录IP
+  lastLoginIp   String?   @map("last_login_ip") @db.VarChar(50)
+  /// 备注
+  remark        String?   @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?   @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime  @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?   @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean   @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime? @map("deleted_at")
+  orders        Order[]
+
+  @@index([phone])
+  @@index([email])
+  @@index([level])
+  @@map("mall_member")
+}
+
+/// 订单管理表
+model Order {
+  id             Int            @id @default(autoincrement())
+  /// 订单号
+  orderNo        String         @unique @map("order_no") @db.VarChar(50)
+  /// 会员ID
+  memberId       Int?           @map("member_id")
+  /// 订单商品列表
+  items          Json?          @db.Json
+  /// 订单总金额
+  totalAmount    Decimal        @map("total_amount") @db.Decimal(10, 2)
+  /// 优惠金额
+  discountAmount Decimal?       @map("discount_amount") @db.Decimal(10, 2)
+  /// 运费
+  freight        Decimal?       @db.Decimal(10, 2)
+  /// 实付金额
+  actualAmount   Decimal        @map("actual_amount") @db.Decimal(10, 2)
+  /// 已付金额
+  payAmount      Decimal?       @map("pay_amount") @db.Decimal(10, 2)
+  /// 订单状态
+  status         OrderStatus    @default(PENDING)
+  /// 支付状态
+  payStatus      PayStatus      @default(UNPAID) @map("pay_status")
+  /// 发货状态
+  shippingStatus ShippingStatus @default(NOT_SHIPPED) @map("shipping_status")
+  /// 支付方式
+  paymentMethod  String?        @map("payment_method") @db.VarChar(50)
+  /// 支付时间
+  paymentTime    DateTime?      @map("payment_time")
+  /// 发货时间
+  shippingTime   DateTime?      @map("shipping_time")
+  /// 收货时间
+  receivedTime   DateTime?      @map("received_time")
+  /// 收货人
+  receiver       String?        @db.VarChar(100)
+  /// 收货电话
+  phone          String?        @db.VarChar(20)
+  /// 收货地址
+  address        String?
+  /// 备注
+  remark         String?        @db.VarChar(500)
+  /// 创建者ID
+  createdBy      String?        @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt      DateTime       @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy      String?        @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted        Boolean        @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt      DateTime?      @map("deleted_at")
+  member         Member?        @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@index([orderNo])
+  @@index([status])
+  @@index([payStatus])
+  @@map("mall_order")
+}
+
+/// 商品管理表
+model Product {
+  id            Int                @id @default(autoincrement())
+  /// 商品名称
+  name          String             @db.VarChar(100)
+  /// 商品编码
+  code          String?            @db.VarChar(50)
+  /// 分类ID
+  categoryId    Int?               @map("category_id")
+  /// 商品详情
+  content       String?
+  /// 默认原价
+  originalPrice Decimal?           @map("original_price") @db.Decimal(10, 2)
+  /// 总销量
+  sales         Int                @default(0)
+  /// 单位
+  unit          String?            @db.VarChar(20)
+  /// 排序
+  sort          Int                @default(0)
+  /// 销售状态
+  status        ProductStatus      @default(ON_SHELF) @map("status")
+  /// 备注
+  remark        String?            @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?            @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime           @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?            @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean            @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime?          @map("deleted_at")
+  /// 默认现价
+  defaultPrice  Decimal?           @map("default_price") @db.Decimal(10, 2)
+  /// 默认库存
+  defaultStock  Int                @default(0) @map("default_stock")
+  /// 默认重量(kg)
+  defaultWeight Decimal?           @map("default_weight") @db.Decimal(8, 2)
+  /// 商品主图列表
+  mainImages    Json?              @map("main_images") @db.Json
+  /// 商品规格信息
+  specs         Json?              @db.Json
+  category      Category?          @relation(fields: [categoryId], references: [id])
+  skus          ProductSKU[]
+  specGroups    ProductSpecGroup[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@map("mall_product")
+}
+
+model ProductSpecGroup {
+  id         Int                @id @default(autoincrement())
+  /// 商品ID
+  productId  Int                @map("product_id")
+  /// 规格组名称（如颜色、尺寸）
+  name       String             @db.VarChar(50)
+  /// 排序
+  sort       Int                @default(0)
+  /// 创建时间
+  createdAt  DateTime           @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+  product    Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  specValues ProductSpecValue[]
+
+  @@index([productId])
+  @@map("mall_product_spec_group")
+}
+
+model ProductSpecValue {
+  id          Int              @id @default(autoincrement())
+  /// 规格组ID
+  specGroupId Int              @map("spec_group_id")
+  /// 规格值名称（如红色、蓝色）
+  name        String           @db.VarChar(50)
+  /// 排序
+  sort        Int              @default(0)
+  /// 创建时间
+  createdAt   DateTime         @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  specGroup   ProductSpecGroup @relation(fields: [specGroupId], references: [id], onDelete: Cascade)
+
+  @@index([specGroupId])
+  @@map("mall_product_spec_value")
+}
+
+model ProductSKU {
+  id              Int      @id @default(autoincrement())
+  /// 商品ID
+  productId       Int      @map("product_id")
+  /// SKU编码
+  skuCode         String   @unique @db.VarChar(50)
+  /// 规格组合 {"color": "红色", "size": "M"}
+  specCombination Json     @map("spec_combination") @db.Json
+  /// SKU价格
+  price           Decimal  @db.Decimal(10, 2)
+  /// SKU库存
+  stock           Int      @default(0)
+  /// SKU重量(kg)
+  weight          Decimal? @db.Decimal(8, 2)
+  /// SKU销量
+  sales           Int      @default(0)
+  /// SKU图片列表
+  images          Json?    @db.Json
+  /// 创建时间
+  createdAt       DateTime @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("mall_product_sku")
+}
+
+model SysConfig {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  key        String    @db.VarChar(100)
+  value      String    @db.VarChar(500)
+  configType String    @default("N") @map("config_type") @db.Char(1)
+  remark     String?   @db.VarChar(500)
+  createdBy  String?   @map("created_by") @db.VarChar(64)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedBy  String?   @map("updated_by") @db.VarChar(64)
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deleted    Boolean   @default(false)
+  deletedAt  DateTime? @map("deleted_at")
+
+  @@unique([key, deleted])
+  @@index([deleted])
+  @@map("sys_config")
+}
+
+model SysNotice {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(50)
+  noticeType    String    @map("notice_type") @db.Char(1)
+  noticeContent String?   @map("notice_content")
+  status        Status    @default(ENABLED)
+  createdBy     String?   @map("created_by") @db.VarChar(64)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedBy     String?   @map("updated_by") @db.VarChar(64)
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deleted       Boolean   @default(false)
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@index([deleted])
+  @@map("sys_notice")
+}
+
+model SysDictType {
+  id        Int           @id @default(autoincrement())
+  name      String        @db.VarChar(100)
+  type      String        @unique @db.VarChar(100)
+  status    Status        @default(ENABLED)
+  remark    String?       @db.VarChar(500)
+  createdBy String?       @map("created_by") @db.VarChar(64)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedBy String?       @map("updated_by") @db.VarChar(64)
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deleted   Boolean       @default(false)
+  deletedAt DateTime?     @map("deleted_at")
+  data      SysDictData[]
+
+  @@index([deleted])
+  @@map("sys_dict_type")
+}
+
+model SysDictData {
+  id        Int         @id @default(autoincrement())
+  dictType  String      @map("dict_type") @db.VarChar(100)
+  label     String      @db.VarChar(100)
+  value     String      @db.VarChar(100)
+  sort      Int         @default(0)
+  cssClass  String?     @map("css_class") @db.VarChar(100)
+  listClass String?     @map("list_class") @db.VarChar(100)
+  isDefault Boolean     @default(false) @map("is_default")
+  status    Status      @default(ENABLED)
+  remark    String?     @db.VarChar(500)
+  createdBy String?     @map("created_by") @db.VarChar(64)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedBy String?     @map("updated_by") @db.VarChar(64)
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  deleted   Boolean     @default(false)
+  deletedAt DateTime?   @map("deleted_at")
+  type      SysDictType @relation(fields: [dictType], references: [type])
+
+  @@index([dictType])
+  @@index([deleted])
+  @@map("sys_dict_data")
+}
+
+model SysOperLog {
+  id            Int      @id @default(autoincrement())
+  title         String?  @db.VarChar(50)
+  businessType  Int      @default(0) @map("business_type")
+  method        String?  @db.VarChar(100)
+  requestMethod String?  @map("request_method") @db.VarChar(10)
+  operatorType  Int      @default(0) @map("operator_type")
+  operName      String?  @map("oper_name") @db.VarChar(50)
+  deptName      String?  @map("dept_name") @db.VarChar(50)
+  operUrl       String?  @map("oper_url") @db.VarChar(255)
+  operIp        String?  @map("oper_ip") @db.VarChar(128)
+  operLocation  String?  @map("oper_location") @db.VarChar(255)
+  operParam     String?  @map("oper_param")
+  jsonResult    String?  @map("json_result")
+  status        Int      @default(0)
+  errorMsg      String?  @map("error_msg")
+  operTime      DateTime @default(now()) @map("oper_time")
+  costTime      Int      @default(0) @map("cost_time")
+
+  @@index([operTime])
+  @@index([businessType])
+  @@map("sys_oper_log")
+}
+
+model SysLoginLog {
+  id        Int      @id @default(autoincrement())
+  username  String?  @db.VarChar(50)
+  ipaddr    String?  @db.VarChar(128)
+  location  String?  @db.VarChar(255)
+  browser   String?  @db.VarChar(50)
+  os        String?  @db.VarChar(50)
+  status    String   @default("0") @db.Char(1)
+  msg       String?  @db.VarChar(255)
+  loginTime DateTime @default(now()) @map("login_time")
+
+  @@index([loginTime])
+  @@index([username])
+  @@map("sys_login_log")
+}
+
+enum Status {
+  ENABLED
+  DISABLED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum MenuType {
+  DIR
+  MENU
+  BUTTON
+}
+
+enum DataScope {
+  ALL
+  CUSTOM
+  DEPT
+  DEPT_BELOW
+  SELF
+}
+
+/// 订单状态枚举
+enum OrderStatus {
+  /// 待付款
+  PENDING   @map("pending")
+  /// 已付款
+  PAID      @map("paid")
+  /// 已发货
+  SHIPPED   @map("shipped")
+  /// 已送达
+  DELIVERED @map("delivered")
+  /// 已完成
+  COMPLETED @map("completed")
+  /// 已取消
+  CANCELLED @map("cancelled")
+  /// 退款中
+  REFUNDING @map("refunding")
+  /// 已退款
+  REFUNDED  @map("refunded")
+}
+
+/// 支付状态枚举
+enum PayStatus {
+  /// 未支付
+  UNPAID    @map("unpaid")
+  /// 已支付
+  PAID      @map("paid")
+  /// 退款中
+  REFUNDING @map("refunding")
+  /// 已退款
+  REFUNDED  @map("refunded")
+}
+
+/// 发货状态枚举
+enum ShippingStatus {
+  /// 未发货
+  NOT_SHIPPED @map("not_shipped")
+  /// 已发货
+  SHIPPED     @map("shipped")
+  /// 已送达
+  DELIVERED   @map("delivered")
+}
+
+/// 商品销售状态枚举
+enum ProductStatus {
+  /// 上架
+  ON_SHELF  @map("on_shelf")
+  /// 下架
+  OFF_SHELF @map("off_shelf")
+  /// 草稿
+  DRAFT     @map("draft")
+}

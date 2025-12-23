@@ -1,0 +1,30 @@
+{
+  "name": "nest-react-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "后台管理系统 - NestJS + React 19 + Prisma + PostgreSQL",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "dev:api": "pnpm --filter admin-api run dev",
+    "dev:web": "pnpm --filter admin-web run dev",
+    "build": "pnpm -r run build",
+    "build:api": "pnpm --filter admin-api run build",
+    "build:web": "pnpm --filter admin-web run build",
+    "db:generate": "pnpm --filter admin-api run db:generate",
+    "db:push": "pnpm --filter admin-api run db:push",
+    "db:migrate": "pnpm --filter admin-api run db:migrate",
+    "db:seed": "pnpm --filter admin-api run db:seed",
+    "db:studio": "pnpm --filter admin-api run db:studio",
+    "lint": "pnpm -r run lint",
+    "clean": "pnpm -r run clean && rm -rf node_modules",
+    "gen:module": "npx ts-node scripts/generate-module.ts"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}

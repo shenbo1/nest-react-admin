@@ -1,0 +1,20 @@
+/// article管理表
+model Article {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)   /// 名称
+  code      String?  @db.VarChar(50)    /// 编码
+  content   String?  @db.Text           /// 内容
+  sort      Int      @default(0)        /// 排序
+  status    Status   @default(ENABLED)  /// 状态
+  remark    String?  @db.VarChar(500)   /// 备注
+
+  // 审计字段
+  createdBy Int?                        /// 创建者ID
+  createdAt DateTime @default(now())    /// 创建时间
+  updatedBy Int?                        /// 更新者ID
+  updatedAt DateTime @updatedAt         /// 更新时间
+  deleted   Boolean  @default(false)    /// 删除标记
+  deletedAt DateTime?                   /// 删除时间
+
+  @@map("article")
+}
