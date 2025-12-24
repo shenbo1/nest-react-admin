@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Upload, message, Spin } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd';
@@ -8,15 +8,24 @@ interface ImageUploadProps {
   name?: string;
   maxSize?: number; // MB
   limit?: number; // 最大图片数量
+  reset?: boolean; // 重置信号
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   name = 'image',
   maxSize = 5,
   limit = 1,
+  reset = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string>('');
+
+  // 监听重置信号
+  useEffect(() => {
+    if (reset) {
+      setUploadedUrl('');
+    }
+  }, [reset]);
 
   return (
     <Form.Item noStyle shouldUpdate>

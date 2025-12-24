@@ -5,7 +5,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   FolderOutlined,
-  BranchesOutlined
+  BranchesOutlined,
 } from '@ant-design/icons';
 import {
   ProColumns,
@@ -21,6 +21,9 @@ import { categoryApi, Category, CategoryForm } from '@/services/mall/category';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
+import { DictEnums } from '@/stores/enums/dict.enums';
+import { StatusEnums } from '@/stores/enums/common.enums';
+import { DictRadio, DictSelect } from '@/components/DictSelect';
 
 export default function CategoryPage() {
   const actionRef = useRef<ProTableRef>(null);
@@ -88,7 +91,11 @@ export default function CategoryPage() {
     return (
       <div>
         <span style={{ marginRight: 8 }}>
-          {(record.level || 0) > 1 ? <BranchesOutlined style={{ color: '#1890ff' }} /> : <FolderOutlined style={{ color: '#faad14' }} />}
+          {(record.level || 0) > 1 ? (
+            <BranchesOutlined style={{ color: '#1890ff' }} />
+          ) : (
+            <FolderOutlined style={{ color: '#faad14' }} />
+          )}
         </span>
         {indent}
         <span style={{ fontWeight: 500 }}>{record.name}</span>
@@ -120,7 +127,7 @@ export default function CategoryPage() {
       width: 80,
       search: false,
       align: 'center',
-      render: (level) => level ? `第${level}级` : '-',
+      render: (level) => (level ? `第${level}级` : '-'),
     },
     {
       title: '排序',
@@ -215,11 +222,13 @@ export default function CategoryPage() {
         title={editingRecord ? '编辑商品分类' : '新增商品分类'}
         open={modalOpen}
         onOpenChange={setModalOpen}
-        initialValues={editingRecord || {
-          sort: 0,
-          status: 'ENABLED',
-          level: 1
-        }}
+        initialValues={
+          editingRecord || {
+            sort: 0,
+            status: 'ENABLED',
+            level: 1,
+          }
+        }
         onFinish={async (values) => {
           await saveMutation.mutateAsync(values);
           return true;
@@ -252,13 +261,10 @@ export default function CategoryPage() {
             fieldProps={{ precision: 0 }}
             colProps={{ span: 12 }}
           />
-          <ProFormSelect
+          <DictRadio
             name="status"
             label="状态"
-            options={[
-              { label: '启用', value: 'ENABLED' },
-              { label: '禁用', value: 'DISABLED' },
-            ]}
+            enum={StatusEnums}
             colProps={{ span: 12 }}
           />
           <ProFormDigit

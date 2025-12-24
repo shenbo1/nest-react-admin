@@ -5,7 +5,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   PictureOutlined,
-  VideoCameraOutlined
+  VideoCameraOutlined,
 } from '@ant-design/icons';
 import {
   ProColumns,
@@ -13,24 +13,27 @@ import {
   ProFormText,
   ProFormTextArea,
   ProFormDigit,
-  ProFormSelect,
   ProFormDateRangePicker,
   ProFormGroup,
 } from '@ant-design/pro-components';
+import { DictRadio, DictSelect } from '@/components/DictSelect';
 import { useForm } from 'antd/es/form/Form';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { dictApi } from '@/services/system/system';
+import { useMutation } from '@tanstack/react-query';
 import { bannerApi, Banner, BannerForm } from '@/services/mall/banner';
 import { PermissionButton } from '@/components/PermissionButton';
 import { ImageUpload } from '@/components/ImageUpload';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
+import { generateKeyFromName } from '@/utils/name-key';
+import { DictEnums } from '@/stores/enums/dict.enums';
+import { BannerTypeEnums, StatusEnums } from '@/stores/enums/common.enums';
 
 export default function BannerPage() {
   const actionRef = useRef<ProTableRef>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Banner | null>(null);
   const [form] = useForm();
+  const [resetImageUpload, setResetImageUpload] = useState(false);
 
   // 创建/更新
   const saveMutation = useMutation({
@@ -76,11 +79,32 @@ export default function BannerPage() {
 
   const handleEdit = (record: Banner) => {
     setEditingRecord(record);
+
+    // 直接设置表单值，ProFormDateRangePicker 会自动将 startTime 和 endTime 转换为日期对象
+    form.setFieldsValue(record);
+
     setModalOpen(true);
   };
 
   const handleAdd = () => {
     setEditingRecord(null);
+    form.resetFields(); // 新增时重置表单
+
+    // 重置图片上传组件
+    setResetImageUpload(true);
+
+    // 设置默认值
+    form.setFieldsValue({
+      sort: 0,
+      status: 'ENABLED',
+      type: 1,
+    });
+
+    // 重置重置信号，以便下次能再次触发
+    setTimeout(() => {
+      setResetImageUpload(false);
+    }, 0);
+
     setModalOpen(true);
   };
 
@@ -91,25 +115,58 @@ export default function BannerPage() {
       width: 280,
       render: (_, record) => (
         <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ width: 80, height: 60, border: '1px solid #d9d9d9', borderRadius: 4, overflow: 'hidden' }}>
+          <div
+            style={{
+              width: 80,
+              height: 60,
+              border: '1px solid #d9d9d9',
+              borderRadius: 4,
+              overflow: 'hidden',
+            }}
+          >
             {record.type === 1 && record.image ? (
               <Image
                 src={record.image}
                 alt={record.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  cursor: 'pointer',
+                }}
                 onClick={() => {
                   setPreviewImage(record.image!);
                   setPreviewVisible(true);
                 }}
               />
             ) : record.type === 1 ? (
-              <PictureOutlined style={{ fontSize: 24, color: '#999', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }} />
+              <PictureOutlined
+                style={{
+                  fontSize: 24,
+                  color: '#999',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                }}
+              />
             ) : (
-              <VideoCameraOutlined style={{ fontSize: 24, color: '#999', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }} />
+              <VideoCameraOutlined
+                style={{
+                  fontSize: 24,
+                  color: '#999',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                }}
+              />
             )}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 500, marginBottom: 4 }}>{record.name}</div>
+            <div style={{ fontWeight: 500, marginBottom: 4 }}>
+              {record.name}
+            </div>
             <div style={{ fontSize: 12, color: '#999' }}>
               {record.code && `编码: ${record.code}`}
             </div>
@@ -149,8 +206,18 @@ export default function BannerPage() {
       search: false,
       render: (_, record) => (
         <div style={{ fontSize: 12 }}>
-          <div>开始: {record.startTime ? new Date(record.startTime).toLocaleDateString() : '-'}</div>
-          <div>结束: {record.endTime ? new Date(record.endTime).toLocaleDateString() : '-'}</div>
+          <div>
+            开始:{' '}
+            {record.startTime
+              ? new Date(record.startTime).toLocaleDateString()
+              : '-'}
+          </div>
+          <div>
+            结束:{' '}
+            {record.endTime
+              ? new Date(record.endTime).toLocaleDateString()
+              : '-'}
+          </div>
         </div>
       ),
     },
@@ -212,13 +279,6 @@ export default function BannerPage() {
   const [previewImage, setPreviewImage] = useState<string>('');
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
 
-  // 获取轮播图位置字典
-  const { data: positionData, isLoading: positionsLoading } = useQuery({
-    queryKey: ['banner_positions'],
-    queryFn: () => dictApi.getDataByType('banner_position'),
-  });
-  const positionOptions = Array.isArray(positionData) ? positionData : [];
-
   return (
     <>
       {/* 图片预览模态框 */}
@@ -261,24 +321,26 @@ export default function BannerPage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         form={form}
-        initialValues={editingRecord || {
-          sort: 0,
-          status: 'ENABLED',
-          type: 1
-        }}
+        initialValues={
+          editingRecord || {
+            sort: 0,
+            status: 'ENABLED',
+            type: 1,
+          }
+        }
         onFinish={async (values) => {
-          // 处理日期格式，dayjs 对象转换为 ISO 字符串
-          const formatDate = (date: any) => {
-            if (!date) return undefined;
-            if (typeof date === 'string') return date;
-            if (typeof date.toISOString === 'function') return date.toISOString();
-            return undefined;
-          };
-          await saveMutation.mutateAsync({
-            ...values,
-            startTime: formatDate(values.startTime),
-            endTime: formatDate(values.endTime),
-          });
+          // 处理日期格式，将 Date 对象转换为 ISO 字符串
+          const processFormValues: any = { ...values };
+          if (processFormValues.time && processFormValues.time.length > 0) {
+            const [startTime, endTime] = processFormValues.time;
+            processFormValues.startTime = new Date(
+              `${startTime} 00:00:00`,
+            ).toISOString();
+            processFormValues.endTime = new Date(
+              `${endTime} 23:59:59`,
+            ).toISOString();
+          }
+          await saveMutation.mutateAsync(processFormValues as BannerForm);
           return true;
         }}
         modalProps={{
@@ -294,25 +356,16 @@ export default function BannerPage() {
             placeholder="请输入名称"
             rules={[{ required: true, message: '请输入名称' }]}
             fieldProps={{
-              onBlur: (e) => {
+              onChange: (e) => {
                 // 自动生成编码
-                const name = e.target.value;
-                if (name && !editingRecord) {
-                  // 生成简化的编码
-                  const code = name
-                    .toLowerCase()
-                    .replace(/[^a-z0-9\u4e00-\u9fa5]/g, '')
-                    .substring(0, 50);
-                  form.setFieldValue('code', code);
+                const value = e.target.value;
+                if (value && !editingRecord) {
+                  form.setFieldValue('code', generateKeyFromName(value));
                 }
               },
             }}
           />
-          <ProFormText
-            name="code"
-            label="编码"
-            placeholder="请输入编码"
-          />
+          <ProFormText name="code" label="编码" placeholder="请输入编码" />
           <ProFormDigit
             name="sort"
             label="排序"
@@ -320,22 +373,8 @@ export default function BannerPage() {
             min={0}
             fieldProps={{ precision: 0 }}
           />
-          <ProFormSelect
-            name="type"
-            label="类型"
-            options={[
-              { label: '图片', value: 1 },
-              { label: '视频', value: 2 },
-            ]}
-          />
-          <ProFormSelect
-            name="status"
-            label="状态"
-            options={[
-              { label: '启用', value: 'ENABLED' },
-              { label: '禁用', value: 'DISABLED' },
-            ]}
-          />
+          <DictRadio name="type" label="类型" enum={BannerTypeEnums} />
+          <DictRadio name="status" label="状态" enum={StatusEnums} />
         </ProFormGroup>
 
         <ProFormGroup title="图片信息">
@@ -347,7 +386,7 @@ export default function BannerPage() {
               style: { display: 'none' },
             }}
           />
-          <ImageUpload />
+          <ImageUpload reset={resetImageUpload} />
           <ProFormText
             name="linkUrl"
             label="跳转链接"
@@ -356,21 +395,18 @@ export default function BannerPage() {
         </ProFormGroup>
 
         <ProFormGroup title="其他信息">
-          <ProFormSelect
+          <DictSelect
             name="position"
             label="展示位置"
             placeholder="请选择展示位置"
-            disabled={positionsLoading}
-            options={positionOptions.map((item: any) => ({
-              label: item.label,
-              value: item.value,
-            }))}
+            dictType={DictEnums.商城Banner展示位}
           />
+
           <ProFormDateRangePicker
-            name={['startTime', 'endTime']}
+            name={'time'}
             label="有效期"
             fieldProps={{
-              showTime: true,
+              showTime: false,
             }}
           />
           <ProFormTextArea

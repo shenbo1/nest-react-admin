@@ -1210,100 +1210,113 @@ async function main() {
   console.log('测试商品创建完成');
 
   // 创建规格组
-  const colorGroup = await prisma.productSpecGroup.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      id: 1,
-      productId: 1,
-      name: '颜色',
-      sort: 1,
-    },
+  let colorGroup = await prisma.productSpecGroup.findFirst({
+    where: { productId: 1, name: '颜色' }
   });
 
-  const sizeGroup = await prisma.productSpecGroup.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      id: 2,
-      productId: 1,
-      name: '尺寸',
-      sort: 2,
-    },
+  if (!colorGroup) {
+    colorGroup = await prisma.productSpecGroup.create({
+      data: {
+        productId: 1,
+        name: '颜色',
+        sort: 1,
+      },
+    });
+  }
+
+  let sizeGroup = await prisma.productSpecGroup.findFirst({
+    where: { productId: 1, name: '尺寸' }
   });
+
+  if (!sizeGroup) {
+    sizeGroup = await prisma.productSpecGroup.create({
+      data: {
+        productId: 1,
+        name: '尺寸',
+        sort: 2,
+      },
+    });
+  }
 
   console.log('规格组创建完成');
 
   // 创建规格值 - 颜色
-  const colorValues = [
-    { id: 1, specGroupId: 1, name: '白色', sort: 1 },
-    { id: 2, specGroupId: 1, name: '黑色', sort: 2 },
-    { id: 3, specGroupId: 1, name: '红色', sort: 3 },
-    { id: 4, specGroupId: 1, name: '蓝色', sort: 4 },
-  ];
+  const colorValueNames = ['白色', '黑色', '红色', '蓝色'];
+  const colorValues = [];
 
-  // 创建规格值 - 尺寸
-  const sizeValues = [
-    { id: 5, specGroupId: 2, name: 'S', sort: 1 },
-    { id: 6, specGroupId: 2, name: 'M', sort: 2 },
-    { id: 7, specGroupId: 2, name: 'L', sort: 3 },
-    { id: 8, specGroupId: 2, name: 'XL', sort: 4 },
-  ];
-
-  for (let i = 0; i < colorValues.length; i++) {
-    await prisma.productSpecValue.upsert({
-      where: { id: colorValues[i].id },
-      update: {},
-      create: colorValues[i],
+  for (let i = 0; i < colorValueNames.length; i++) {
+    let colorValue = await prisma.productSpecValue.findFirst({
+      where: { specGroupId: colorGroup.id, name: colorValueNames[i] }
     });
+
+    if (!colorValue) {
+      colorValue = await prisma.productSpecValue.create({
+        data: {
+          specGroupId: colorGroup.id,
+          name: colorValueNames[i],
+          sort: i + 1,
+        },
+      });
+    }
+    colorValues.push(colorValue);
   }
 
-  for (let i = 0; i < sizeValues.length; i++) {
-    await prisma.productSpecValue.upsert({
-      where: { id: sizeValues[i].id },
-      update: {},
-      create: sizeValues[i],
+  // 创建规格值 - 尺寸
+  const sizeValueNames = ['S', 'M', 'L', 'XL'];
+  const sizeValues = [];
+
+  for (let i = 0; i < sizeValueNames.length; i++) {
+    let sizeValue = await prisma.productSpecValue.findFirst({
+      where: { specGroupId: sizeGroup.id, name: sizeValueNames[i] }
     });
+
+    if (!sizeValue) {
+      sizeValue = await prisma.productSpecValue.create({
+        data: {
+          specGroupId: sizeGroup.id,
+          name: sizeValueNames[i],
+          sort: i + 1,
+        },
+      });
+    }
+    sizeValues.push(sizeValue);
   }
 
   console.log('规格值创建完成');
 
   // 创建SKU - 所有颜色和尺寸组合
-  let skuCounter = 1;
-  const skus = [];
-
   for (let color of colorValues) {
     for (let size of sizeValues) {
-      skus.push({
-        id: skuCounter,
-        productId: 1,
-        skuCode: `TSHIRT-${color.name.substr(0, 2)}-${size.name}`,
-        specCombination: JSON.stringify({
-          颜色: color.name,
-          尺寸: size.name,
-        }),
-        price: 99.99,
-        stock: 50,
-        sales: Math.floor(Math.random() * 20),
-        weight: 0.25,
-        images: JSON.stringify([
-          `https://example.com/product-${color.name}-${size.name}.jpg`,
-        ]),
+      const skuCode = `TSHIRT-${color.name.substr(0, 2)}-${size.name}`;
+
+      // 检查SKU是否已存在
+      const existingSku = await prisma.productSKU.findFirst({
+        where: { skuCode: skuCode }
       });
-      skuCounter++;
+
+      if (!existingSku) {
+        await prisma.productSKU.create({
+          data: {
+            productId: 1,
+            skuCode: skuCode,
+            specCombination: JSON.stringify({
+              颜色: color.name,
+              尺寸: size.name,
+            }),
+            price: 99.99,
+            stock: 50,
+            sales: Math.floor(Math.random() * 20),
+            weight: 0.25,
+            images: JSON.stringify([
+              `https://example.com/product-${color.name}-${size.name}.jpg`,
+            ]),
+          },
+        });
+      }
     }
   }
 
-  // 批量创建SKU
-  for (let sku of skus) {
-    await prisma.productSKU.upsert({
-      where: { id: sku.id },
-      update: {},
-      create: sku,
-    });
-  }
-
-  console.log(`${skus.length} 个SKU创建完成`);
+  console.log(`${colorValues.length * sizeValues.length} 个SKU创建完成`);
   console.log('SKU系统测试数据创建完成!');
   console.log('数据初始化完成!');
   console.log('默认账号: admin / admin123');

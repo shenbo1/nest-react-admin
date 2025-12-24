@@ -6,7 +6,7 @@ import {
   DeleteOutlined,
   UserOutlined,
   PhoneOutlined,
-  CrownOutlined
+  CrownOutlined,
 } from '@ant-design/icons';
 import {
   ProColumns,
@@ -23,6 +23,8 @@ import { memberApi, Member, MemberForm } from '@/services/mall/member';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
+import { DictRadio, DictSelect } from '@/components/DictSelect';
+import { StatusEnums } from '@/stores/enums/common.enums';
 
 export default function MemberPage() {
   const actionRef = useRef<ProTableRef>(null);
@@ -81,9 +83,12 @@ export default function MemberPage() {
 
   const getGenderText = (gender: number) => {
     switch (gender) {
-      case 1: return '男';
-      case 2: return '女';
-      default: return '未知';
+      case 1:
+        return '男';
+      case 2:
+        return '女';
+      default:
+        return '未知';
     }
   };
 
@@ -243,12 +248,14 @@ export default function MemberPage() {
         title={editingRecord ? '编辑会员' : '新增会员'}
         open={modalOpen}
         onOpenChange={setModalOpen}
-        initialValues={editingRecord || {
-          level: 1,
-          points: 0,
-          status: 1,
-          gender: 0
-        }}
+        initialValues={
+          editingRecord || {
+            level: 1,
+            points: 0,
+            status: 1,
+            gender: 0,
+          }
+        }
         onFinish={async (values) => {
           await saveMutation.mutateAsync(values);
           return true;
@@ -278,21 +285,19 @@ export default function MemberPage() {
             label="手机号"
             placeholder="请输入手机号"
             colProps={{ span: 12 }}
+            fieldProps={{ type: 'tel' }}
           />
           <ProFormText
             name="email"
             label="邮箱"
             placeholder="请输入邮箱"
             colProps={{ span: 12 }}
+            fieldProps={{ type: 'mail' }}
           />
-          <ProFormSelect
+          <DictRadio
             name="gender"
             label="性别"
-            options={[
-              { label: '未知', value: 0 },
-              { label: '男', value: 1 },
-              { label: '女', value: 2 },
-            ]}
+            dictType="sys_user_gender"
             colProps={{ span: 12 }}
           />
           <ProFormDatePicker
@@ -329,13 +334,10 @@ export default function MemberPage() {
             fieldProps={{ precision: 2 }}
             colProps={{ span: 12 }}
           />
-          <ProFormSelect
+          <DictRadio
             name="status"
             label="状态"
-            options={[
-              { label: '启用', value: 1 },
-              { label: '禁用', value: 0 },
-            ]}
+            enum={StatusEnums}
             colProps={{ span: 12 }}
           />
         </ProFormGroup>
