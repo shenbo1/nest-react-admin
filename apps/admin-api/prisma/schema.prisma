@@ -287,8 +287,8 @@ model Member {
   gender        Gender?
   /// 生日
   birthday      DateTime?
-  /// 会员等级
-  level         Int       @default(1)
+  /// 会员等级规则ID
+  memberLevelId Int?      @map("member_level_id")
   /// 积分
   points        Int       @default(0)
   /// 余额
@@ -316,11 +316,277 @@ model Member {
   /// 删除时间
   deletedAt     DateTime? @map("deleted_at")
   orders        Order[]
+  addresses     MemberAddress[]
+  invoices      MemberInvoiceInfo[]
+  loginLogs     MemberLoginLog[]
+  balanceLogs   MemberBalanceLog[]
+  pointLogs     MemberPointLog[]
+  carts         Cart[]
+  cartItems     CartItem[]
 
   @@index([phone])
   @@index([email])
+  @@index([memberLevelId])
+  @@map("member")
+}
+
+/// 会员地址表
+model MemberAddress {
+  id          Int      @id @default(autoincrement())
+  /// 会员ID
+  memberId    Int      @map("member_id")
+  /// 收货人
+  receiver    String   @db.VarChar(100)
+  /// 收货电话
+  phone       String   @db.VarChar(20)
+  /// 省份
+  province    String?  @db.VarChar(50)
+  /// 城市
+  city        String?  @db.VarChar(50)
+  /// 区县
+  district    String?  @db.VarChar(50)
+  /// 街道
+  street      String?  @db.VarChar(100)
+  /// 邮编
+  postalCode  String?  @map("postal_code") @db.VarChar(20)
+  /// 详细地址
+  address     String   @db.VarChar(500)
+  /// 是否默认
+  isDefault   Boolean  @default(false) @map("is_default")
+  /// 备注
+  remark      String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy   String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy   String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted     Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt   DateTime? @map("deleted_at")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([isDefault])
+  @@index([deleted])
+  @@map("member_address")
+}
+
+/// 会员登录日志
+model MemberLoginLog {
+  id        Int      @id @default(autoincrement())
+  /// 会员ID
+  memberId  Int      @map("member_id")
+  /// 登录IP
+  ipaddr    String?  @db.VarChar(50)
+  /// 登录地点
+  loginLocation String? @map("login_location") @db.VarChar(255)
+  /// 浏览器
+  browser   String?  @db.VarChar(50)
+  /// 操作系统
+  os        String?  @db.VarChar(50)
+  /// 状态（0成功 1失败）
+  status    String   @default("0") @db.Char(1)
+  /// 提示信息
+  msg       String?  @db.VarChar(255)
+  /// 登录时间
+  loginTime DateTime @default(now()) @map("login_time")
+  /// 创建者ID
+  createdBy String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted   Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt DateTime? @map("deleted_at")
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([loginTime])
+  @@index([deleted])
+  @@map("member_login_log")
+}
+
+/// 会员余额流水
+model MemberBalanceLog {
+  id           Int      @id @default(autoincrement())
+  /// 会员ID
+  memberId     Int      @map("member_id")
+  /// 变动类型
+  type         BalanceChangeType
+  /// 变动金额（正负）
+  amount       Decimal  @db.Decimal(10, 2)
+  /// 变动前余额
+  beforeAmount Decimal  @map("before_amount") @db.Decimal(10, 2)
+  /// 变动后余额
+  afterAmount  Decimal  @map("after_amount") @db.Decimal(10, 2)
+  /// 过期时间
+  expireTime   DateTime? @map("expire_time")
+  /// 关联订单ID（可选）
+  orderId      Int?     @map("order_id")
+  /// 备注
+  remark       String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy    String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt    DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy    String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted      Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt    DateTime? @map("deleted_at")
+  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@index([deleted])
+  @@map("member_balance_log")
+}
+
+/// 会员积分流水
+model MemberPointLog {
+  id          Int      @id @default(autoincrement())
+  /// 会员ID
+  memberId    Int      @map("member_id")
+  /// 变动类型
+  type        PointChangeType
+  /// 变动积分（正负）
+  points      Int
+  /// 变动前积分
+  beforePoints Int     @map("before_points")
+  /// 变动后积分
+  afterPoints  Int     @map("after_points")
+  /// 过期时间
+  expireTime   DateTime? @map("expire_time")
+  /// 关联订单ID（可选）
+  orderId     Int?     @map("order_id")
+  /// 备注
+  remark      String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy   String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy   String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted     Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt   DateTime? @map("deleted_at")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@index([deleted])
+  @@map("member_point_log")
+}
+
+/// 会员等级规则
+model MemberLevelRule {
+  id           Int      @id @default(autoincrement())
+  /// 等级编码
+  code         String   @unique @db.VarChar(20)
+  /// 等级名称
+  name         String   @db.VarChar(50)
+  /// 等级序号
+  level        Int
+  /// 成长值起始
+  minGrowth    Int      @map("min_growth")
+  /// 成长值结束（为空表示无限）
+  maxGrowth    Int?     @map("max_growth")
+  /// 折扣率（0~1）
+  discountRate Decimal? @map("discount_rate") @db.Decimal(5, 4)
+  /// 积分倍率
+  pointsRate   Decimal? @map("points_rate") @db.Decimal(5, 2)
+  /// 权益说明（横向扩展）
+  benefits     String?  @db.VarChar(1000)
+  /// 状态
+  status       Status   @default(ENABLED)
+  /// 排序
+  sort         Int      @default(0)
+  /// 备注
+  remark       String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy    String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt    DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy    String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted      Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt    DateTime? @map("deleted_at")
+  members      Member[]
+
   @@index([level])
-  @@map("mall_member")
+  @@index([minGrowth, maxGrowth])
+  @@index([deleted])
+  @@map("member_level_rule")
+}
+
+/// 发票主数据（会员发票抬头）
+model MemberInvoiceInfo {
+  id             Int      @id @default(autoincrement())
+  /// 会员ID
+  memberId       Int      @map("member_id")
+  /// 发票类型
+  invoiceType    InvoiceType?  @map("invoice_type")
+  /// 发票抬头类型
+  invoiceTitleType InvoiceTitleType? @map("invoice_title_type")
+  /// 发票抬头
+  invoiceTitle   String?  @map("invoice_title") @db.VarChar(100)
+  /// 发票税号
+  invoiceTaxNo   String?  @map("invoice_tax_no") @db.VarChar(50)
+  /// 发票内容
+  invoiceContent String?  @map("invoice_content") @db.VarChar(200)
+  /// 开票邮箱
+  invoiceEmail   String?  @map("invoice_email") @db.VarChar(100)
+  /// 开票电话
+  invoicePhone   String?  @map("invoice_phone") @db.VarChar(30)
+  /// 开票地址
+  invoiceAddress String?  @map("invoice_address") @db.VarChar(200)
+  /// 开户行
+  bankName       String?  @map("bank_name") @db.VarChar(100)
+  /// 银行账号
+  bankAccount    String?  @map("bank_account") @db.VarChar(50)
+  /// 是否默认
+  isDefault      Boolean  @default(false) @map("is_default")
+  /// 备注
+  remark         String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy      String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt      DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy      String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted        Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt      DateTime? @map("deleted_at")
+  member         Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([invoiceTaxNo])
+  @@index([isDefault])
+  @@index([deleted])
+  @@map("member_invoice_info")
 }
 
 /// 订单管理表
@@ -328,40 +594,102 @@ model Order {
   id             Int            @id @default(autoincrement())
   /// 订单号
   orderNo        String         @unique @map("order_no") @db.VarChar(50)
+  /// 订单类型
+  orderType      String?        @map("order_type") @db.VarChar(30)
+  /// 订单来源
+  orderSource    String?        @map("order_source") @db.VarChar(30)
   /// 会员ID
   memberId       Int?           @map("member_id")
-  /// 订单商品列表
-  items          Json?          @db.Json
+  /// 会员地址ID（可为空，保留地址快照字段）
+  memberAddressId Int?          @map("member_address_id")
+  /// 商品金额
+  goodsAmount    Decimal?       @map("goods_amount") @db.Decimal(10, 2)
   /// 订单总金额
   totalAmount    Decimal        @map("total_amount") @db.Decimal(10, 2)
   /// 优惠金额
   discountAmount Decimal?       @map("discount_amount") @db.Decimal(10, 2)
+  /// 优惠券抵扣金额
+  couponAmount   Decimal?       @map("coupon_amount") @db.Decimal(10, 2)
+  /// 积分抵扣金额
+  pointsAmount   Decimal?       @map("points_amount") @db.Decimal(10, 2)
+  /// 税费
+  taxAmount      Decimal?       @map("tax_amount") @db.Decimal(10, 2)
   /// 运费
   freight        Decimal?       @db.Decimal(10, 2)
   /// 实付金额
   actualAmount   Decimal        @map("actual_amount") @db.Decimal(10, 2)
   /// 已付金额
   payAmount      Decimal?       @map("pay_amount") @db.Decimal(10, 2)
+  /// 已退款金额
+  refundAmount   Decimal?       @map("refund_amount") @db.Decimal(10, 2)
   /// 订单状态
   status         OrderStatus    @default(PENDING)
   /// 支付状态
   payStatus      PayStatus      @default(UNPAID) @map("pay_status")
   /// 发货状态
   shippingStatus ShippingStatus @default(NOT_SHIPPED) @map("shipping_status")
+  /// 退款状态
+  refundStatus   RefundStatus   @default(NONE) @map("refund_status")
   /// 支付方式
   paymentMethod  String?        @map("payment_method") @db.VarChar(50)
+  /// 支付渠道
+  paymentChannel String?        @map("payment_channel") @db.VarChar(50)
+  /// 支付流水号
+  paymentNo      String?        @map("payment_no") @db.VarChar(100)
+  /// 退款流水号
+  refundNo       String?        @map("refund_no") @db.VarChar(100)
   /// 支付时间
   paymentTime    DateTime?      @map("payment_time")
   /// 发货时间
   shippingTime   DateTime?      @map("shipping_time")
   /// 收货时间
   receivedTime   DateTime?      @map("received_time")
+  /// 取消时间
+  cancelTime     DateTime?      @map("cancel_time")
+  /// 完成时间
+  finishTime     DateTime?      @map("finish_time")
+  /// 退款时间
+  refundTime     DateTime?      @map("refund_time")
+  /// 关闭时间
+  closeTime      DateTime?      @map("close_time")
+  /// 取消原因
+  cancelReason   String?        @map("cancel_reason") @db.VarChar(200)
+  /// 关闭原因
+  closeReason    String?        @map("close_reason") @db.VarChar(200)
+  /// 物流公司
+  shippingCompany String?       @map("shipping_company") @db.VarChar(100)
+  /// 运单号
+  shippingNo     String?        @map("shipping_no") @db.VarChar(100)
+  /// 配送方式
+  shippingMethod String?        @map("shipping_method") @db.VarChar(50)
   /// 收货人
   receiver       String?        @db.VarChar(100)
   /// 收货电话
   phone          String?        @db.VarChar(20)
+  /// 收货省份
+  receiverProvince String?      @map("receiver_province") @db.VarChar(50)
+  /// 收货城市
+  receiverCity   String?        @map("receiver_city") @db.VarChar(50)
+  /// 收货区县
+  receiverDistrict String?      @map("receiver_district") @db.VarChar(50)
+  /// 邮编
+  receiverPostalCode String?    @map("receiver_postal_code") @db.VarChar(20)
   /// 收货地址
   address        String?
+  /// 买家备注
+  buyerRemark    String?        @map("buyer_remark") @db.VarChar(500)
+  /// 卖家备注
+  sellerRemark   String?        @map("seller_remark") @db.VarChar(500)
+  /// 发票类型
+  invoiceType    InvoiceType?   @map("invoice_type")
+  /// 发票抬头类型
+  invoiceTitleType InvoiceTitleType? @map("invoice_title_type")
+  /// 发票抬头
+  invoiceTitle   String?        @map("invoice_title") @db.VarChar(100)
+  /// 发票税号
+  invoiceTaxNo   String?        @map("invoice_tax_no") @db.VarChar(50)
+  /// 发票内容
+  invoiceContent String?        @map("invoice_content") @db.VarChar(200)
   /// 备注
   remark         String?        @db.VarChar(500)
   /// 创建者ID
@@ -377,12 +705,410 @@ model Order {
   /// 删除时间
   deletedAt      DateTime?      @map("deleted_at")
   member         Member?        @relation(fields: [memberId], references: [id])
+  memberAddress  MemberAddress? @relation(fields: [memberAddressId], references: [id])
+  orderItems     OrderItem[]
+  payments       OrderPayment[]
+  shipments      OrderShipment[]
+  refunds        OrderRefund[]
+  logs           OrderLog[]
 
   @@index([memberId])
+  @@index([memberAddressId])
   @@index([orderNo])
   @@index([status])
   @@index([payStatus])
+  @@index([shippingStatus])
+  @@index([refundStatus])
   @@map("mall_order")
+}
+
+/// 订单项表
+model OrderItem {
+  id             Int      @id @default(autoincrement())
+  /// 订单ID
+  orderId        Int      @map("order_id")
+  /// 商品ID
+  productId      Int?     @map("product_id")
+  /// SKU ID
+  skuId          Int?     @map("sku_id")
+  /// 商品名称（下单快照）
+  productName    String   @map("product_name") @db.VarChar(200)
+  /// 商品主图
+  productImage   String?  @map("product_image") @db.VarChar(500)
+  /// SKU名称
+  skuName        String?  @map("sku_name") @db.VarChar(200)
+  /// SKU编码
+  skuCode        String?  @map("sku_code") @db.VarChar(50)
+  /// 规格快照
+  specSnapshot   Json?    @map("spec_snapshot") @db.Json
+  /// 成交单价
+  price          Decimal  @db.Decimal(10, 2)
+  /// 原价
+  originalPrice  Decimal? @map("original_price") @db.Decimal(10, 2)
+  /// 数量
+  quantity       Int
+  /// 小计金额
+  totalAmount    Decimal  @map("total_amount") @db.Decimal(10, 2)
+  /// 优惠金额
+  discountAmount Decimal? @map("discount_amount") @db.Decimal(10, 2)
+  /// 实付金额
+  actualAmount   Decimal  @map("actual_amount") @db.Decimal(10, 2)
+  /// 已退款金额
+  refundAmount   Decimal? @map("refund_amount") @db.Decimal(10, 2)
+  /// 退款状态
+  refundStatus   RefundStatus @default(NONE) @map("refund_status")
+  /// 已发货数量
+  shippedQty     Int      @default(0) @map("shipped_qty")
+  /// 已退货数量
+  refundedQty    Int      @default(0) @map("refunded_qty")
+  /// 商品重量
+  weight         Decimal? @db.Decimal(8, 2)
+  /// 备注
+  remark         String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy      String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt      DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy      String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted        Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt      DateTime? @map("deleted_at")
+  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product?  @relation(fields: [productId], references: [id])
+  sku            ProductSKU? @relation(fields: [skuId], references: [id])
+  refunds        OrderRefund[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([skuId])
+  @@index([refundStatus])
+  @@index([deleted])
+  @@map("mall_order_item")
+}
+
+/// 订单支付表
+model OrderPayment {
+  id            Int      @id @default(autoincrement())
+  /// 订单ID
+  orderId       Int      @map("order_id")
+  /// 支付流水号
+  paymentNo     String?  @map("payment_no") @db.VarChar(100)
+  /// 支付渠道
+  paymentChannel String? @map("payment_channel") @db.VarChar(50)
+  /// 支付方式
+  paymentMethod String?  @map("payment_method") @db.VarChar(50)
+  /// 支付状态
+  payStatus     PayStatus @default(UNPAID) @map("pay_status")
+  /// 支付金额
+  payAmount     Decimal  @map("pay_amount") @db.Decimal(10, 2)
+  /// 支付时间
+  payTime       DateTime? @map("pay_time")
+  /// 第三方交易号
+  tradeNo       String?  @map("trade_no") @db.VarChar(100)
+  /// 支付响应
+  payResponse   Json?    @map("pay_response") @db.Json
+  /// 备注
+  remark        String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime? @map("deleted_at")
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([paymentNo])
+  @@index([payStatus])
+  @@map("mall_order_payment")
+}
+
+/// 订单发货表
+model OrderShipment {
+  id              Int            @id @default(autoincrement())
+  /// 订单ID
+  orderId         Int            @map("order_id")
+  /// 物流公司
+  shippingCompany String?        @map("shipping_company") @db.VarChar(100)
+  /// 运单号
+  shippingNo      String?        @map("shipping_no") @db.VarChar(100)
+  /// 配送方式
+  shippingMethod  String?        @map("shipping_method") @db.VarChar(50)
+  /// 发货状态
+  shippingStatus  ShippingStatus @default(NOT_SHIPPED) @map("shipping_status")
+  /// 发货时间
+  shippedTime     DateTime?      @map("shipped_time")
+  /// 签收时间
+  deliveredTime   DateTime?      @map("delivered_time")
+  /// 收货人
+  receiver        String?        @db.VarChar(100)
+  /// 收货电话
+  phone           String?        @db.VarChar(20)
+  /// 收货地址
+  address         String?
+  /// 备注
+  remark          String?        @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?        @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime       @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?        @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean        @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?      @map("deleted_at")
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([shippingNo])
+  @@index([shippingStatus])
+  @@map("mall_order_shipment")
+}
+
+/// 订单退款表
+model OrderRefund {
+  id            Int          @id @default(autoincrement())
+  /// 订单ID
+  orderId       Int          @map("order_id")
+  /// 订单项ID（可为空）
+  orderItemId   Int?         @map("order_item_id")
+  /// 退款单号
+  refundNo      String?      @map("refund_no") @db.VarChar(100)
+  /// 退款状态
+  refundStatus  RefundStatus @default(APPLYING) @map("refund_status")
+  /// 退款金额
+  refundAmount  Decimal      @map("refund_amount") @db.Decimal(10, 2)
+  /// 退款原因
+  refundReason  String?      @map("refund_reason") @db.VarChar(200)
+  /// 退款方式
+  refundMethod  String?      @map("refund_method") @db.VarChar(50)
+  /// 申请时间
+  applyTime     DateTime?    @map("apply_time")
+  /// 审核时间
+  auditTime     DateTime?    @map("audit_time")
+  /// 退款时间
+  refundTime    DateTime?    @map("refund_time")
+  /// 备注
+  remark        String?      @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?      @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime     @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?      @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean      @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime?    @map("deleted_at")
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem     OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([orderItemId])
+  @@index([refundNo])
+  @@index([refundStatus])
+  @@map("mall_order_refund")
+}
+
+/// 订单操作日志
+model OrderLog {
+  id           Int      @id @default(autoincrement())
+  /// 订单ID
+  orderId      Int      @map("order_id")
+  /// 操作动作
+  action       String   @db.VarChar(100)
+  /// 操作前状态
+  fromStatus   String?  @map("from_status") @db.VarChar(50)
+  /// 操作后状态
+  toStatus     String?  @map("to_status") @db.VarChar(50)
+  /// 操作人ID
+  operatorId   String?  @map("operator_id") @db.VarChar(64)
+  /// 操作人名称
+  operatorName String?  @map("operator_name") @db.VarChar(100)
+  /// 备注
+  remark       String?  @db.VarChar(500)
+  /// 创建时间
+  createdAt    DateTime @default(now()) @map("created_at")
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("mall_order_log")
+}
+
+/// 订单发票表
+model Invoice {
+  id            Int           @id @default(autoincrement())
+  /// 订单ID
+  orderId       Int           @map("order_id")
+  /// 发票类型
+  invoiceType   InvoiceType?  @map("invoice_type")
+  /// 发票抬头类型
+  invoiceTitleType InvoiceTitleType? @map("invoice_title_type")
+  /// 发票抬头
+  invoiceTitle  String?       @map("invoice_title") @db.VarChar(100)
+  /// 发票税号
+  invoiceTaxNo  String?       @map("invoice_tax_no") @db.VarChar(50)
+  /// 发票内容
+  invoiceContent String?      @map("invoice_content") @db.VarChar(200)
+  /// 开票金额
+  invoiceAmount Decimal?      @map("invoice_amount") @db.Decimal(10, 2)
+  /// 发票状态
+  invoiceStatus InvoiceStatus @default(APPLYING) @map("invoice_status")
+  /// 申请时间
+  applyTime     DateTime?     @map("apply_time")
+  /// 开票时间
+  issueTime     DateTime?     @map("issue_time")
+  /// 备注
+  remark        String?       @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?       @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime      @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?       @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean       @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime?     @map("deleted_at")
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([invoiceStatus])
+  @@map("mall_invoice")
+}
+
+/// 售后单
+model AfterSale {
+  id            Int             @id @default(autoincrement())
+  /// 订单ID
+  orderId       Int             @map("order_id")
+  /// 售后单号
+  afterSaleNo   String?         @map("after_sale_no") @db.VarChar(100)
+  /// 售后类型
+  type          AfterSaleType   @default(RETURN) @map("type")
+  /// 售后状态
+  status        AfterSaleStatus @default(APPLYING) @map("status")
+  /// 售后原因
+  reason        String?         @db.VarChar(200)
+  /// 售后金额
+  amount        Decimal?        @db.Decimal(10, 2)
+  /// 申请时间
+  applyTime     DateTime?       @map("apply_time")
+  /// 审核时间
+  auditTime     DateTime?       @map("audit_time")
+  /// 完成时间
+  finishTime    DateTime?       @map("finish_time")
+  /// 备注
+  remark        String?         @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?         @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime        @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?         @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean         @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime?       @map("deleted_at")
+  order         Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items         AfterSaleItem[]
+  logs          AfterSaleLog[]
+
+  @@index([orderId])
+  @@index([afterSaleNo])
+  @@index([status])
+  @@map("mall_after_sale")
+}
+
+/// 售后明细
+model AfterSaleItem {
+  id           Int         @id @default(autoincrement())
+  /// 售后单ID
+  afterSaleId  Int         @map("after_sale_id")
+  /// 订单项ID
+  orderItemId  Int?        @map("order_item_id")
+  /// 商品ID
+  productId    Int?        @map("product_id")
+  /// SKU ID
+  skuId        Int?        @map("sku_id")
+  /// 商品名称快照
+  productName  String?     @map("product_name") @db.VarChar(200)
+  /// SKU名称快照
+  skuName      String?     @map("sku_name") @db.VarChar(200)
+  /// 单价快照
+  price        Decimal?    @db.Decimal(10, 2)
+  /// 数量
+  quantity     Int         @default(1)
+  /// 退款金额
+  refundAmount Decimal?    @map("refund_amount") @db.Decimal(10, 2)
+  /// 备注
+  remark       String?     @db.VarChar(500)
+  /// 创建者ID
+  createdBy    String?     @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt    DateTime    @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy    String?     @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted      Boolean     @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt    DateTime?   @map("deleted_at")
+  afterSale    AfterSale   @relation(fields: [afterSaleId], references: [id], onDelete: Cascade)
+  orderItem    OrderItem?  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product      Product?    @relation(fields: [productId], references: [id])
+  sku          ProductSKU? @relation(fields: [skuId], references: [id])
+
+  @@index([afterSaleId])
+  @@index([orderItemId])
+  @@index([productId])
+  @@index([skuId])
+  @@map("mall_after_sale_item")
+}
+
+/// 售后操作日志
+model AfterSaleLog {
+  id            Int       @id @default(autoincrement())
+  /// 售后单ID
+  afterSaleId   Int       @map("after_sale_id")
+  /// 操作动作
+  action        String    @db.VarChar(100)
+  /// 操作前状态
+  fromStatus    String?   @map("from_status") @db.VarChar(50)
+  /// 操作后状态
+  toStatus      String?   @map("to_status") @db.VarChar(50)
+  /// 操作人ID
+  operatorId    String?   @map("operator_id") @db.VarChar(64)
+  /// 操作人名称
+  operatorName  String?   @map("operator_name") @db.VarChar(100)
+  /// 备注
+  remark        String?   @db.VarChar(500)
+  /// 创建时间
+  createdAt     DateTime  @default(now()) @map("created_at")
+  afterSale     AfterSale @relation(fields: [afterSaleId], references: [id], onDelete: Cascade)
+
+  @@index([afterSaleId])
+  @@map("mall_after_sale_log")
 }
 
 /// 商品管理表
@@ -435,6 +1161,7 @@ model Product {
   category      Category?          @relation(fields: [categoryId], references: [id])
   skus          ProductSKU[]
   specGroups    ProductSpecGroup[]
+  cartItems     CartItem[]
 
   @@index([categoryId])
   @@index([status])
@@ -532,6 +1259,7 @@ model ProductSKU {
   deletedAt       DateTime? @map("deleted_at")
   product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   stockLogs       ProductStockLog[]
+  cartItems       CartItem[]
 
   @@index([productId, skuCode])
   @@index([productId, price, stock])
@@ -541,12 +1269,91 @@ model ProductSKU {
   @@map("mall_product_sku")
 }
 
+/// 购物车表
+model Cart {
+  id         Int      @id @default(autoincrement())
+  /// 会员ID
+  memberId   Int      @map("member_id")
+  /// 备注
+  remark     String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy  String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt  DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy  String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted    Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt  DateTime? @map("deleted_at")
+  member     Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  items      CartItem[]
+
+  @@index([memberId])
+  @@index([deleted])
+  @@map("mall_cart")
+}
+
+/// 购物车项表
+model CartItem {
+  id           Int      @id @default(autoincrement())
+  /// 购物车ID
+  cartId       Int      @map("cart_id")
+  /// 会员ID
+  memberId     Int      @map("member_id")
+  /// 商品ID
+  productId    Int?     @map("product_id")
+  /// SKU ID
+  skuId        Int?     @map("sku_id")
+  /// 商品名称快照
+  productName  String?  @map("product_name") @db.VarChar(200)
+  /// SKU名称快照
+  skuName      String?  @map("sku_name") @db.VarChar(200)
+  /// SKU编码快照
+  skuCode      String?  @map("sku_code") @db.VarChar(50)
+  /// 规格快照
+  specSnapshot Json?    @map("spec_snapshot") @db.Json
+  /// 单价快照
+  price        Decimal? @db.Decimal(10, 2)
+  /// 数量
+  quantity     Int      @default(1)
+  /// 是否选中
+  checked      Boolean  @default(true)
+  /// 备注
+  remark       String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy    String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt    DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy    String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted      Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt    DateTime? @map("deleted_at")
+  cart         Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  member       Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  product      Product?  @relation(fields: [productId], references: [id])
+  sku          ProductSKU? @relation(fields: [skuId], references: [id])
+
+  @@index([cartId])
+  @@index([memberId])
+  @@index([productId])
+  @@index([skuId])
+  @@index([deleted])
+  @@map("mall_cart_item")
+}
+
 model ProductStockLog {
   id          Int      @id @default(autoincrement())
   /// SKU ID
   skuId       Int      @map("sku_id")
-  /// 库存变动类型: in-入库, out-出库, order-订单, refund-退款, manual-手动调整
-  type        String   @db.VarChar(20)
+  /// 库存变动类型
+  type        StockChangeType
   /// 变动数量（正数为增加，负数为减少）
   quantity    Int
   /// 变动前库存
@@ -707,14 +1514,6 @@ enum Gender {
   UNKNOWN
 }
 
-enum MemberLevel {
-  ONE
-  TWO
-  THREE
-  FOUR
-  FIVE
-}
-
 enum MenuType {
   DIR
   MENU
@@ -769,6 +1568,114 @@ enum ShippingStatus {
   SHIPPED     @map("shipped")
   /// 已送达
   DELIVERED   @map("delivered")
+}
+
+/// 退款状态枚举
+enum RefundStatus {
+  /// 无退款
+  NONE      @map("none")
+  /// 退款申请中
+  APPLYING  @map("applying")
+  /// 已同意
+  APPROVED  @map("approved")
+  /// 已拒绝
+  REJECTED  @map("rejected")
+  /// 退款中
+  REFUNDING @map("refunding")
+  /// 已退款
+  REFUNDED  @map("refunded")
+}
+
+/// 发票类型枚举
+enum InvoiceType {
+  /// 电子普票
+  ELECTRONIC @map("electronic")
+  /// 纸质普票
+  PAPER      @map("paper")
+  /// 增值税专票
+  VAT_SPECIAL @map("vat_special")
+}
+
+/// 发票抬头类型枚举
+enum InvoiceTitleType {
+  /// 个人
+  PERSONAL @map("personal")
+  /// 企业
+  COMPANY  @map("company")
+}
+
+/// 余额变动类型枚举
+enum BalanceChangeType {
+  /// 充值
+  RECHARGE @map("recharge")
+  /// 消费
+  CONSUME  @map("consume")
+  /// 退款
+  REFUND   @map("refund")
+  /// 调整
+  ADJUST   @map("adjust")
+}
+
+/// 积分变动类型枚举
+enum PointChangeType {
+  /// 获取
+  EARN   @map("earn")
+  /// 使用
+  USE    @map("use")
+  /// 退款
+  REFUND @map("refund")
+  /// 调整
+  ADJUST @map("adjust")
+}
+
+/// 库存变动类型枚举
+enum StockChangeType {
+  /// 入库
+  IN     @map("in")
+  /// 出库
+  OUT    @map("out")
+  /// 订单
+  ORDER  @map("order")
+  /// 退款
+  REFUND @map("refund")
+  /// 手动调整
+  MANUAL @map("manual")
+}
+
+/// 发票状态枚举
+enum InvoiceStatus {
+  /// 申请中
+  APPLYING @map("applying")
+  /// 已开票
+  ISSUED   @map("issued")
+  /// 已作废
+  VOIDED   @map("voided")
+}
+
+/// 售后类型枚举
+enum AfterSaleType {
+  /// 退货
+  RETURN  @map("return")
+  /// 换货
+  EXCHANGE @map("exchange")
+  /// 维修
+  REPAIR  @map("repair")
+}
+
+/// 售后状态枚举
+enum AfterSaleStatus {
+  /// 申请中
+  APPLYING   @map("applying")
+  /// 已同意
+  APPROVED   @map("approved")
+  /// 已拒绝
+  REJECTED   @map("rejected")
+  /// 处理中
+  PROCESSING @map("processing")
+  /// 已完成
+  COMPLETED  @map("completed")
+  /// 已关闭
+  CLOSED     @map("closed")
 }
 
 /// 商品销售状态枚举
