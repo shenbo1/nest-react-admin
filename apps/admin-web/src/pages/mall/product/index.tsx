@@ -1,17 +1,18 @@
 import { useRef, useState, useEffect } from 'react';
-import { message, Modal, Space, Tag, Table, Button, Input, Popconfirm, Empty, Tabs, Card } from 'antd';
+import { message, Modal, Space, Tag, Table, Button, Input, Popconfirm, Empty, Tabs, Card, Switch, Upload, Form } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   AppstoreOutlined,
   TagOutlined,
+  CopyOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import {
   ProColumns,
   ModalForm,
   ProFormText,
-  ProFormTextArea,
   ProFormDigit,
   ProFormSelect,
   ProFormGroup,
@@ -24,6 +25,7 @@ import {
   ProductStatus,
   ProductSpecGroup,
   ProductSku,
+  getProductSpecGroups,
   createProductSpecGroup,
   updateProductSpecGroup,
   deleteProductSpecGroup,
@@ -35,6 +37,7 @@ import { categoryApi, Category } from '@/services/mall/category';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
+import { uploadImage } from '@/services/upload';
 
 // 辅助函数：将 Prisma Decimal 转换为数字
 const toNumber = (value: any): number => {
@@ -59,6 +62,7 @@ export default function ProductPage() {
   const [editingRecord, setEditingRecord] = useState<Product | null>(null);
   const [skuList, setSkuList] = useState<ProductSku[]>([]);
   const [specGroups, setSpecGroups] = useState<ProductSpecGroup[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   // 获取分类列表
   const { data: categoryList } = useQuery({
@@ -92,6 +96,26 @@ export default function ProductPage() {
     setSpecGroups([]);
     setActiveTab('basic');
     setModalOpen(true);
+  };
+
+  // 处理复制
+  const duplicateMutation = useMutation({
+    mutationFn: productApi.duplicate,
+    onSuccess: () => {
+      message.success('商品复制成功');
+      actionRef.current?.reload();
+    },
+    onError: (error: any) => {
+      message.error(error?.message || '复制失败');
+    },
+  });
+
+  const handleDuplicate = (record: Product) => {
+    Modal.confirm({
+      title: '确认复制',
+      content: `确定要复制「${record.name}」吗？复制后将成为一个新的草稿商品。`,
+      onOk: () => duplicateMutation.mutate(record.id),
+    });
   };
 
   // 创建/更新
@@ -150,7 +174,110 @@ export default function ProductPage() {
     });
   };
 
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: productApi.toggleStatus,
+    onSuccess: () => {
+      message.success('状态修改成功');
+      actionRef.current?.reload();
+    },
+    onError: (error: any) => {
+      message.error(error?.message || '状态修改失败');
+    },
+  });
+
+  const handleStatusChange = (record: Product) => {
+    Modal.confirm({
+      title: '确认切换状态',
+      content: `确定要${record.status === 'ON_SHELF' ? '下架' : '上架'}「${record.name}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
+    });
+  };
+
+  // 批量操作
+  const batchToggleStatusMutation = useMutation({
+    mutationFn: productApi.batchToggleStatus,
+    onSuccess: () => {
+      message.success('批量状态修改成功');
+      setSelectedRowKeys([]);
+      actionRef.current?.reload();
+    },
+    onError: (error: any) => {
+      message.error(error?.message || '批量操作失败');
+    },
+  });
+
+  const batchDeleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await Promise.all(ids.map(id => productApi.delete(id)));
+    },
+    onSuccess: () => {
+      message.success('批量删除成功');
+      setSelectedRowKeys([]);
+      actionRef.current?.reload();
+    },
+    onError: (error: any) => {
+      message.error(error?.message || '批量删除失败');
+    },
+  });
+
+  const handleBatchShelf = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择商品');
+      return;
+    }
+    Modal.confirm({
+      title: '确认批量上架',
+      content: `确定要将选中的 ${selectedRowKeys.length} 个商品上架吗？`,
+      onOk: () => batchToggleStatusMutation.mutate(selectedRowKeys as number[]),
+    });
+  };
+
+  const handleBatchUnshelf = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择商品');
+      return;
+    }
+    Modal.confirm({
+      title: '确认批量下架',
+      content: `确定要将选中的 ${selectedRowKeys.length} 个商品下架吗？`,
+      onOk: () => batchToggleStatusMutation.mutate(selectedRowKeys as number[]),
+    });
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择商品');
+      return;
+    }
+    Modal.confirm({
+      title: '确认批量删除',
+      content: `确定要删除选中的 ${selectedRowKeys.length} 个商品吗？删除后无法恢复。`,
+      okType: 'danger',
+      onOk: () => batchDeleteMutation.mutate(selectedRowKeys as number[]),
+    });
+  };
+
   const columns: ProColumns<Product>[] = [
+    {
+      title: '商品图片',
+      dataIndex: 'mainImage',
+      width: 100,
+      render: (_, record) => (
+        record.mainImage ? (
+          <img
+            src={record.mainImage}
+            alt="商品图"
+            style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
+          />
+        ) : (
+          <div style={{ width: 60, height: 60, background: '#f5f5f5', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#999', fontSize: 12 }}>暂无图</span>
+          </div>
+        )
+      ),
+      search: false,
+    },
     {
       title: '商品信息',
       dataIndex: 'name',
@@ -217,6 +344,27 @@ export default function ProductPage() {
       ),
     },
     {
+      title: '规格',
+      dataIndex: 'specGroups',
+      width: 150,
+      search: false,
+      render: (_, record) => {
+        const groups = record.specGroups || [];
+        if (groups.length === 0) {
+          return <span style={{ color: '#999' }}>无规格</span>;
+        }
+        return (
+          <Space wrap>
+            {groups.map((group: any) => (
+              <Tag key={group.id} color="cyan">
+                {group.name}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
       title: '销量',
       dataIndex: 'sales',
       width: 80,
@@ -233,6 +381,16 @@ export default function ProductPage() {
         OFF_SHELF: { text: '下架', status: 'Error' },
         DRAFT: { text: '草稿', status: 'Warning' },
       },
+      render: (_, record) => (
+        <Switch
+          checked={record.status === 'ON_SHELF'}
+          checkedChildren="上架"
+          unCheckedChildren={record.status === 'DRAFT' ? '草稿' : '下架'}
+          onClick={() => handleStatusChange(record)}
+          loading={toggleStatusMutation.isPending}
+          disabled={record.status === 'DRAFT'}
+        />
+      ),
     },
     {
       title: '排序',
@@ -250,9 +408,11 @@ export default function ProductPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 200,
+      width: 380,
       fixed: 'right',
-      render: (_, record) => (
+      render: (_, record) => {
+        console.log('操作列渲染, record:', record);
+        return (
         <Space>
           <PermissionButton
             permission={MALL.PRODUCT.EDIT}
@@ -262,6 +422,41 @@ export default function ProductPage() {
             onClick={() => handleEdit(record)}
           >
             编辑
+          </PermissionButton>
+          <PermissionButton
+            permission={MALL.PRODUCT_SPEC_GROUP.LIST}
+            type="link"
+            size="small"
+            icon={<AppstoreOutlined />}
+            onClick={() => {
+              setEditingRecord(record);
+              setModalOpen(true);
+              setActiveTab('spec');
+            }}
+          >
+            商品规格
+          </PermissionButton>
+          <PermissionButton
+            permission={MALL.PRODUCT_SKU.LIST}
+            type="link"
+            size="small"
+            icon={<TagOutlined />}
+            onClick={() => {
+              setEditingRecord(record);
+              setModalOpen(true);
+              setActiveTab('sku');
+            }}
+          >
+            SKU管理
+          </PermissionButton>
+          <PermissionButton
+            permission={MALL.PRODUCT.ADD}
+            type="link"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => handleDuplicate(record)}
+          >
+            复制
           </PermissionButton>
           <PermissionButton
             permission={MALL.PRODUCT.REMOVE}
@@ -274,7 +469,8 @@ export default function ProductPage() {
             删除
           </PermissionButton>
         </Space>
-      ),
+        );
+      },
     },
   ];
 
@@ -288,6 +484,11 @@ export default function ProductPage() {
     }
   }, [modalOpen, activeTab, editingRecord?.id]);
 
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
+  };
+
   return (
     <>
       <ProTable
@@ -297,7 +498,30 @@ export default function ProductPage() {
         rowKey="id"
         scroll={{ x: 1600 }}
         api="/mall/product"
+        rowSelection={rowSelection}
         toolBarRender={() => [
+          <PermissionButton
+            key="batch-shelf"
+            permission={MALL.PRODUCT.EDIT}
+            onClick={handleBatchShelf}
+          >
+            批量上架
+          </PermissionButton>,
+          <PermissionButton
+            key="batch-unshelf"
+            permission={MALL.PRODUCT.EDIT}
+            onClick={handleBatchUnshelf}
+          >
+            批量下架
+          </PermissionButton>,
+          <PermissionButton
+            key="batch-delete"
+            permission={MALL.PRODUCT.REMOVE}
+            danger
+            onClick={handleBatchDelete}
+          >
+            批量删除
+          </PermissionButton>,
           <PermissionButton
             key="add"
             permission={MALL.PRODUCT.ADD}
@@ -330,7 +554,8 @@ export default function ProductPage() {
           sort: 0,
           status: 'ON_SHELF' as ProductStatus,
           defaultStock: 0,
-          sales: 0
+          sales: 0,
+          mainImages: [],
         }}
         onFinish={async (values) => {
           await saveMutation.mutateAsync(values);
@@ -443,14 +668,41 @@ export default function ProductPage() {
                       placeholder="如：件、个、箱"
                       colProps={{ span: 12 }}
                     />
-                    <ProFormTextArea
+                    <Form.Item
                       name="content"
                       label="商品详情"
-                      placeholder="请输入商品详情描述"
-                      fieldProps={{
-                        autoSize: { minRows: 3, maxRows: 6 },
-                      }}
-                    />
+                      style={{ width: '100%' }}
+                    >
+                      <Input.TextArea
+                        placeholder="请输入商品详情描述"
+                        autoSize={{ minRows: 4, maxRows: 10 }}
+                      />
+                    </Form.Item>
+                  </ProFormGroup>
+
+                  <ProFormGroup title="商品图片">
+                    <div style={{ display: 'flex', gap: 40 }}>
+                      {/* 主图上传 */}
+                      <div>
+                        <div style={{ marginBottom: 8, fontWeight: 500 }}>商品主图</div>
+                        <Form.Item name="mainImage" noStyle>
+                          <SingleImageUpload />
+                        </Form.Item>
+                        <div style={{ color: '#999', fontSize: 12, marginTop: 8 }}>
+                          建议尺寸：800x800像素
+                        </div>
+                      </div>
+                      {/* 附图/轮播图上传 */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: 8, fontWeight: 500 }}>商品附图/轮播图</div>
+                        <Form.Item name="images" noStyle>
+                          <MultiImageUpload />
+                        </Form.Item>
+                        <div style={{ color: '#999', fontSize: 12, marginTop: 8 }}>
+                          最多可上传 9 张图片
+                        </div>
+                      </div>
+                    </div>
                   </ProFormGroup>
                 </>
               ),
@@ -468,6 +720,14 @@ export default function ProductPage() {
                   productId={editingRecord?.id}
                   specGroups={specGroups}
                   onSpecGroupsChange={setSpecGroups}
+                  onRefreshProductDetail={() => {
+                    if (editingRecord?.id) {
+                      loadProductDetail(editingRecord.id).then(detail => {
+                        setSkuList(detail.skus || []);
+                        setSpecGroups(detail.specGroups || []);
+                      });
+                    }
+                  }}
                 />
               ),
             },
@@ -495,15 +755,302 @@ export default function ProductPage() {
   );
 }
 
+// 单图上传组件
+function SingleImageUpload() {
+  const [loading, setLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+
+  return (
+    <Form.Item noStyle shouldUpdate>
+      {({ getFieldValue }) => {
+        const mainImage = getFieldValue('mainImage');
+
+        const handleUpload = async (file: File) => {
+          setLoading(true);
+          try {
+            const res = await uploadImage(file);
+            // 设置主图
+            const input = document.querySelector('[name="mainImage"]') as HTMLInputElement;
+            if (input) {
+              input.value = res.url;
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          } catch (error) {
+            message.error('上传失败');
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const handleRemove = () => {
+          const input = document.querySelector('[name="mainImage"]') as HTMLInputElement;
+          if (input) {
+            input.value = '';
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        };
+
+        const handlePreview = () => {
+          if (mainImage) {
+            setPreviewImage(mainImage);
+            setPreviewOpen(true);
+          }
+        };
+
+        return (
+          <div style={{ position: 'relative', width: 120, height: 120 }}>
+            <Upload
+              listType="picture-card"
+              showUploadList={false}
+              accept="image/*"
+              maxCount={1}
+              customRequest={async ({ file, onSuccess, onError }) => {
+                try {
+                  await handleUpload(file as File);
+                  onSuccess?.({ url: '' });
+                } catch (error) {
+                  onError?.(error as Error);
+                }
+              }}
+            >
+              {mainImage ? (
+                <img
+                  src={mainImage}
+                  alt="主图"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : loading ? (
+                <span>上传中...</span>
+              ) : (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>上传</div>
+                </div>
+              )}
+            </Upload>
+            {mainImage && (
+              <>
+                <PermissionButton
+                  type="primary"
+                  danger
+                  size="small"
+                  shape="circle"
+                  permission={MALL.PRODUCT.EDIT}
+                  icon={<span style={{ fontSize: 12 }}>×</span>}
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    width: 18,
+                    height: 18,
+                    padding: 0,
+                  }}
+                  onClick={handleRemove}
+                >
+                  <span style={{ fontSize: 12 }}>×</span>
+                </PermissionButton>
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    color: '#fff',
+                    textAlign: 'center',
+                    fontSize: 11,
+                    padding: '2px 0',
+                    cursor: 'pointer',
+                  }}
+                  onClick={handlePreview}
+                >
+                  预览
+                </div>
+              </>
+            )}
+            <Modal
+              open={previewOpen}
+              title="主图预览"
+              footer={null}
+              onCancel={() => setPreviewOpen(false)}
+              width={600}
+            >
+              <img
+                alt="主图"
+                style={{ width: '100%', maxHeight: 400, objectFit: 'contain' }}
+                src={previewImage}
+              />
+            </Modal>
+          </div>
+        );
+      }}
+    </Form.Item>
+  );
+}
+
+// 多图上传组件（附图/轮播图）
+function MultiImageUpload() {
+  const [loading, setLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+
+  return (
+    <Form.Item noStyle shouldUpdate>
+      {({ getFieldValue }) => {
+        const images: string[] = getFieldValue('images') || [];
+
+        const handleUpload = async (file: File) => {
+          setLoading(true);
+          try {
+            const res = await uploadImage(file);
+            const newImages = [...(images || []), res.url].slice(0, 9); // 最多9张
+            const input = document.querySelector('[name="images"]') as HTMLInputElement;
+            if (input) {
+              input.value = JSON.stringify(newImages);
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          } catch (error) {
+            message.error('上传失败');
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const handleRemove = (index: number) => {
+          const newImages = images.filter((_, i) => i !== index);
+          const input = document.querySelector('[name="images"]') as HTMLInputElement;
+          if (input) {
+            input.value = JSON.stringify(newImages);
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        };
+
+        const handlePreview = (url: string) => {
+          setPreviewImage(url);
+          setPreviewOpen(true);
+        };
+
+        return (
+          <div style={{ width: '100%' }}>
+            <Upload
+              listType="picture-card"
+              showUploadList={false}
+              accept="image/*"
+              disabled={images.length >= 9}
+              customRequest={async ({ file, onSuccess, onError }) => {
+                try {
+                  await handleUpload(file as File);
+                  onSuccess?.({ url: '' });
+                } catch (error) {
+                  onError?.(error as Error);
+                }
+              }}
+            >
+              {loading ? (
+                <span>上传中...</span>
+              ) : (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>上传</div>
+                </div>
+              )}
+            </Upload>
+
+            {images.length > 0 && (
+              <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                {images.map((url, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      position: 'relative',
+                      width: 80,
+                      height: 80,
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handlePreview(url)}
+                  >
+                    <img
+                      src={url}
+                      alt={`附图${index + 1}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        color: '#fff',
+                        textAlign: 'center',
+                        fontSize: 10,
+                        padding: '1px 0',
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                    <PermissionButton
+                      type="primary"
+                      danger
+                      size="small"
+                      shape="circle"
+                      permission={MALL.PRODUCT.EDIT}
+                      icon={<span style={{ fontSize: 12 }}>×</span>}
+                      style={{
+                        position: 'absolute',
+                        top: -5,
+                        right: -5,
+                        width: 16,
+                        height: 16,
+                        padding: 0,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(index);
+                      }}
+                    >
+                      <span style={{ fontSize: 12 }}>×</span>
+                    </PermissionButton>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Modal
+              open={previewOpen}
+              title="附图预览"
+              footer={null}
+              onCancel={() => setPreviewOpen(false)}
+              width={600}
+            >
+              <img
+                alt="附图"
+                style={{ width: '100%', maxHeight: 400, objectFit: 'contain' }}
+                src={previewImage}
+              />
+            </Modal>
+          </div>
+        );
+      }}
+    </Form.Item>
+  );
+}
+
 // 规格组管理 Tab
 function SpecGroupTab({
   productId,
   specGroups,
   onSpecGroupsChange,
+  onRefreshProductDetail,
 }: {
   productId?: number;
   specGroups: ProductSpecGroup[];
   onSpecGroupsChange: (groups: ProductSpecGroup[]) => void;
+  onRefreshProductDetail?: () => void;
 }) {
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [newGroupName, setNewGroupName] = useState('');
@@ -527,11 +1074,18 @@ function SpecGroupTab({
       message.success('添加成功');
       setNewGroupName('');
       // 刷新列表
-      const res = await fetch(`/api/mall/product-spec-group?productId=${productId}`).then(r => r.json());
+      console.log('刷新规格组列表，productId:', productId);
+      const res = await getProductSpecGroups({ productId });
+      console.log('规格组列表响应:', res);
       if (res.data) {
         onSpecGroupsChange(res.data);
       }
+      // 刷新商品详情以确保数据同步
+      if (onRefreshProductDetail) {
+        onRefreshProductDetail();
+      }
     } catch (error) {
+      console.error('添加规格组失败:', error);
       message.error('添加失败');
     }
   };
@@ -543,9 +1097,13 @@ function SpecGroupTab({
       setEditingRow(null);
       // 刷新列表
       if (productId) {
-        const res = await fetch(`/api/mall/product-spec-group?productId=${productId}`).then(r => r.json());
+        const res = await getProductSpecGroups({ productId });
         if (res.data) {
           onSpecGroupsChange(res.data);
+        }
+        // 刷新商品详情以确保数据同步
+        if (onRefreshProductDetail) {
+          onRefreshProductDetail();
         }
       }
     } catch (error) {
@@ -559,9 +1117,13 @@ function SpecGroupTab({
       message.success('删除成功');
       // 刷新列表
       if (productId) {
-        const res = await fetch(`/api/mall/product-spec-group?productId=${productId}`).then(r => r.json());
+        const res = await getProductSpecGroups({ productId });
         if (res.data) {
           onSpecGroupsChange(res.data);
+        }
+        // 刷新商品详情以确保数据同步
+        if (onRefreshProductDetail) {
+          onRefreshProductDetail();
         }
       }
     } catch (error) {
@@ -585,10 +1147,24 @@ function SpecGroupTab({
       setNewValueNames(prev => ({ ...prev, [specGroupId]: '' }));
       // 刷新列表
       if (productId) {
-        const res = await fetch(`/api/mall/product-spec-group?productId=${productId}`).then(r => r.json());
+        const res = await getProductSpecGroups({ productId });
         if (res.data) {
           onSpecGroupsChange(res.data);
         }
+        // 刷新商品详情以确保数据同步
+        if (onRefreshProductDetail) {
+          onRefreshProductDetail();
+        }
+      }
+      if (productId) {
+        const res = await getProductSpecGroups({ productId });
+        if (res.data) {
+          onSpecGroupsChange(res.data);
+        }
+      }
+      // 刷新商品详情以确保数据同步
+      if (onRefreshProductDetail) {
+        onRefreshProductDetail();
       }
     } catch (error) {
       message.error('添加失败');
@@ -601,10 +1177,24 @@ function SpecGroupTab({
       message.success('删除成功');
       // 刷新列表
       if (productId) {
-        const res = await fetch(`/api/mall/product-spec-group?productId=${productId}`).then(r => r.json());
+        const res = await getProductSpecGroups({ productId });
         if (res.data) {
           onSpecGroupsChange(res.data);
         }
+        // 刷新商品详情以确保数据同步
+        if (onRefreshProductDetail) {
+          onRefreshProductDetail();
+        }
+      }
+      if (productId) {
+        const res = await getProductSpecGroups({ productId });
+        if (res.data) {
+          onSpecGroupsChange(res.data);
+        }
+      }
+      // 刷新商品详情以确保数据同步
+      if (onRefreshProductDetail) {
+        onRefreshProductDetail();
       }
     } catch (error) {
       message.error('删除失败');
@@ -621,9 +1211,14 @@ function SpecGroupTab({
           onPressEnter={handleAddGroup}
           style={{ width: 200 }}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddGroup}>
+        <PermissionButton
+          type="primary"
+          permission={MALL.PRODUCT_SPEC_GROUP.ADD}
+          icon={<PlusOutlined />}
+          onClick={handleAddGroup}
+        >
           添加规格组
-        </Button>
+        </PermissionButton>
         {!productId && (
           <span style={{ color: '#999', marginLeft: 8 }}>（请先保存商品基本信息）</span>
         )}
@@ -646,16 +1241,17 @@ function SpecGroupTab({
                       style={{ width: 150 }}
                       id={`group-name-${group.id}`}
                     />
-                    <Button
+                    <PermissionButton
                       type="link"
                       size="small"
+                      permission={MALL.PRODUCT_SPEC_GROUP.EDIT}
                       onClick={() => {
                         const input = document.getElementById(`group-name-${group.id}`) as HTMLInputElement;
                         handleUpdateGroup(group.id, input?.value || group.name, group.sort);
                       }}
                     >
                       保存
-                    </Button>
+                    </PermissionButton>
                     <Button type="link" size="small" onClick={() => setEditingRow(null)}>
                       取消
                     </Button>
@@ -696,9 +1292,14 @@ function SpecGroupTab({
                 onPressEnter={() => handleAddValue(group.id)}
                 style={{ width: 150 }}
               />
-              <Button size="small" icon={<PlusOutlined />} onClick={() => handleAddValue(group.id)}>
+              <PermissionButton
+                size="small"
+                permission={MALL.PRODUCT_SPEC_VALUE.ADD}
+                icon={<PlusOutlined />}
+                onClick={() => handleAddValue(group.id)}
+              >
                 添加
-              </Button>
+              </PermissionButton>
             </div>
           </Card>
         ))
@@ -894,9 +1495,14 @@ function SkuManageTab({
                 style={{ width: 100 }}
               />
             </div>
-            <Button type="primary" onClick={handleGenerateSkus} loading={loading}>
+            <PermissionButton
+              type="primary"
+              permission={MALL.PRODUCT_SKU.ADD}
+              onClick={handleGenerateSkus}
+              loading={loading}
+            >
               生成 {generatedSkus.length} 个 SKU
-            </Button>
+            </PermissionButton>
           </div>
         </div>
       )}

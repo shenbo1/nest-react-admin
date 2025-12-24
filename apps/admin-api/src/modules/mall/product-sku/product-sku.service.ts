@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateProductSkuDto } from './dto/create-product-sku.dto';
 import { UpdateProductSkuDto } from './dto/update-product-sku.dto';
+import { Prisma } from '@prisma/client';
+
+interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 @Injectable()
 export class ProductSkuService {
@@ -26,16 +34,58 @@ export class ProductSkuService {
   }
 
   /**
-   * 获取SKU列表
+   * 获取SKU列表（带分页）
    */
-  async findAll(productId?: number) {
-    const where = productId ? { productId } : {};
-    return this.prisma.productSKU.findMany({
-      where,
-      include: {
-        product: true,
-      },
-    });
+  async findAll(params: {
+    productId?: number;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+    lowStock?: boolean;
+  }): Promise<PaginatedResult<any>> {
+    const {
+      productId,
+      page = 1,
+      pageSize = 20,
+      keyword,
+      lowStock = false,
+    } = params;
+
+    const where: Prisma.ProductSKUWhereInput = {
+      deleted: false,
+      ...(productId && { productId }),
+      ...(keyword && {
+        OR: [
+          { skuCode: { contains: keyword } },
+          { product: { name: { contains: keyword } } },
+        ],
+      }),
+    };
+
+    const [total, data] = await Promise.all([
+      this.prisma.productSKU.count({ where }),
+      this.prisma.productSKU.findMany({
+        where,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          product: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    // 过滤低库存数据
+    const filteredData = lowStock
+      ? data.filter(item => item.stock < (item as any).lowStockAlert)
+      : data;
+
+    return {
+      data: filteredData,
+      total: lowStock ? filteredData.length : total,
+      page,
+      pageSize,
+    };
   }
 
   /**
@@ -80,5 +130,107 @@ export class ProductSkuService {
         },
       },
     });
+  }
+
+  /**
+   * 更新库存
+   */
+  async updateStock(
+    skuId: number,
+    quantity: number,
+    type: 'in' | 'out' | 'order' | 'refund' | 'manual',
+    orderId?: string,
+    remark?: string,
+    createdBy?: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      // 获取当前库存
+      const sku = await tx.productSKU.findUnique({
+        where: { id: skuId },
+        select: { stock: true },
+      });
+
+      if (!sku) {
+        throw new Error('SKU不存在');
+      }
+
+      const beforeStock = sku.stock;
+      const afterStock = beforeStock + quantity;
+
+      if (afterStock < 0) {
+        throw new Error('库存不足');
+      }
+
+      // 更新库存
+      await tx.productSKU.update({
+        where: { id: skuId },
+        data: { stock: afterStock },
+      });
+
+      // 记录库存日志
+      await (tx as any).productStockLog.create({
+        data: {
+          skuId,
+          type,
+          quantity,
+          beforeStock,
+          afterStock,
+          orderId,
+          remark,
+          createdBy,
+        },
+      });
+
+      return { beforeStock, afterStock };
+    });
+  }
+
+  /**
+   * 获取低库存SKU列表
+   */
+  async getLowStockSkus() {
+    const allSkus = await this.prisma.productSKU.findMany({
+      where: {
+        deleted: false,
+      },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        stock: 'asc',
+      },
+    });
+
+    // 过滤出低库存的SKU
+    return allSkus.filter(item => item.stock < (item as any).lowStockAlert);
+  }
+
+  /**
+   * 获取库存日志
+   */
+  async getStockLogs(skuId: number, page: number = 1, pageSize: number = 20) {
+    const [total, data] = await Promise.all([
+      (this.prisma as any).productStockLog.count({
+        where: { skuId },
+      }),
+      (this.prisma as any).productStockLog.findMany({
+        where: { skuId },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      pageSize,
+    };
   }
 }

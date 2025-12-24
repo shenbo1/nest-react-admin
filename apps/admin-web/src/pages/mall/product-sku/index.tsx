@@ -24,6 +24,8 @@ import {
   ReloadOutlined,
   EyeOutlined
 } from '@ant-design/icons';
+import { PermissionButton } from '@/components/PermissionButton';
+import { MALL } from '@/constants/permissions';
 import {
   getProductSkus,
   createProductSku,
@@ -116,20 +118,22 @@ const ProductSkuList: React.FC = () => {
       width: 220,
       render: (_: any, record: Sku) => (
         <Space size="small">
-          <Button
+          <PermissionButton
             type="text"
             icon={<EyeOutlined />}
+            permission={MALL.PRODUCT_SKU.QUERY}
             onClick={() => handleView(record)}
           >
             详情
-          </Button>
-          <Button
+          </PermissionButton>
+          <PermissionButton
             type="text"
             icon={<EditOutlined />}
+            permission={MALL.PRODUCT_SKU.EDIT}
             onClick={() => handleEdit(record)}
           >
             编辑
-          </Button>
+          </PermissionButton>
           <Popconfirm
             title="确认删除吗？"
             description="删除后无法恢复"
@@ -137,13 +141,14 @@ const ProductSkuList: React.FC = () => {
             okText="删除"
             cancelText="取消"
           >
-            <Button
+            <PermissionButton
               type="text"
               danger
               icon={<DeleteOutlined />}
+              permission={MALL.PRODUCT_SKU.REMOVE}
             >
               删除
-            </Button>
+            </PermissionButton>
           </Popconfirm>
         </Space>
       ),
@@ -155,11 +160,11 @@ const ProductSkuList: React.FC = () => {
     setLoading(true);
     try {
       const res = await getProductSkus(params || {});
-      setData(res.data);
+      setData(res.data || []);
 
       // 获取规格组
       const groupsRes = await getProductSpecGroups({ productId: 0 });
-      setSpecGroups(groupsRes.data);
+      setSpecGroups(groupsRes.data || []);
 
       // 获取商品列表（需要根据你的实际情况实现）
       // 这里假设有一个getProducts函数
@@ -168,6 +173,8 @@ const ProductSkuList: React.FC = () => {
     } catch (error) {
       message.error('加载数据失败');
       console.error(error);
+      setData([]);
+      setSpecGroups([]);
     } finally {
       setLoading(false);
     }
@@ -371,19 +378,21 @@ const ProductSkuList: React.FC = () => {
         title="商品SKU管理"
         extra={
           <Space>
-            <Button
+            <PermissionButton
               icon={<PlusOutlined />}
+              permission={MALL.PRODUCT_SKU.ADD}
               onClick={handleBulkAdd}
             >
               批量添加
-            </Button>
-            <Button
+            </PermissionButton>
+            <PermissionButton
               type="primary"
               icon={<PlusOutlined />}
+              permission={MALL.PRODUCT_SKU.ADD}
               onClick={handleAdd}
             >
               新增SKU
-            </Button>
+            </PermissionButton>
           </Space>
         }
       >
@@ -413,19 +422,21 @@ const ProductSkuList: React.FC = () => {
             </Col>
             <Col span={12} style={{ textAlign: 'right' }}>
               <Space>
-                <Button
+                <PermissionButton
                   type="primary"
                   icon={<SearchOutlined />}
+                  permission={MALL.PRODUCT_SKU.QUERY}
                   htmlType="submit"
                 >
                   搜索
-                </Button>
-                <Button
+                </PermissionButton>
+                <PermissionButton
                   icon={<ReloadOutlined />}
+                  permission={MALL.PRODUCT_SKU.QUERY}
                   onClick={handleReset}
                 >
                   重置
-                </Button>
+                </PermissionButton>
               </Space>
             </Col>
           </Row>

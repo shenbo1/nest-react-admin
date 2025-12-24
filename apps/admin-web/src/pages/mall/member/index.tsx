@@ -14,7 +14,6 @@ import {
   ProFormText,
   ProFormTextArea,
   ProFormDigit,
-  ProFormSelect,
   ProFormDatePicker,
   ProFormGroup,
 } from '@ant-design/pro-components';
@@ -24,7 +23,8 @@ import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
 import { DictRadio, DictSelect } from '@/components/DictSelect';
-import { StatusEnums } from '@/stores/enums/common.enums';
+import { ImageUpload } from '@/components/ImageUpload';
+import { StatusEnums, GenderEnums, MemberLevelEnums } from '@/stores/enums/common.enums';
 
 export default function MemberPage() {
   const actionRef = useRef<ProTableRef>(null);
@@ -83,9 +83,9 @@ export default function MemberPage() {
 
   const getGenderText = (gender: number) => {
     switch (gender) {
-      case 1:
+      case GenderEnums.男:
         return '男';
-      case 2:
+      case GenderEnums.女:
         return '女';
       default:
         return '未知';
@@ -93,9 +93,9 @@ export default function MemberPage() {
   };
 
   const getLevelColor = (level: number) => {
-    if (level >= 5) return 'red';
-    if (level >= 3) return 'gold';
-    if (level >= 2) return 'blue';
+    if (level >= MemberLevelEnums.钻石会员) return 'red';
+    if (level >= MemberLevelEnums.金牌会员) return 'gold';
+    if (level >= MemberLevelEnums.银牌会员) return 'blue';
     return 'default';
   };
 
@@ -250,10 +250,10 @@ export default function MemberPage() {
         onOpenChange={setModalOpen}
         initialValues={
           editingRecord || {
-            level: 1,
+            level: MemberLevelEnums.普通会员,
             points: 0,
             status: 1,
-            gender: 0,
+            gender: GenderEnums.未知,
           }
         }
         onFinish={async (values) => {
@@ -280,6 +280,10 @@ export default function MemberPage() {
             placeholder="请输入昵称"
             colProps={{ span: 12 }}
           />
+          <div style={{ marginBottom: 24, gridColumn: 'span 24' }}>
+            <div style={{ marginBottom: 8, fontWeight: 500, fontSize: 14 }}>头像</div>
+            <ImageUpload name="avatar" />
+          </div>
           <ProFormText
             name="phone"
             label="手机号"
@@ -297,7 +301,7 @@ export default function MemberPage() {
           <DictRadio
             name="gender"
             label="性别"
-            dictType="sys_user_gender"
+            enum={GenderEnums}
             colProps={{ span: 12 }}
           />
           <ProFormDatePicker
@@ -309,13 +313,11 @@ export default function MemberPage() {
         </ProFormGroup>
 
         <ProFormGroup title="会员信息">
-          <ProFormDigit
+          <DictSelect
             name="level"
             label="会员等级"
-            placeholder="请输入会员等级"
-            min={1}
-            max={10}
-            fieldProps={{ precision: 0 }}
+            enum={MemberLevelEnums}
+            placeholder="请选择会员等级"
             colProps={{ span: 12 }}
           />
           <ProFormDigit

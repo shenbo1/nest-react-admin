@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsInt, IsEnum, MaxLength, MinLength } from 'class-validator';
-import { Status } from '@prisma/client';
+import { IsString, IsOptional, IsInt, IsEnum, MaxLength, MinLength, IsEmail, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import { Status, Gender } from '@prisma/client';
 
 export class CreateMemberDto {
   @IsString()
@@ -9,16 +9,45 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(50)
-  code?: string;
+  @MaxLength(100)
+  nickname?: string;
 
   @IsOptional()
   @IsString()
-  content?: string;
+  @MaxLength(20)
+  phone?: string;
+
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(100)
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  avatar?: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  @IsDateString()
+  birthday?: Date;
 
   @IsOptional()
   @IsInt()
-  sort?: number;
+  @Min(1)
+  @Max(5)
+  level?: number;
+
+  @IsOptional()
+  @IsInt()
+  points?: number;
+
+  @IsOptional()
+  @IsNumber()
+  balance?: number;
 
   @IsOptional()
   @IsEnum(Status)

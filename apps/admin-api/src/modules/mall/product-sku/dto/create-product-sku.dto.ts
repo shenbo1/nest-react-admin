@@ -23,9 +23,18 @@ export class CreateProductSkuDto {
   @IsDecimal()
   price: number;
 
+  @IsOptional()
+  @IsDecimal()
+  costPrice?: number;
+
   @IsInt()
   @Min(0)
   stock: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  lowStockAlert?: number = 10;
 
   @IsOptional()
   @IsDecimal()

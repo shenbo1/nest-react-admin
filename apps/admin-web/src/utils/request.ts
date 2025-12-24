@@ -28,9 +28,11 @@ request.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('请求配置:', config.method?.toUpperCase(), config.url, config.params);
     return config;
   },
   (error) => {
+    console.error('请求错误:', error);
     return Promise.reject(error);
   },
 );
@@ -39,6 +41,7 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     const { data } = response;
+    console.log('响应成功:', response.config.url, data);
 
     // 如果响应包含 code 字段，按业务逻辑处理
     if (data.code !== undefined && data.code !== 200) {
@@ -50,6 +53,7 @@ request.interceptors.response.use(
     return data.data;
   },
   (error: AxiosError<{ message?: string }>) => {
+    console.error('响应错误:', error.response?.status, error.response?.data, error.config?.url);
     if (error.response) {
       const { status, data } = error.response;
 

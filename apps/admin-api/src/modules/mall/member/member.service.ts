@@ -28,12 +28,13 @@ export class MemberService {
    * 分页查询
    */
   async findAll(query: QueryMemberDto) {
-    const { page = 1, pageSize = 10, name, status } = query;
+    const { page = 1, pageSize = 10, username, phone, status } = query;
     const skip = (page - 1) * pageSize;
 
     const where = {
       deleted: false,
-      ...(name && { name: { contains: name } }),
+      ...(username && { username: { contains: username } }),
+      ...(phone && { phone: { contains: phone } }),
       ...(status && { status }),
     };
 

@@ -63,8 +63,10 @@ export interface Product {
   categoryId?: number;
   category?: Category;
   content?: string;
-  /// 商品主图列表
-  mainImages?: string[];
+  /// 商品主图（单张）
+  mainImage?: string;
+  /// 商品附图/轮播图列表
+  images?: string[];
   originalPrice?: number;
   /// 默认现价
   defaultPrice?: number;
@@ -101,8 +103,10 @@ export interface ProductForm {
   code?: string;
   categoryId?: number;
   content?: string;
-  /// 商品主图列表
-  mainImages?: string[];
+  /// 商品主图（单张）
+  mainImage?: string;
+  /// 商品附图/轮播图列表
+  images?: string[];
   originalPrice?: number;
   /// 默认现价
   defaultPrice?: number;
@@ -143,5 +147,20 @@ export const productApi = {
   /** 删除商品管理 */
   delete(id: number) {
     return request.delete(`/mall/product/${id}`);
+  },
+
+  /** 切换商品状态 */
+  toggleStatus(id: number) {
+    return request.put<Product>(`/mall/product/${id}/toggle-status`);
+  },
+
+  /** 批量切换商品状态 */
+  batchToggleStatus(ids: number[]) {
+    return request.put<Product[]>('/mall/product/batch/toggle-status', { ids });
+  },
+
+  /** 复制商品 */
+  duplicate(id: number) {
+    return request.post<Product>(`/mall/product/${id}/duplicate`);
   },
 };

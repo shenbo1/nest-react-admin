@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, Modal, Form, Input, InputNumber, Radio, Space, Tag, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { PermissionButton } from '@/components/PermissionButton';
+import { MALL } from '@/constants/permissions';
 import {
   getProductSpecGroups,
   createProductSpecGroup,
@@ -66,8 +68,8 @@ const ProductSKUManage: React.FC<{ productId: number }> = ({ productId }) => {
       key: 'action',
       render: (_: any, record: SpecGroup) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEditSpecGroup(record)}>编辑</Button>
-          <Button type="link" danger onClick={() => handleDeleteSpecGroup(record.id)}>删除</Button>
+          <PermissionButton type="link" permission={MALL.PRODUCT_SPEC_GROUP.EDIT} onClick={() => handleEditSpecGroup(record)}>编辑</PermissionButton>
+          <PermissionButton type="link" danger permission={MALL.PRODUCT_SPEC_GROUP.REMOVE} onClick={() => handleDeleteSpecGroup(record.id)}>删除</PermissionButton>
         </Space>
       ),
     },
@@ -113,8 +115,8 @@ const ProductSKUManage: React.FC<{ productId: number }> = ({ productId }) => {
       key: 'action',
       render: (_: any, record: Sku) => (
         <Space size="middle">
-          <Button type="link" onClick={() => handleEditSku(record)}>编辑</Button>
-          <Button type="link" danger onClick={() => handleDeleteSku(record.id)}>删除</Button>
+          <PermissionButton type="link" permission={MALL.PRODUCT_SKU.EDIT} onClick={() => handleEditSku(record)}>编辑</PermissionButton>
+          <PermissionButton type="link" danger permission={MALL.PRODUCT_SKU.REMOVE} onClick={() => handleDeleteSku(record.id)}>删除</PermissionButton>
         </Space>
       ),
     },
@@ -249,9 +251,9 @@ const ProductSKUManage: React.FC<{ productId: number }> = ({ productId }) => {
 
       {/* 规格组管理 */}
       <div style={{ marginBottom: 32 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddSpecGroup} style={{ marginBottom: 16 }}>
+        <PermissionButton type="primary" icon={<PlusOutlined />} permission={MALL.PRODUCT_SPEC_GROUP.ADD} onClick={handleAddSpecGroup} style={{ marginBottom: 16 }}>
           新增规格组
-        </Button>
+        </PermissionButton>
         <Table
           columns={specGroupColumns}
           dataSource={specGroups}
@@ -263,9 +265,9 @@ const ProductSKUManage: React.FC<{ productId: number }> = ({ productId }) => {
 
       {/* SKU管理 */}
       <div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddSku} style={{ marginBottom: 16 }}>
+        <PermissionButton type="primary" icon={<PlusOutlined />} permission={MALL.PRODUCT_SKU.ADD} onClick={handleAddSku} style={{ marginBottom: 16 }}>
           新增SKU
-        </Button>
+        </PermissionButton>
         <Table
           columns={skuColumns}
           dataSource={skus}

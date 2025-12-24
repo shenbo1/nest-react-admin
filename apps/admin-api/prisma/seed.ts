@@ -392,6 +392,51 @@ async function main() {
       perms: 'mall:banner:list',
     },
 
+    // 商品规格组管理 - 管理商品规格组
+    // 用途：创建、编辑商品规格组，如颜色、尺寸等
+    // 相关表：product_spec_group(规格组表)
+    {
+      id: 206,
+      parentId: 200,
+      name: '商品规格组',
+      path: '/mall/product-spec-group',
+      component: 'product-spec-group/index',
+      type: MenuType.MENU,
+      icon: 'TagsOutlined',
+      sort: 6,
+      perms: 'mall:product-spec-group:list',
+    },
+
+    // 商品规格值管理 - 管理商品规格值
+    // 用途：为规格组添加具体的规格值，如红色、蓝色、XL、XXL等
+    // 相关表：product_spec_value(规格值表)
+    {
+      id: 207,
+      parentId: 200,
+      name: '商品规格值',
+      path: '/mall/product-spec-value',
+      component: 'product-spec-value/index',
+      type: MenuType.MENU,
+      icon: 'TagsOutlined',
+      sort: 7,
+      perms: 'mall:product-spec-value:list',
+    },
+
+    // SKU管理 - 管理商品SKU
+    // 用途：管理商品的SKU信息，包括价格、库存等
+    // 相关表：product_sku(SKU表)
+    {
+      id: 208,
+      parentId: 200,
+      name: 'SKU管理',
+      path: '/mall/product-sku',
+      component: 'product-sku/index',
+      type: MenuType.MENU,
+      icon: 'ShoppingCartOutlined',
+      sort: 8,
+      perms: 'mall:product-sku:list',
+    },
+
     // ============================================
     // 商城模块按钮权限详细说明
     // ============================================
@@ -692,6 +737,180 @@ async function main() {
       icon: null,
       sort: 5,
       perms: 'mall:banner:export',
+    },
+
+    // 商品规格组管理按钮权限
+    // 说明：控制商品规格组的管理操作
+    // query：查看规格组列表、搜索规格组
+    // add：新增规格组（如颜色、尺寸等）
+    // edit：编辑规格组名称、排序、状态
+    // remove：删除规格组
+    // export：导出规格组列表
+    {
+      id: 260,
+      parentId: 206,
+      name: '规格组查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'mall:product-spec-group:query',
+    },
+    {
+      id: 261,
+      parentId: 206,
+      name: '规格组新增',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'mall:product-spec-group:add',
+    },
+    {
+      id: 262,
+      parentId: 206,
+      name: '规格组修改',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 3,
+      perms: 'mall:product-spec-group:edit',
+    },
+    {
+      id: 263,
+      parentId: 206,
+      name: '规格组删除',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 4,
+      perms: 'mall:product-spec-group:remove',
+    },
+    {
+      id: 264,
+      parentId: 206,
+      name: '规格组导出',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 5,
+      perms: 'mall:product-spec-group:export',
+    },
+
+    // 商品规格值管理按钮权限
+    // 说明：控制商品规格值的管理操作
+    // query：查看规格值列表、搜索规格值
+    // add：为规格组添加规格值（如为颜色添加红色、蓝色）
+    // edit：编辑规格值名称、排序、状态
+    // remove：删除规格值
+    // export：导出规格值列表
+    {
+      id: 270,
+      parentId: 207,
+      name: '规格值查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'mall:product-spec-value:query',
+    },
+    {
+      id: 271,
+      parentId: 207,
+      name: '规格值新增',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'mall:product-spec-value:add',
+    },
+    {
+      id: 272,
+      parentId: 207,
+      name: '规格值修改',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 3,
+      perms: 'mall:product-spec-value:edit',
+    },
+    {
+      id: 273,
+      parentId: 207,
+      name: '规格值删除',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 4,
+      perms: 'mall:product-spec-value:remove',
+    },
+    {
+      id: 274,
+      parentId: 207,
+      name: '规格值导出',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 5,
+      perms: 'mall:product-spec-value:export',
+    },
+
+    // SKU管理按钮权限
+    // 说明：控制商品SKU的管理操作
+    // query：查看SKU列表、搜索SKU、查看SKU详情
+    // add：新增SKU（为商品添加规格组合）
+    // edit：编辑SKU价格、库存、状态等信息
+    // remove：删除SKU
+    // export：导出SKU列表
+    {
+      id: 280,
+      parentId: 208,
+      name: 'SKU查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'mall:product-sku:query',
+    },
+    {
+      id: 281,
+      parentId: 208,
+      name: 'SKU新增',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'mall:product-sku:add',
+    },
+    {
+      id: 282,
+      parentId: 208,
+      name: 'SKU修改',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 3,
+      perms: 'mall:product-sku:edit',
+    },
+    {
+      id: 283,
+      parentId: 208,
+      name: 'SKU删除',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 4,
+      perms: 'mall:product-sku:remove',
+    },
+    {
+      id: 284,
+      parentId: 208,
+      name: 'SKU导出',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 5,
+      perms: 'mall:product-sku:export',
     },
 
     // 用户管理按钮
@@ -1107,6 +1326,7 @@ async function main() {
     { id: 2, name: '系统状态', type: 'sys_status' },
     { id: 3, name: '通知类型', type: 'sys_notice_type' },
     { id: 4, name: '轮播图位置', type: 'banner_position' }, // 新增轮播图位置字典类型
+    { id: 5, name: '会员等级', type: 'member_level' }, // 新增会员等级字典类型
   ];
 
   for (const dictType of dictTypes) {
@@ -1147,6 +1367,12 @@ async function main() {
     { dictType: 'banner_position', label: '分类页', value: 'category', sort: 2 },
     { dictType: 'banner_position', label: '详情页', value: 'detail', sort: 3 },
     { dictType: 'banner_position', label: '活动页', value: 'activity', sort: 4 },
+    // 会员等级字典数据
+    { dictType: 'member_level', label: '普通会员', value: '1', sort: 1 },
+    { dictType: 'member_level', label: '白银会员', value: '2', sort: 2 },
+    { dictType: 'member_level', label: '黄金会员', value: '3', sort: 3 },
+    { dictType: 'member_level', label: '铂金会员', value: '4', sort: 4 },
+    { dictType: 'member_level', label: '钻石会员', value: '5', sort: 5 },
   ];
 
   for (let i = 0; i < dictData.length; i++) {
@@ -1192,10 +1418,11 @@ async function main() {
       id: 1,
       code: 'TEST001',
       name: '测试商品 - T恤',
-      mainImages: JSON.stringify([
+      mainImage: 'https://example.com/product1.jpg',
+      images: [
         'https://example.com/product1.jpg',
         'https://example.com/product2.jpg',
-      ]),
+      ],
       content: '一款高品质的纯棉T恤，舒适透气',
       defaultPrice: 99.99,
       defaultStock: 1000,
@@ -1208,6 +1435,14 @@ async function main() {
   });
 
   console.log('测试商品创建完成');
+
+  // 重置商品ID序列
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('mall_product', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM mall_product)
+    )
+  `;
 
   // 创建规格组
   let colorGroup = await prisma.productSpecGroup.findFirst({
@@ -1239,6 +1474,14 @@ async function main() {
   }
 
   console.log('规格组创建完成');
+
+  // 重置规格组ID序列
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('mall_product_spec_group', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM mall_product_spec_group)
+    )
+  `;
 
   // 创建规格值 - 颜色
   const colorValueNames = ['白色', '黑色', '红色', '蓝色'];
@@ -1284,6 +1527,14 @@ async function main() {
 
   console.log('规格值创建完成');
 
+  // 重置规格值ID序列
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('mall_product_spec_value', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM mall_product_spec_value)
+    )
+  `;
+
   // 创建SKU - 所有颜色和尺寸组合
   for (let color of colorValues) {
     for (let size of sizeValues) {
@@ -1304,7 +1555,9 @@ async function main() {
               尺寸: size.name,
             }),
             price: 99.99,
+            costPrice: 49.99,
             stock: 50,
+            lowStockAlert: 10,
             sales: Math.floor(Math.random() * 20),
             weight: 0.25,
             images: JSON.stringify([
@@ -1317,6 +1570,15 @@ async function main() {
   }
 
   console.log(`${colorValues.length * sizeValues.length} 个SKU创建完成`);
+
+  // 重置SKU ID序列
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('mall_product_sku', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM mall_product_sku)
+    )
+  `;
+
   console.log('SKU系统测试数据创建完成!');
   console.log('数据初始化完成!');
   console.log('默认账号: admin / admin123');

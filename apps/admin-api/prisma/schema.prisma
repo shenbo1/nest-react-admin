@@ -189,6 +189,43 @@ model Banner {
   @@map("mall_banner")
 }
 
+/// 文章表
+model Article {
+  id        Int       @id @default(autoincrement())
+  /// 文章标题
+  name      String    @db.VarChar(200)
+  /// 文章编码
+  code      String?   @db.VarChar(50)
+  /// 文章封面图
+  cover     String?   @db.VarChar(500)
+  /// 文章摘要
+  summary   String?   @db.VarChar(500)
+  /// 文章内容
+  content   String?
+  /// 排序
+  sort      Int       @default(0)
+  /// 状态
+  status    Status    @default(ENABLED)
+  /// 备注
+  remark    String?   @db.VarChar(500)
+  /// 创建者ID
+  createdBy String?   @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt DateTime  @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy String?   @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted   Boolean   @default(false)
+  /// 删除时间
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([sort])
+  @@index([status])
+  @@map("cms_article")
+}
+
 /// 商品分类表
 model Category {
   id        Int        @id @default(autoincrement())
@@ -246,8 +283,8 @@ model Member {
   email         String?   @unique @db.VarChar(100)
   /// 头像
   avatar        String?   @db.VarChar(500)
-  /// 性别：0-未知 1-男 2-女
-  gender        Int?
+  /// 性别：MALE-男 FEMALE-女 UNKNOWN-未知
+  gender        Gender?
   /// 生日
   birthday      DateTime?
   /// 会员等级
@@ -389,8 +426,10 @@ model Product {
   defaultStock  Int                @default(0) @map("default_stock")
   /// 默认重量(kg)
   defaultWeight Decimal?           @map("default_weight") @db.Decimal(8, 2)
-  /// 商品主图列表
-  mainImages    Json?              @map("main_images") @db.Json
+  /// 商品主图（单张）
+  mainImage    String?            @map("main_image") @db.VarChar(500)
+  /// 商品附图/轮播图列表
+  images       Json?              @db.Json
   /// 商品规格信息
   specs         Json?              @db.Json
   category      Category?          @relation(fields: [categoryId], references: [id])
@@ -414,10 +453,19 @@ model ProductSpecGroup {
   createdAt  DateTime           @default(now()) @map("created_at")
   /// 更新时间
   updatedAt  DateTime           @updatedAt @map("updated_at")
+  /// 创建者ID
+  createdBy  String?            @map("created_by") @db.VarChar(64)
+  /// 更新者ID
+  updatedBy  String?            @map("updated_by") @db.VarChar(64)
+  /// 删除标记
+  deleted    Boolean            @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt  DateTime?          @map("deleted_at")
   product    Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
   specValues ProductSpecValue[]
 
   @@index([productId])
+  @@index([deleted])
   @@map("mall_product_spec_group")
 }
 
@@ -433,9 +481,18 @@ model ProductSpecValue {
   createdAt   DateTime         @default(now()) @map("created_at")
   /// 更新时间
   updatedAt   DateTime         @updatedAt @map("updated_at")
+  /// 创建者ID
+  createdBy   String?          @map("created_by") @db.VarChar(64)
+  /// 更新者ID
+  updatedBy   String?          @map("updated_by") @db.VarChar(64)
+  /// 删除标记
+  deleted     Boolean          @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt   DateTime?        @map("deleted_at")
   specGroup   ProductSpecGroup @relation(fields: [specGroupId], references: [id], onDelete: Cascade)
 
   @@index([specGroupId])
+  @@index([deleted])
   @@map("mall_product_spec_value")
 }
 
@@ -444,13 +501,17 @@ model ProductSKU {
   /// 商品ID
   productId       Int      @map("product_id")
   /// SKU编码
-  skuCode         String   @unique @db.VarChar(50)
+  skuCode         String  @map("sku_code") @unique @db.VarChar(50)
   /// 规格组合 {"color": "红色", "size": "M"}
   specCombination Json     @map("spec_combination") @db.Json
   /// SKU价格
   price           Decimal  @db.Decimal(10, 2)
+  /// 成本价
+  costPrice       Decimal? @db.Decimal(10, 2) @map("cost_price")
   /// SKU库存
   stock           Int      @default(0)
+  /// 低库存预警值
+  lowStockAlert   Int      @default(10) @map("low_stock_alert")
   /// SKU重量(kg)
   weight          Decimal? @db.Decimal(8, 2)
   /// SKU销量
@@ -461,10 +522,60 @@ model ProductSKU {
   createdAt       DateTime @default(now()) @map("created_at")
   /// 更新时间
   updatedAt       DateTime @updatedAt @map("updated_at")
+  /// 创建者ID
+  createdBy       String?   @map("created_by") @db.VarChar(64)
+  /// 更新者ID
+  updatedBy       String?   @map("updated_by") @db.VarChar(64)
+  /// 删除标记
+  deleted         Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime? @map("deleted_at")
   product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stockLogs       ProductStockLog[]
 
-  @@index([productId])
+  @@index([productId, skuCode])
+  @@index([productId, price, stock])
+  @@index([sales])
+  @@index([deleted])
+  @@index([stock, lowStockAlert])
   @@map("mall_product_sku")
+}
+
+model ProductStockLog {
+  id          Int      @id @default(autoincrement())
+  /// SKU ID
+  skuId       Int      @map("sku_id")
+  /// 库存变动类型: in-入库, out-出库, order-订单, refund-退款, manual-手动调整
+  type        String   @db.VarChar(20)
+  /// 变动数量（正数为增加，负数为减少）
+  quantity    Int
+  /// 变动前库存
+  beforeStock Int      @map("before_stock")
+  /// 变动后库存
+  afterStock  Int      @map("after_stock")
+  /// 关联订单ID（可选）
+  orderId     String?  @map("order_id") @db.VarChar(64)
+  /// 备注
+  remark      String?  @db.VarChar(255)
+  
+  /// 创建时间
+  createdAt       DateTime @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  /// 创建者ID
+  createdBy       String?   @map("created_by") @db.VarChar(64)
+  /// 更新者ID
+  updatedBy       String?   @map("updated_by") @db.VarChar(64)
+  /// 删除标记
+  deleted         Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime? @map("deleted_at")
+ 
+  sku ProductSKU @relation(fields: [skuId], references: [id])
+
+  @@index([skuId, createdAt])
+  @@index([orderId])
+  @@map("mall_product_stock_log")
 }
 
 model SysConfig {
@@ -594,6 +705,14 @@ enum Gender {
   MALE
   FEMALE
   UNKNOWN
+}
+
+enum MemberLevel {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
 }
 
 enum MenuType {

@@ -18,7 +18,7 @@ export class ArticleService {
     return this.prisma.article.create({
       data: {
         ...dto,
-        createdBy: userId,
+        createdBy: String(userId),
       },
     });
   }
@@ -77,7 +77,7 @@ export class ArticleService {
       where: { id },
       data: {
         ...dto,
-        updatedBy: userId,
+        updatedBy: String(userId),
       },
     });
   }
@@ -93,7 +93,7 @@ export class ArticleService {
       data: {
         deleted: true,
         deletedAt: new Date(),
-        updatedBy: userId,
+        updatedBy: String(userId),
       },
     });
   }
@@ -110,7 +110,7 @@ export class ArticleService {
       where: { id },
       data: {
         status: newStatus,
-        updatedBy: userId,
+        updatedBy: String(userId),
       },
     });
   }

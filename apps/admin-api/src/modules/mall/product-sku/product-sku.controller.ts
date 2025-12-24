@@ -27,13 +27,62 @@ export class ProductSkuController {
   }
 
   @Get()
-  findAll(@Query('productId') productId?: string) {
-    return this.productSkuService.findAll(productId ? +productId : undefined);
+  findAll(
+    @Query('productId') productId?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('keyword') keyword?: string,
+    @Query('lowStock') lowStock?: string,
+  ) {
+    return this.productSkuService.findAll({
+      productId: productId ? +productId : undefined,
+      page: page ? +page : 1,
+      pageSize: pageSize ? +pageSize : 20,
+      keyword,
+      lowStock: lowStock === 'true',
+    });
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productSkuService.findOne(+id);
+  }
+
+  @Get(':id/stock-logs')
+  getStockLogs(
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.productSkuService.getStockLogs(
+      +id,
+      page ? +page : 1,
+      pageSize ? +pageSize : 20,
+    );
+  }
+
+  @Get('low-stock/list')
+  getLowStockSkus() {
+    return this.productSkuService.getLowStockSkus();
+  }
+
+  @Post(':id/stock')
+  updateStock(
+    @Param('id') id: string,
+    @Body() body: {
+      quantity: number;
+      type: 'in' | 'out' | 'order' | 'refund' | 'manual';
+      orderId?: string;
+      remark?: string;
+    },
+  ) {
+    return this.productSkuService.updateStock(
+      +id,
+      body.quantity,
+      body.type,
+      body.orderId,
+      body.remark,
+    );
   }
 
   @Patch(':id')

@@ -21,6 +21,8 @@ import {
   SearchOutlined,
   ReloadOutlined
 } from '@ant-design/icons';
+import { PermissionButton } from '@/components/PermissionButton';
+import { MALL } from '@/constants/permissions';
 import {
   getProductSpecValues,
   createProductSpecValue,
@@ -85,13 +87,14 @@ const ProductSpecValueList: React.FC = () => {
       width: 200,
       render: (_: any, record: SpecValue) => (
         <Space size="small">
-          <Button
+          <PermissionButton
             type="text"
             icon={<EditOutlined />}
+            permission={MALL.PRODUCT_SPEC_VALUE.EDIT}
             onClick={() => handleEdit(record)}
           >
             编辑
-          </Button>
+          </PermissionButton>
           <Popconfirm
             title="确认删除吗？"
             description="删除后无法恢复"
@@ -99,13 +102,14 @@ const ProductSpecValueList: React.FC = () => {
             okText="删除"
             cancelText="取消"
           >
-            <Button
+            <PermissionButton
               type="text"
               danger
               icon={<DeleteOutlined />}
+              permission={MALL.PRODUCT_SPEC_VALUE.REMOVE}
             >
               删除
-            </Button>
+            </PermissionButton>
           </Popconfirm>
         </Space>
       ),
@@ -117,14 +121,16 @@ const ProductSpecValueList: React.FC = () => {
     setLoading(true);
     try {
       const res = await getProductSpecValues(params || {});
-      setData(res.data);
+      setData(res.data || []);
 
       // 加载规格组
       const groupsRes = await getProductSpecGroups({ productId: 0 });
-      setSpecGroups(groupsRes.data);
+      setSpecGroups(groupsRes.data || []);
     } catch (error) {
       message.error('加载数据失败');
       console.error(error);
+      setData([]);
+      setSpecGroups([]);
     } finally {
       setLoading(false);
     }
@@ -224,19 +230,21 @@ const ProductSpecValueList: React.FC = () => {
         title="商品规格值管理"
         extra={
           <Space>
-            <Button
+            <PermissionButton
               icon={<PlusOutlined />}
+              permission={MALL.PRODUCT_SPEC_VALUE.ADD}
               onClick={handleBulkAdd}
             >
               批量添加
-            </Button>
-            <Button
+            </PermissionButton>
+            <PermissionButton
               type="primary"
               icon={<PlusOutlined />}
+              permission={MALL.PRODUCT_SPEC_VALUE.ADD}
               onClick={handleAdd}
             >
               新增规格值
-            </Button>
+            </PermissionButton>
           </Space>
         }
       >
@@ -266,19 +274,21 @@ const ProductSpecValueList: React.FC = () => {
             </Col>
             <Col span={12} style={{ textAlign: 'right' }}>
               <Space>
-                <Button
+                <PermissionButton
                   type="primary"
                   icon={<SearchOutlined />}
+                  permission={MALL.PRODUCT_SPEC_VALUE.QUERY}
                   htmlType="submit"
                 >
                   搜索
-                </Button>
-                <Button
+                </PermissionButton>
+                <PermissionButton
                   icon={<ReloadOutlined />}
+                  permission={MALL.PRODUCT_SPEC_VALUE.QUERY}
                   onClick={handleReset}
                 >
                   重置
-                </Button>
+                </PermissionButton>
               </Space>
             </Col>
           </Row>

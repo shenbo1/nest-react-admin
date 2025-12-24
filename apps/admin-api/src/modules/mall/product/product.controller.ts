@@ -73,4 +73,34 @@ export class ProductController {
     const userId = this.cls.get('user').id;
     return this.productService.remove(id, userId);
   }
+
+  /**
+   * 复制商品（需放在 :id 路由之前，否则 :id 会匹配到 'duplicate'）
+   */
+  @Post(':id/duplicate')
+  @RequirePermissions('mall:product:add')
+  duplicate(@Param('id', ParseIntPipe) id: number) {
+    const userId = this.cls.get('user').id;
+    return this.productService.duplicate(id, userId);
+  }
+
+  /**
+   * 切换商品状态
+   */
+  @Put(':id/toggle-status')
+  @RequirePermissions('mall:product:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    const userId = this.cls.get('user').id;
+    return this.productService.toggleStatus(id, userId);
+  }
+
+  /**
+   * 批量切换商品状态
+   */
+  @Put('batch/toggle-status')
+  @RequirePermissions('mall:product:edit')
+  batchToggleStatus(@Body() body: { ids: number[] }) {
+    const userId = this.cls.get('user').id;
+    return this.productService.batchToggleStatus(body.ids, userId);
+  }
 }

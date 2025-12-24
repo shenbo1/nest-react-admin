@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { EyeOutlined } from '@ant-design/icons';
 import { ProColumns } from '@ant-design/pro-components';
-import { message } from 'antd';
+import { Button, message } from 'antd';
 import { useMutation } from '@tanstack/react-query';
 import PermissionButton from '@/components/PermissionButton';
 import ProTable, { ProTableRef } from '@/components/ProTable';
@@ -37,7 +37,9 @@ const OperLogList: React.FC = () => {
   // 删除日志
   const deleteMutation = useMutation({
     mutationFn: async (ids: string) => {
-      const result = await request.delete('/system/operlog', { params: { ids } });
+      const result = await request.delete('/system/operlog', {
+        params: { ids },
+      });
       return result;
     },
     onSuccess: () => {
@@ -168,7 +170,8 @@ const OperLogList: React.FC = () => {
       dataIndex: 'operTime',
       width: 160,
       valueType: 'dateTime',
-      render: (_, record) => dayjs(record.operTime).format('YYYY-MM-DD HH:mm:ss'),
+      render: (_, record) =>
+        dayjs(record.operTime).format('YYYY-MM-DD HH:mm:ss'),
     },
     {
       title: '操作',
@@ -245,47 +248,108 @@ const OperLogList: React.FC = () => {
           >
             <h2>操作日志详情</h2>
             <div style={{ marginTop: '16px' }}>
-              <p><strong>日志编号:</strong> {detailRecord.id}</p>
-              <p><strong>操作模块:</strong> {detailRecord.title || '-'}</p>
-              <p><strong>操作类型:</strong> {getBusinessTypeText(detailRecord.businessType)}</p>
-              <p><strong>操作人员:</strong> {detailRecord.operName || '-'}</p>
-              <p><strong>部门名称:</strong> {detailRecord.deptName || '-'}</p>
-              <p><strong>请求地址:</strong> {detailRecord.operUrl || '-'}</p>
-              <p><strong>请求方法:</strong> {detailRecord.requestMethod || '-'}</p>
-              <p><strong>操作方法:</strong> {detailRecord.method || '-'}</p>
-              <p><strong>主机地址:</strong> {detailRecord.operIp || '-'}</p>
-              <p><strong>操作地点:</strong> {detailRecord.operLocation || '-'}</p>
-              <p><strong>操作人类型:</strong> {getOperatorTypeText(detailRecord.operatorType)}</p>
-              <p><strong>操作状态:</strong> {getStatusText(detailRecord.status)}</p>
-              <p><strong>耗时:</strong> {detailRecord.costTime}ms</p>
-              <p><strong>操作时间:</strong> {dayjs(detailRecord.operTime).format('YYYY-MM-DD HH:mm:ss')}</p>
+              <p>
+                <strong>日志编号:</strong> {detailRecord.id}
+              </p>
+              <p>
+                <strong>操作模块:</strong> {detailRecord.title || '-'}
+              </p>
+              <p>
+                <strong>操作类型:</strong>{' '}
+                {getBusinessTypeText(detailRecord.businessType)}
+              </p>
+              <p>
+                <strong>操作人员:</strong> {detailRecord.operName || '-'}
+              </p>
+              <p>
+                <strong>部门名称:</strong> {detailRecord.deptName || '-'}
+              </p>
+              <p>
+                <strong>请求地址:</strong> {detailRecord.operUrl || '-'}
+              </p>
+              <p>
+                <strong>请求方法:</strong> {detailRecord.requestMethod || '-'}
+              </p>
+              <p>
+                <strong>操作方法:</strong> {detailRecord.method || '-'}
+              </p>
+              <p>
+                <strong>主机地址:</strong> {detailRecord.operIp || '-'}
+              </p>
+              <p>
+                <strong>操作地点:</strong> {detailRecord.operLocation || '-'}
+              </p>
+              <p>
+                <strong>操作人类型:</strong>{' '}
+                {getOperatorTypeText(detailRecord.operatorType)}
+              </p>
+              <p>
+                <strong>操作状态:</strong> {getStatusText(detailRecord.status)}
+              </p>
+              <p>
+                <strong>耗时:</strong> {detailRecord.costTime}ms
+              </p>
+              <p>
+                <strong>操作时间:</strong>{' '}
+                {dayjs(detailRecord.operTime).format('YYYY-MM-DD HH:mm:ss')}
+              </p>
               {detailRecord.operParam && (
-                <p><strong>请求参数:</strong></p>
+                <p>
+                  <strong>请求参数:</strong>
+                </p>
               )}
               {detailRecord.operParam && (
-                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px', overflow: 'auto' }}>
+                <pre
+                  style={{
+                    background: '#f5f5f5',
+                    padding: '12px',
+                    borderRadius: '4px',
+                    overflow: 'auto',
+                  }}
+                >
                   {JSON.stringify(JSON.parse(detailRecord.operParam), null, 2)}
                 </pre>
               )}
               {detailRecord.jsonResult && (
-                <p><strong>返回结果:</strong></p>
+                <p>
+                  <strong>返回结果:</strong>
+                </p>
               )}
               {detailRecord.jsonResult && (
-                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px', overflow: 'auto' }}>
+                <pre
+                  style={{
+                    background: '#f5f5f5',
+                    padding: '12px',
+                    borderRadius: '4px',
+                    overflow: 'auto',
+                  }}
+                >
                   {JSON.stringify(JSON.parse(detailRecord.jsonResult), null, 2)}
                 </pre>
               )}
               {detailRecord.errorMsg && (
-                <p><strong>错误消息:</strong></p>
+                <p>
+                  <strong>错误消息:</strong>
+                </p>
               )}
               {detailRecord.errorMsg && (
-                <pre style={{ background: '#fff2e8', padding: '12px', borderRadius: '4px', color: '#ff4d4f', overflow: 'auto' }}>
+                <pre
+                  style={{
+                    background: '#fff2e8',
+                    padding: '12px',
+                    borderRadius: '4px',
+                    color: '#ff4d4f',
+                    overflow: 'auto',
+                  }}
+                >
                   {detailRecord.errorMsg}
                 </pre>
               )}
             </div>
             <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button onClick={() => setDetailOpen(false)}>关闭</button>
+              <Button type="primary" onClick={() => setDetailOpen(false)}>
+                关闭
+              </Button>
             </div>
           </div>
         </div>

@@ -7,7 +7,7 @@ export interface Member {
   phone?: string;
   email?: string;
   avatar?: string;
-  gender?: number;
+  gender?: string;
   birthday?: string;
   level: number;
   points: number;
@@ -35,7 +35,7 @@ export interface MemberForm {
   phone?: string;
   email?: string;
   avatar?: string;
-  gender?: number;
+  gender?: string;
   birthday?: string;
   level?: number;
   points?: number;

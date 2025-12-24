@@ -5,7 +5,11 @@ import { PaginationDto } from '@/common/dto';
 export class QueryMemberDto extends PaginationDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  username?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @IsOptional()
   @IsEnum(Status)
