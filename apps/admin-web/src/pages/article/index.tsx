@@ -1,6 +1,11 @@
 import { useRef, useState } from 'react';
-import { message, Modal, Space } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { message, Modal, Space, Switch } from 'antd';
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
 import {
   ProColumns,
   ModalForm,
@@ -9,6 +14,7 @@ import {
   ProFormDigit,
   ProFormSelect,
 } from '@ant-design/pro-components';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { articleApi, Article, ArticleForm } from '@/services/article';
 import { PermissionButton } from '@/components/PermissionButton';
@@ -19,6 +25,7 @@ export default function ArticlePage() {
   const actionRef = useRef<ProTableRef>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Article | null>(null);
+  const queryClient = useQueryClient();
 
   // 创建/更新
   const saveMutation = useMutation({
@@ -50,6 +57,26 @@ export default function ArticlePage() {
       message.error(error?.message || '删除失败');
     },
   });
+
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: articleApi.toggleStatus,
+    onSuccess: () => {
+      message.success('状态更新成功');
+      actionRef.current?.reload();
+    },
+    onError: (error: any) => {
+      message.error(error?.message || '状态更新失败');
+    },
+  });
+
+  const handleToggleStatus = (record: Article) => {
+    Modal.confirm({
+      title: '确认切换状态',
+      content: `确定要${record.status === 'ENABLED' ? '禁用' : '启用'}「${record.name}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
+    });
+  };
 
   const handleDelete = (id: number) => {
     Modal.confirm({
@@ -96,6 +123,16 @@ export default function ArticlePage() {
         ENABLED: { text: '启用', status: 'Success' },
         DISABLED: { text: '禁用', status: 'Error' },
       },
+      render: (_, record: Article) => (
+        <Switch
+          key={record.id}
+          size="small"
+          checked={record.status === 'ENABLED'}
+          checkedChildren="正常"
+          unCheckedChildren="停用"
+          onClick={() => handleToggleStatus(record)}
+        />
+      ),
     },
     {
       title: '备注',

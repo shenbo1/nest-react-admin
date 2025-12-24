@@ -141,4 +141,23 @@ export class DictService {
     await this.prisma.sysDictData.delete({ where: { id } });
     return { message: '删除成功' };
   }
+
+  // ========== 切换状态 ==========
+  async toggleTypeStatus(id: number) {
+    const record = await this.findOneType(id);
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.prisma.sysDictType.update({
+      where: { id },
+      data: { status: newStatus },
+    });
+  }
+
+  async toggleDataStatus(id: number) {
+    const record = await this.findOneData(id);
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.prisma.sysDictData.update({
+      where: { id },
+      data: { status: newStatus },
+    });
+  }
 }

@@ -43,6 +43,15 @@ export class CategoryController {
   }
 
   /**
+   * 获取所有分类（用于下拉选择）
+   */
+  @Get('all/select')
+  @RequirePermissions('mall:category:list')
+  findAllForSelect() {
+    return this.categoryService.findAllForSelect();
+  }
+
+  /**
    * 获取详情
    */
   @Get(':id')
@@ -72,5 +81,15 @@ export class CategoryController {
   remove(@Param('id', ParseIntPipe) id: number) {
     const userId = this.cls.get('user').id;
     return this.categoryService.remove(id, userId);
+  }
+
+  /**
+   * 切换状态
+   */
+  @Put(':id/toggle-status')
+  @RequirePermissions('mall:category:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    const userId = this.cls.get('user').id;
+    return this.categoryService.toggleStatus(id, userId);
   }
 }

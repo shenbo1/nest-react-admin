@@ -59,4 +59,11 @@ export class MenuController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.menuService.remove(id);
   }
+
+  @Put(':id/toggle-status')
+  @ApiOperation({ summary: '切换菜单状态' })
+  @RequirePermissions('system:menu:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.menuService.toggleStatus(id);
+  }
 }

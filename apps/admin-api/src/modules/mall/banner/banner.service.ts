@@ -94,4 +94,21 @@ export class BannerService {
       },
     });
   }
+
+  /**
+   * 切换状态
+   */
+  async toggleStatus(id: number, userId: number) {
+    const record = await this.findOne(id);
+
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+
+    return this.prisma.banner.update({
+      where: { id },
+      data: {
+        status: newStatus,
+        updatedBy: String(userId),
+      },
+    });
+  }
 }

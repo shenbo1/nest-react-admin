@@ -13,7 +13,7 @@ import {
   ProFormTextArea,
   ProFormDigit,
 } from "@ant-design/pro-components";
-import { message, Popconfirm, Space, Tag, Tree, Modal, Form } from "antd";
+import { message, Popconfirm, Space, Tree, Modal, Form, Switch } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roleApi, menuApi, Role, CreateRoleParams } from "@/services/system/system";
 import PermissionButton from "@/components/PermissionButton";
@@ -100,6 +100,26 @@ const RoleList: React.FC = () => {
       tableRef.current?.reload();
     },
   });
+
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: roleApi.toggleStatus,
+    onSuccess: () => {
+      message.success("状态更新成功");
+      tableRef.current?.reload();
+    },
+    // onError: (error: any) => {
+    //   message.error(error?.message || "状态更新失败");
+    // },
+  });
+
+  const handleToggleStatus = (record: Role) => {
+    Modal.confirm({
+      title: "确认切换状态",
+      content: `确定要${record.status === "ENABLED" ? "禁用" : "启用"}「${record.name}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
+    });
+  };
 
   const handleEdit = (record: Role) => {
     setEditingId(record.id);
@@ -288,10 +308,15 @@ const RoleList: React.FC = () => {
         ENABLED: { text: "正常", status: "Success" },
         DISABLED: { text: "停用", status: "Error" },
       },
-      render: (_, record) => (
-        <Tag color={record.status === "ENABLED" ? "success" : "error"}>
-          {record.status === "ENABLED" ? "正常" : "停用"}
-        </Tag>
+      render: (_, record: Role) => (
+        <Switch
+          key={record.id}
+          size="small"
+          checked={record.status === "ENABLED"}
+          checkedChildren="正常"
+          unCheckedChildren="停用"
+          onClick={() => handleToggleStatus(record)}
+        />
       ),
     },
     {

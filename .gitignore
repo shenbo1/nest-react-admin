@@ -42,3 +42,6 @@ prisma/*.db-journal
 
 # Uploads
 apps/admin-api/public/uploads/*
+
+# Documentation - local analysis files
+docs/analysis/

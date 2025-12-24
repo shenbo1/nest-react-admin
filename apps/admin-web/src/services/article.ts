@@ -53,4 +53,9 @@ export const articleApi = {
   delete(id: number) {
     return request.delete(`/article/${id}`);
   },
+
+  /** 切换状态 */
+  toggleStatus(id: number) {
+    return request.put<Article>(`/article/${id}/toggle-status`);
+  },
 };

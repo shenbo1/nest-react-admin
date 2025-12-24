@@ -80,4 +80,11 @@ export class UserController {
   ) {
     return this.userService.changeStatus(id, status);
   }
+
+  @Put(':id/toggle-status')
+  @ApiOperation({ summary: '切换用户状态' })
+  @RequirePermissions('system:user:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.toggleStatus(id);
+  }
 }

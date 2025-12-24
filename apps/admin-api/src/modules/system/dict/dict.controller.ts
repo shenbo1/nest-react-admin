@@ -104,4 +104,19 @@ export class DictController {
   removeData(@Param('id', ParseIntPipe) id: number) {
     return this.dictService.removeData(id);
   }
+
+  // ========== 切换状态 ==========
+  @Put('type/:id/toggle-status')
+  @ApiOperation({ summary: '切换字典类型状态' })
+  @RequirePermissions('system:dict:edit')
+  toggleTypeStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.dictService.toggleTypeStatus(id);
+  }
+
+  @Put('data/:id/toggle-status')
+  @ApiOperation({ summary: '切换字典数据状态' })
+  @RequirePermissions('system:dict:edit')
+  toggleDataStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.dictService.toggleDataStatus(id);
+  }
 }

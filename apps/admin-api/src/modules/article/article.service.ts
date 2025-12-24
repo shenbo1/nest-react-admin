@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
@@ -90,6 +93,23 @@ export class ArticleService {
       data: {
         deleted: true,
         deletedAt: new Date(),
+        updatedBy: userId,
+      },
+    });
+  }
+
+  /**
+   * 切换状态
+   */
+  async toggleStatus(id: number, userId: number) {
+    const record = await this.findOne(id);
+
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+
+    return this.prisma.article.update({
+      where: { id },
+      data: {
+        status: newStatus,
         updatedBy: userId,
       },
     });

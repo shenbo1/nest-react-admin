@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react';
-import { message, Modal, Space, Tag } from 'antd';
+import { message, Modal, Space, Tag, Switch } from 'antd';
+import { useQueryClient } from '@tanstack/react-query';
 import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -13,28 +16,39 @@ import {
   ProFormText,
   ProFormTextArea,
   ProFormDigit,
-  ProFormSelect,
   ProFormGroup,
+  ProFormTreeSelect,
 } from '@ant-design/pro-components';
-import { useMutation } from '@tanstack/react-query';
-import { categoryApi, Category, CategoryForm } from '@/services/mall/category';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+  categoryApi,
+  CategoryForm,
+  CategoryTree,
+} from '@/services/mall/category';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
-import { DictEnums } from '@/stores/enums/dict.enums';
 import { StatusEnums } from '@/stores/enums/common.enums';
-import { DictRadio, DictSelect } from '@/components/DictSelect';
+import { DictRadio } from '@/components/DictSelect';
+import { generateKeyFromName } from '@/utils/name-key';
+import { useForm } from 'antd/es/form/Form';
 
 export default function CategoryPage() {
   const actionRef = useRef<ProTableRef>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<Category | null>(null);
+  const [editingRecord, setEditingRecord] = useState<CategoryTree | null>(null);
+  const [displayLevel, setDisplayLevel] = useState<number>(1);
+  const [parentCategory, setParentCategory] = useState<CategoryTree | null>(
+    null,
+  );
+  const [form] = useForm();
+  const queryClient = useQueryClient();
 
-  // 获取分类列表（用于选择父分类） - 暂时注释掉
-  // const { data: categoryList } = useQuery({
-  //   queryKey: ['categoryList'],
-  //   queryFn: () => categoryApi.list(),
-  // });
+  // 获取分类列表（用于选择父分类）
+  const { data: categoryList } = useQuery({
+    queryKey: ['categoryListForSelect'],
+    queryFn: () => categoryApi.listForSelect(),
+  });
 
   // 创建/更新
   const saveMutation = useMutation({
@@ -46,8 +60,14 @@ export default function CategoryPage() {
     },
     onSuccess: () => {
       message.success(editingRecord ? '更新成功' : '创建成功');
-      setModalOpen(false);
+      // 重置表单和状态
+      form.resetFields();
+      setDisplayLevel(1);
       setEditingRecord(null);
+      setParentCategory(null);
+      setModalOpen(false);
+      // 刷新分类列表
+      queryClient.invalidateQueries({ queryKey: ['categoryListForSelect'] });
       actionRef.current?.reload();
     },
     onError: (error: any) => {
@@ -67,6 +87,24 @@ export default function CategoryPage() {
     },
   });
 
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: categoryApi.toggleStatus,
+    onSuccess: () => {
+      message.success('状态更新成功');
+      queryClient.invalidateQueries({ queryKey: ['categoryListForSelect'] });
+      actionRef.current?.reload();
+    },
+  });
+
+  const handleToggleStatus = (record: CategoryTree) => {
+    Modal.confirm({
+      title: '确认切换状态',
+      content: `确定要${record.status === 'ENABLED' ? '禁用' : '启用'}「${record.name}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
+    });
+  };
+
   const handleDelete = (id: number) => {
     Modal.confirm({
       title: '确认删除',
@@ -76,58 +114,60 @@ export default function CategoryPage() {
     });
   };
 
-  const handleEdit = (record: Category) => {
+  const handleEdit = (record: CategoryTree) => {
     setEditingRecord(record);
+    setDisplayLevel(record.level || 1);
     setModalOpen(true);
   };
 
-  const handleAdd = () => {
+  const handleAdd = (parent?: CategoryTree) => {
     setEditingRecord(null);
+    setParentCategory(parent || null);
+    if (parent) {
+      setDisplayLevel(Math.min((parent.level || 1) + 1, 5));
+      form.setFieldValue('parentId', parent.id);
+    } else {
+      setDisplayLevel(1);
+      form.setFieldValue('parentId', undefined);
+    }
     setModalOpen(true);
   };
 
-  const renderCategoryName = (record: Category) => {
-    const indent = record.level ? '　'.repeat((record.level - 1) * 2) : '';
-    return (
-      <div>
-        <span style={{ marginRight: 8 }}>
-          {(record.level || 0) > 1 ? (
-            <BranchesOutlined style={{ color: '#1890ff' }} />
-          ) : (
-            <FolderOutlined style={{ color: '#faad14' }} />
-          )}
-        </span>
-        {indent}
-        <span style={{ fontWeight: 500 }}>{record.name}</span>
-        {(record.level || 0) > 1 && (
-          <Tag color="purple" style={{ marginLeft: 8 }}>
-            {record.level}级
-          </Tag>
-        )}
-      </div>
-    );
+  // 添加子分类
+  const handleAddChild = (record: CategoryTree) => {
+    handleAdd(record);
   };
 
-  const columns: ProColumns<Category>[] = [
+  const columns: ProColumns<CategoryTree>[] = [
     {
       title: '分类名称',
       dataIndex: 'name',
-      width: 300,
-      render: (_, record) => renderCategoryName(record),
+      width: 350,
+      render: (_, record: any) => {
+        const indent = record.level ? '　'.repeat((record.level - 1) * 2) : '';
+        return (
+          <div>
+            <span style={{ marginRight: 8 }}>
+              {(record.level || 0) > 1 ? (
+                <BranchesOutlined style={{ color: '#1890ff' }} />
+              ) : (
+                <FolderOutlined style={{ color: '#faad14' }} />
+              )}
+            </span>
+            {indent}
+            <span style={{ fontWeight: 500 }}>{record.name}</span>
+            <Tag color="purple" style={{ marginLeft: 8 }}>
+              {record.level || 1}级
+            </Tag>
+          </div>
+        );
+      },
     },
     {
       title: '分类编码',
       dataIndex: 'code',
       width: 150,
       render: (text) => text || '-',
-    },
-    {
-      title: '层级',
-      dataIndex: 'level',
-      width: 80,
-      search: false,
-      align: 'center',
-      render: (level) => (level ? `第${level}级` : '-'),
     },
     {
       title: '排序',
@@ -137,6 +177,19 @@ export default function CategoryPage() {
       align: 'center',
     },
     {
+      title: '子分类',
+      dataIndex: 'childrenCount',
+      width: 100,
+      search: false,
+      align: 'center',
+      render: (_: any, record: CategoryTree) =>
+        (record.childrenCount ?? 0) > 0 ? (
+          <Tag color="blue">{record.childrenCount} 个子分类</Tag>
+        ) : (
+          <span style={{ color: '#999' }}>-</span>
+        ),
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       width: 100,
@@ -144,6 +197,16 @@ export default function CategoryPage() {
         ENABLED: { text: '启用', status: 'Success' },
         DISABLED: { text: '禁用', status: 'Error' },
       },
+      render: (_, record: CategoryTree) => (
+        <Switch
+          key={record.id}
+          size="small"
+          checked={record.status === 'ENABLED'}
+          checkedChildren="正常"
+          unCheckedChildren="停用"
+          onClick={() => handleToggleStatus(record)}
+        />
+      ),
     },
     {
       title: '描述',
@@ -163,10 +226,20 @@ export default function CategoryPage() {
     {
       title: '操作',
       valueType: 'option',
-      width: 180,
+      width: 220,
       fixed: 'right',
       render: (_, record) => (
         <Space>
+          <PermissionButton
+            permission={MALL.CATEGORY.ADD}
+            type="link"
+            size="small"
+            icon={<PlusOutlined />}
+            onClick={() => handleAddChild(record)}
+            disabled={(record.level || 1) >= 5}
+          >
+            添加子分类
+          </PermissionButton>
           <PermissionButton
             permission={MALL.CATEGORY.EDIT}
             type="link"
@@ -198,38 +271,55 @@ export default function CategoryPage() {
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1300 }}
         api="/mall/category"
+        defaultExpandAllRows={true}
         toolBarRender={() => [
           <PermissionButton
             key="add"
             permission={MALL.CATEGORY.ADD}
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAdd}
+            onClick={() => handleAdd()}
           >
             新增分类
           </PermissionButton>,
         ]}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }}
+        pagination={false}
       />
 
       <ModalForm<CategoryForm>
-        title={editingRecord ? '编辑商品分类' : '新增商品分类'}
+        title={
+          editingRecord
+            ? '编辑商品分类'
+            : parentCategory
+              ? `添加子分类（上级：${parentCategory.name}）`
+              : '新增商品分类'
+        }
         open={modalOpen}
         onOpenChange={setModalOpen}
+        form={form}
         initialValues={
-          editingRecord || {
-            sort: 0,
-            status: 'ENABLED',
-            level: 1,
-          }
+          editingRecord
+            ? {
+                ...editingRecord,
+                parentId: editingRecord.parentId || undefined,
+              }
+            : {
+                sort: 0,
+                status: 'ENABLED',
+                level: 1,
+              }
         }
         onFinish={async (values) => {
+          // 使用displayLevel作为层级
+          values.level = displayLevel;
+
+          // 确保parentId正确处理
+          if (values.parentId === null) {
+            values.parentId = undefined;
+          }
+
           await saveMutation.mutateAsync(values);
           return true;
         }}
@@ -246,6 +336,15 @@ export default function CategoryPage() {
             placeholder="请输入分类名称"
             rules={[{ required: true, message: '请输入分类名称' }]}
             colProps={{ span: 24 }}
+            fieldProps={{
+              onChange: (e) => {
+                // 自动生成编码
+                const value = e.target.value;
+                if (value && !editingRecord) {
+                  form.setFieldValue('code', generateKeyFromName(value));
+                }
+              },
+            }}
           />
           <ProFormText
             name="code"
@@ -261,19 +360,24 @@ export default function CategoryPage() {
             fieldProps={{ precision: 0 }}
             colProps={{ span: 12 }}
           />
+          <ProFormTreeSelect
+            name="parentId"
+            label="上级分类"
+            placeholder="请选择上级分类"
+            allowClear
+            colProps={{ span: 12 }}
+            fieldProps={{
+              style: { width: '100%', minWidth: '140px' },
+              popupMatchSelectWidth: 200,
+              treeDefaultExpandAll: true,
+              treeData: (categoryList?.list || []) as any[],
+              fieldNames: { label: 'name', value: 'id', children: 'children' },
+            }}
+          />
           <DictRadio
             name="status"
             label="状态"
             enum={StatusEnums}
-            colProps={{ span: 12 }}
-          />
-          <ProFormDigit
-            name="level"
-            label="层级"
-            placeholder="请输入层级"
-            min={1}
-            max={5}
-            fieldProps={{ precision: 0 }}
             colProps={{ span: 12 }}
           />
         </ProFormGroup>

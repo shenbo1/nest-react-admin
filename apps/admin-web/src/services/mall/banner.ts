@@ -68,4 +68,9 @@ export const bannerApi = {
   delete(id: number) {
     return request.delete(`/mall/banner/${id}`);
   },
+
+  /** 切换状态 */
+  toggleStatus(id: number) {
+    return request.put<Banner>(`/mall/banner/${id}/toggle-status`);
+  },
 };

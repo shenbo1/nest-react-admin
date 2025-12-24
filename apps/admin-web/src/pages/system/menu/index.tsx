@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SubnodeOutlined } from '@ant-design/icons';
 import { ProColumns, ModalForm, ProFormText, ProFormSelect, ProFormTreeSelect, ProFormDigit, ProFormSwitch } from '@ant-design/pro-components';
-import { Form, message, Popconfirm, Space, Tag } from 'antd';
+import { Form, message, Popconfirm, Space, Tag, Switch, Modal } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { menuApi, Menu, CreateMenuParams } from '@/services/system/system';
 import PermissionButton from '@/components/PermissionButton';
@@ -45,6 +45,26 @@ const MenuList: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['menus'] });
     },
   });
+
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: menuApi.toggleStatus,
+    onSuccess: () => {
+      message.success('状态更新成功');
+      queryClient.invalidateQueries({ queryKey: ['menus'] });
+    },
+    // onError: (error: any) => {
+    //   message.error(error?.message || '状态更新失败');
+    // },
+  });
+
+  const handleToggleStatus = (record: Menu) => {
+    Modal.confirm({
+      title: '确认切换状态',
+      content: `确定要${record.status === 'ENABLED' ? '禁用' : '启用'}「${record.name}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
+    });
+  };
 
   const handleEdit = (record: Menu) => {
     setEditingId(record.id);
@@ -171,10 +191,15 @@ const MenuList: React.FC = () => {
         ENABLED: { text: '正常', status: 'Success' },
         DISABLED: { text: '停用', status: 'Error' },
       },
-      render: (_, record) => (
-        <Tag color={record.status === 'ENABLED' ? 'success' : 'error'}>
-          {record.status === 'ENABLED' ? '正常' : '停用'}
-        </Tag>
+      render: (_, record: Menu) => (
+        <Switch
+          key={record.id}
+          size="small"
+          checked={record.status === 'ENABLED'}
+          checkedChildren="正常"
+          unCheckedChildren="停用"
+          onClick={() => handleToggleStatus(record)}
+        />
       ),
     },
     {

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { ProColumns, ModalForm, ProFormText, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
-import { message, Popconfirm } from 'antd';
+import { message, Popconfirm, Modal, Switch } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import PermissionButton from '@/components/PermissionButton';
 import ProTable, { ProTableRef } from '@/components/ProTable';
@@ -57,6 +57,29 @@ const NoticeList: React.FC = () => {
     },
   });
 
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const result = await request.put(`/system/notice/${id}/toggle-status`);
+      return result;
+    },
+    onSuccess: () => {
+      message.success('状态更新成功');
+      tableRef.current?.reload();
+    },
+    // onError: (error: any) => {
+    //   message.error(error?.message || '状态更新失败');
+    // },
+  });
+
+  const handleToggleStatus = (record: Notice) => {
+    Modal.confirm({
+      title: '确认切换状态',
+      content: `确定要${record.status === 'ENABLED' ? '禁用' : '启用'}「${record.title}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
+    });
+  };
+
   const handleEdit = (record: Notice) => {
     setEditingId(record.id);
     setEditingRecord(record);
@@ -94,6 +117,16 @@ const NoticeList: React.FC = () => {
         ENABLED: { text: '正常', status: 'Success' },
         DISABLED: { text: '停用', status: 'Error' },
       },
+      render: (_, record: Notice) => (
+        <Switch
+          key={record.id}
+          size="small"
+          checked={record.status === 'ENABLED'}
+          checkedChildren="正常"
+          unCheckedChildren="停用"
+          onClick={() => handleToggleStatus(record)}
+        />
+      ),
     },
     {
       title: '创建时间',

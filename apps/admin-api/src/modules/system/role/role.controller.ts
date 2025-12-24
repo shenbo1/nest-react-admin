@@ -60,4 +60,11 @@ export class RoleController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.roleService.remove(id);
   }
+
+  @Put(':id/toggle-status')
+  @ApiOperation({ summary: '切换角色状态' })
+  @RequirePermissions('system:role:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.roleService.toggleStatus(id);
+  }
 }

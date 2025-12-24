@@ -73,4 +73,14 @@ export class ArticleController {
     const userId = this.cls.get('user').id;
     return this.articleService.remove(id, userId);
   }
+
+  /**
+   * 切换状态
+   */
+  @Put(':id/toggle-status')
+  @RequirePermissions('article:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    const userId = this.cls.get('user').id;
+    return this.articleService.toggleStatus(id, userId);
+  }
 }

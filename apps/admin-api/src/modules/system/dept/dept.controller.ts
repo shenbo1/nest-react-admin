@@ -59,4 +59,11 @@ export class DeptController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.deptService.remove(id);
   }
+
+  @Put(':id/toggle-status')
+  @ApiOperation({ summary: '切换部门状态' })
+  @RequirePermissions('system:dept:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.deptService.toggleStatus(id);
+  }
 }

@@ -32,7 +32,7 @@ request.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器
@@ -56,7 +56,6 @@ request.interceptors.response.use(
       // 获取当前路径，避免在登录页面重复重定向
       const currentPath = window.location.pathname;
       const isLoginPage = currentPath === '/login';
-
       switch (status) {
         case 401:
           // 在登录页面时，不执行重定向，让登录组件自己处理错误
@@ -85,5 +84,5 @@ request.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );

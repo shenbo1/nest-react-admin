@@ -114,6 +114,26 @@ export class DeptService {
     return this.buildTree(depts);
   }
 
+  async toggleStatus(id: number) {
+    const record = await this.findOne(id);
+
+    // 检查是否有子部门（如果是要禁用）
+    if (record.status === 'ENABLED') {
+      const children = await this.prisma.sysDept.count({
+        where: { parentId: id, deleted: false },
+      });
+      if (children > 0) {
+        throw new BadRequestException('存在子部门，不能禁用');
+      }
+    }
+
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.prisma.sysDept.update({
+      where: { id },
+      data: { status: newStatus as Status },
+    });
+  }
+
   private buildTree(depts: any[], parentId = 0): any[] {
     return depts
       .filter((dept) => dept.parentId === parentId)

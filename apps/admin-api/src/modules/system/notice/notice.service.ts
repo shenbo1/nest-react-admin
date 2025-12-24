@@ -98,4 +98,13 @@ export class NoticeService {
 
     return { message: '删除成功' };
   }
+
+  async toggleStatus(id: number) {
+    const record = await this.findOne(id);
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.prisma.sysNotice.update({
+      where: { id },
+      data: { status: newStatus as Status },
+    });
+  }
 }

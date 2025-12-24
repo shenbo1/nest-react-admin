@@ -63,6 +63,8 @@ export const userApi = {
     request.put(`/system/user/${id}/resetPwd`, { password }),
   changeStatus: (id: number, status: string): Promise<void> =>
     request.put(`/system/user/${id}/status`, { status }),
+  toggleStatus: (id: number): Promise<User> =>
+    request.put(`/system/user/${id}/toggle-status`),
 };
 
 // ========== 角色管理 ==========
@@ -105,6 +107,8 @@ export const roleApi = {
   update: (id: number, data: Partial<CreateRoleParams>): Promise<Role> =>
     request.put(`/system/role/${id}`, data),
   delete: (id: number): Promise<void> => request.delete(`/system/role/${id}`),
+  toggleStatus: (id: number): Promise<Role> =>
+    request.put(`/system/role/${id}/toggle-status`),
 };
 
 // ========== 菜单管理 ==========
@@ -146,6 +150,8 @@ export const menuApi = {
   update: (id: number, data: Partial<CreateMenuParams>): Promise<Menu> =>
     request.put(`/system/menu/${id}`, data),
   delete: (id: number): Promise<void> => request.delete(`/system/menu/${id}`),
+  toggleStatus: (id: number): Promise<Menu> =>
+    request.put(`/system/menu/${id}/toggle-status`),
 };
 
 // ========== 部门管理 ==========
@@ -181,6 +187,8 @@ export const deptApi = {
   update: (id: number, data: Partial<CreateDeptParams>): Promise<Dept> =>
     request.put(`/system/dept/${id}`, data),
   delete: (id: number): Promise<void> => request.delete(`/system/dept/${id}`),
+  toggleStatus: (id: number): Promise<Dept> =>
+    request.put(`/system/dept/${id}/toggle-status`),
 };
 
 // ========== 字典管理 ==========

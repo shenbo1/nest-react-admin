@@ -13,6 +13,14 @@ export class CreateCategoryDto {
   code?: string;
 
   @IsOptional()
+  @IsInt()
+  parentId?: number;
+
+  @IsOptional()
+  @IsInt()
+  level?: number;
+
+  @IsOptional()
   @IsString()
   content?: string;
 

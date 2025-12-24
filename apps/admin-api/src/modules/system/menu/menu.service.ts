@@ -74,6 +74,15 @@ export class MenuService {
     return this.buildTree(menus);
   }
 
+  async toggleStatus(id: number) {
+    const record = await this.findOne(id);
+    const newStatus = record.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.prisma.sysMenu.update({
+      where: { id },
+      data: { status: newStatus as Status },
+    });
+  }
+
   private buildTree(menus: any[], parentId = 0): any[] {
     return menus
       .filter((menu) => menu.parentId === parentId)

@@ -108,4 +108,21 @@ export class RoleService {
       orderBy: { sort: 'asc' },
     });
   }
+
+  async toggleStatus(id: number) {
+    const existing = await this.prisma.sysRole.findFirst({
+      where: { id, deleted: false },
+    });
+    if (!existing) throw new NotFoundException('角色不存在');
+
+    if (existing.key === 'admin') {
+      throw new BadRequestException('不能修改超级管理员角色状态');
+    }
+
+    const newStatus = existing.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.prisma.sysRole.update({
+      where: { id },
+      data: { status: newStatus },
+    });
+  }
 }

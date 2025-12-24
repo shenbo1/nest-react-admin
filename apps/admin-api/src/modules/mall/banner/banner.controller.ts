@@ -73,4 +73,14 @@ export class BannerController {
     const userId = this.cls.get('user').id;
     return this.bannerService.remove(id, userId);
   }
+
+  /**
+   * 切换状态
+   */
+  @Put(':id/toggle-status')
+  @RequirePermissions('mall:banner:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    const userId = this.cls.get('user').id;
+    return this.bannerService.toggleStatus(id, userId);
+  }
 }

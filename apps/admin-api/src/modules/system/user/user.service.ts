@@ -196,6 +196,19 @@ export class UserService {
     return { message: '状态修改成功' };
   }
 
+  async toggleStatus(id: number) {
+    const existing = await this.prisma.sysUser.findFirst({
+      where: { id, deleted: false },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    const newStatus = existing.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    return this.changeStatus(id, newStatus as Status);
+  }
+
   private excludePassword(user: any) {
     const { password, ...result } = user;
     return result;

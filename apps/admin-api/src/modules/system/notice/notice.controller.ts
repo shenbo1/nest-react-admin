@@ -59,4 +59,11 @@ export class NoticeController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.noticeService.remove(id);
   }
+
+  @Put(':id/toggle-status')
+  @ApiOperation({ summary: '切换公告状态' })
+  @RequirePermissions('system:notice:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.noticeService.toggleStatus(id);
+  }
 }

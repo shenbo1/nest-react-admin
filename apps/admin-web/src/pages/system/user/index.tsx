@@ -71,13 +71,16 @@ const UserList: React.FC = () => {
     },
   });
 
-  // 修改状态
-  const changeStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) =>
-      userApi.changeStatus(id, status),
+
+  // 切换状态（与其他模块保持一致）
+  const toggleStatusMutation = useMutation({
+    mutationFn: userApi.toggleStatus,
     onSuccess: () => {
       message.success('状态修改成功');
       tableRef.current?.reload();
+    },
+    onError: (error: any) => {
+      message.error(error?.message || '状态修改失败');
     },
   });
 
@@ -118,10 +121,11 @@ const UserList: React.FC = () => {
     setAssignRoleModalOpen(true);
   };
 
-  const handleStatusChange = (record: User, checked: boolean) => {
-    changeStatusMutation.mutate({
-      id: record.id,
-      status: checked ? 'ENABLED' : 'DISABLED',
+  const handleStatusChange = (record: User) => {
+    Modal.confirm({
+      title: '确认切换状态',
+      content: `确定要${record.status === 'ENABLED' ? '禁用' : '启用'}「${record.nickname || record.username}」吗？`,
+      onOk: () => toggleStatusMutation.mutate(record.id),
     });
   };
 
@@ -177,8 +181,8 @@ const UserList: React.FC = () => {
           checked={record.status === 'ENABLED'}
           checkedChildren="正常"
           unCheckedChildren="停用"
-          onChange={(checked) => handleStatusChange(record, checked)}
-          loading={changeStatusMutation.isPending}
+          onClick={() => handleStatusChange(record)}
+          loading={toggleStatusMutation.isPending}
         />
       ),
     },
