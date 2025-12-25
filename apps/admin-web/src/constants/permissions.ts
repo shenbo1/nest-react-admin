@@ -77,6 +77,16 @@ export const SYSTEM = {
     LIST: 'system:codegen:list',
     GENERATE: 'system:codegen:generate',
   },
+  JOB: {
+    LIST: 'system:job:list',
+    ADD: 'system:job:add',
+    EDIT: 'system:job:edit',
+    REMOVE: 'system:job:remove',
+    QUERY: 'system:job:query',
+    RUN: 'system:job:run',
+    LOG: 'system:job:log',
+    MONITOR: 'system:job:monitor',
+  },
   LOG: {
     OPERLOG: {
       LIST: 'system:operlog:list',

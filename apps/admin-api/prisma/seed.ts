@@ -278,6 +278,28 @@ async function main() {
       sort: 9,
       perms: 'system:codegen:list',
     },
+    {
+      id: 23,
+      parentId: 10,
+      name: '定时任务',
+      path: '/system/job',
+      component: 'system/job/index',
+      type: MenuType.MENU,
+      icon: 'ClockCircleOutlined',
+      sort: 10,
+      perms: 'system:job:list',
+    },
+    {
+      id: 24,
+      parentId: 10,
+      name: '任务监控',
+      path: '/system/job-monitor',
+      component: 'system/job-monitor/index',
+      type: MenuType.MENU,
+      icon: 'MonitorOutlined',
+      sort: 11,
+      perms: 'system:job:monitor',
+    },
 
     // ============================================
     // 商城管理权限说明文档
@@ -1274,6 +1296,67 @@ async function main() {
       sort: 1,
       perms: 'system:codegen:generate',
     },
+    // 定时任务按钮
+    {
+      id: 191,
+      parentId: 23,
+      name: '任务查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'system:job:query',
+    },
+    {
+      id: 192,
+      parentId: 23,
+      name: '任务新增',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'system:job:add',
+    },
+    {
+      id: 193,
+      parentId: 23,
+      name: '任务修改',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 3,
+      perms: 'system:job:edit',
+    },
+    {
+      id: 194,
+      parentId: 23,
+      name: '任务删除',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 4,
+      perms: 'system:job:remove',
+    },
+    {
+      id: 195,
+      parentId: 23,
+      name: '立即执行',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 5,
+      perms: 'system:job:run',
+    },
+    {
+      id: 196,
+      parentId: 23,
+      name: '执行记录',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 6,
+      perms: 'system:job:log',
+    },
     // article管理菜单
     { id: 200, parentId: 0, name: 'article管理', path: '/article', type: MenuType.DIR, icon: 'AppstoreOutlined', sort: 10, perms: 'article:manage' },
     { id: 201, parentId: 200, name: 'article管理列表', path: '/article/list', component: 'article/index', type: MenuType.MENU, icon: 'UnorderedListOutlined', sort: 1, perms: 'article:list' },
@@ -1319,6 +1402,60 @@ async function main() {
   }
 
   console.log('菜单创建完成');
+
+  // 创建定时任务示例
+  await prisma.sysJob.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      name: '系统心跳检测',
+      type: 'SYSTEM',
+      handler: 'system:heartbeat',
+      cron: '*/5 * * * *',
+      payload: { source: 'seed' },
+      status: Status.ENABLED,
+      remark: '示例任务：每5分钟执行一次',
+      createdBy: 'system',
+    },
+  });
+
+  await prisma.sysJobLog.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      jobId: 1,
+      jobName: '系统心跳检测',
+      handler: 'system:heartbeat',
+      trigger: 'MANUAL',
+      status: 'SUCCESS',
+      message: '示例日志',
+      payload: { source: 'seed' },
+      startedAt: new Date(),
+      finishedAt: new Date(),
+      durationMs: 100,
+      result: { ok: true, seed: true },
+      createdBy: 'system',
+      updatedBy: 'system',
+    },
+  });
+
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('sys_job', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM sys_job)
+    )
+  `;
+
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('sys_job_log', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM sys_job_log)
+    )
+  `;
+
+  console.log('定时任务创建完成');
 
   // 创建字典
   const dictTypes = [
@@ -1409,6 +1546,30 @@ async function main() {
   // 商城SKU系统测试数据
   // ====================
   console.log('创建SKU系统测试数据...');
+
+  // 创建测试分类
+  await prisma.category.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      name: '默认分类',
+      code: 'DEFAULT',
+      parentId: null,
+      ancestors: '0',
+      level: 1,
+      sort: 0,
+      status: Status.ENABLED,
+      createdBy: 'system',
+    },
+  });
+
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('mall_category', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM mall_category)
+    )
+  `;
 
   // 创建一个测试商品
   const testProduct = await prisma.product.upsert({

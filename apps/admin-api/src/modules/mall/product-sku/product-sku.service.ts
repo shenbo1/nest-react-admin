@@ -3,13 +3,7 @@ import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateProductSkuDto } from './dto/create-product-sku.dto';
 import { UpdateProductSkuDto } from './dto/update-product-sku.dto';
 import { Prisma } from '@prisma/client';
-
-interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
+import { PaginatedResult } from '@/common/dto';
 
 @Injectable()
 export class ProductSkuService {
@@ -42,7 +36,7 @@ export class ProductSkuService {
     pageSize?: number;
     keyword?: string;
     lowStock?: boolean;
-  }): Promise<PaginatedResult<any>> {
+  }) {
     const {
       productId,
       page = 1,
@@ -80,12 +74,8 @@ export class ProductSkuService {
       ? data.filter(item => item.stock < (item as any).lowStockAlert)
       : data;
 
-    return {
-      data: filteredData,
-      total: lowStock ? filteredData.length : total,
-      page,
-      pageSize,
-    };
+    const totalCount = lowStock ? filteredData.length : total;
+    return new PaginatedResult(filteredData, totalCount, page, pageSize);
   }
 
   /**

@@ -1,11 +1,15 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { appConfig, type AppConfig } from '@/config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor() {
+  constructor(
+    @Inject(appConfig.KEY)
+    config: AppConfig,
+  ) {
     super({
-      log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+      log: config.isDev ? ['warn', 'error'] : ['error'],
     });
   }
 

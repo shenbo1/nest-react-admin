@@ -1,16 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from '@nestjs/common';
 import { ResponseDto } from '@/common/dto/response.dto';
+import { appConfig, uploadConfig, type AppConfig, type UploadConfig } from '@/config';
 
 @Injectable()
 export class UploadService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    @Inject(appConfig.KEY)
+    private readonly app: AppConfig,
+    @Inject(uploadConfig.KEY)
+    private readonly upload: UploadConfig,
+  ) {}
 
   /**
    * 获取图片访问 URL
    */
   getImageUrl(file: Express.Multer.File) {
-    const baseUrl = this.configService.get('BASE_URL') || `http://localhost:${process.env.PORT || 3000}`;
+    const baseUrl =
+      this.upload.baseUrl || `http://localhost:${this.app.port ?? 3000}`;
     const url = `${baseUrl}/upload/preview/${file.filename}`;
     return ResponseDto.success({
       url,

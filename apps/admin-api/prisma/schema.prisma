@@ -323,6 +323,7 @@ model Member {
   pointLogs     MemberPointLog[]
   carts         Cart[]
   cartItems     CartItem[]
+  memberLevel   MemberLevelRule? @relation("MemberLevel", fields: [memberLevelId], references: [id])
 
   @@index([phone])
   @@index([email])
@@ -368,6 +369,7 @@ model MemberAddress {
   /// 删除时间
   deletedAt   DateTime? @map("deleted_at")
   member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  orders      Order[]
 
   @@index([memberId])
   @@index([isDefault])
@@ -531,7 +533,7 @@ model MemberLevelRule {
   deleted      Boolean  @default(false) @map("deleted")
   /// 删除时间
   deletedAt    DateTime? @map("deleted_at")
-  members      Member[]
+  members      Member[] @relation("MemberLevel")
 
   @@index([level])
   @@index([minGrowth, maxGrowth])
@@ -711,6 +713,8 @@ model Order {
   shipments      OrderShipment[]
   refunds        OrderRefund[]
   logs           OrderLog[]
+  invoice        Invoice?
+  afterSales     AfterSale[]
 
   @@index([memberId])
   @@index([memberAddressId])
@@ -781,6 +785,7 @@ model OrderItem {
   product        Product?  @relation(fields: [productId], references: [id])
   sku            ProductSKU? @relation(fields: [skuId], references: [id])
   refunds        OrderRefund[]
+  afterSaleItems AfterSaleItem[]
 
   @@index([orderId])
   @@index([productId])
@@ -954,7 +959,7 @@ model OrderLog {
 model Invoice {
   id            Int           @id @default(autoincrement())
   /// 订单ID
-  orderId       Int           @map("order_id")
+  orderId       Int           @unique @map("order_id")
   /// 发票类型
   invoiceType   InvoiceType?  @map("invoice_type")
   /// 发票抬头类型
@@ -1162,6 +1167,8 @@ model Product {
   skus          ProductSKU[]
   specGroups    ProductSpecGroup[]
   cartItems     CartItem[]
+  orderItems    OrderItem[]
+  afterSaleItems AfterSaleItem[]
 
   @@index([categoryId])
   @@index([status])
@@ -1260,6 +1267,8 @@ model ProductSKU {
   product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   stockLogs       ProductStockLog[]
   cartItems       CartItem[]
+  orderItems      OrderItem[]
+  afterSaleItems  AfterSaleItem[]
 
   @@index([productId, skuCode])
   @@index([productId, price, stock])
@@ -1283,7 +1292,7 @@ model Cart {
   /// 更新者ID
   updatedBy  String?  @map("updated_by") @db.VarChar(64)
   /// 更新时间
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
   /// 删除标记
   deleted    Boolean  @default(false) @map("deleted")
   /// 删除时间
@@ -1383,6 +1392,58 @@ model ProductStockLog {
   @@index([skuId, createdAt])
   @@index([orderId])
   @@map("mall_product_stock_log")
+}
+
+model SysJob {
+  id         Int        @id @default(autoincrement())
+  name       String     @db.VarChar(100)
+  type       JobType    @default(SYSTEM)
+  handler    String     @db.VarChar(100)
+  httpMethod String?    @map("http_method") @db.VarChar(10)
+  httpUrl    String?    @map("http_url") @db.VarChar(500)
+  httpHeaders Json?     @map("http_headers")
+  cron       String     @db.VarChar(100)
+  payload    Json?
+  status     Status     @default(ENABLED)
+  remark     String?    @db.VarChar(500)
+  lastRunAt  DateTime?  @map("last_run_at")
+  createdBy  String?    @map("created_by") @db.VarChar(64)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedBy  String?    @map("updated_by") @db.VarChar(64)
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  deleted    Boolean    @default(false)
+  deletedAt  DateTime?  @map("deleted_at")
+  logs       SysJobLog[]
+
+  @@index([status, deleted])
+  @@map("sys_job")
+}
+
+model SysJobLog {
+  id         Int      @id @default(autoincrement())
+  jobId      Int      @map("job_id")
+  jobName    String   @map("job_name") @db.VarChar(100)
+  handler    String   @db.VarChar(100)
+  trigger    String   @db.VarChar(20)
+  status     String   @db.VarChar(20)
+  message    String?  @db.VarChar(500)
+  error      String?  @db.VarChar(1000)
+  payload    Json?    @map("payload")
+  startedAt  DateTime @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  durationMs Int?     @map("duration_ms")
+  result     Json?
+  createdBy  String?  @map("created_by") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedBy  String?  @map("updated_by") @db.VarChar(64)
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+  deleted    Boolean  @default(false)
+  deletedAt  DateTime? @map("deleted_at")
+  job        SysJob   @relation(fields: [jobId], references: [id])
+
+  @@index([jobId, startedAt])
+  @@index([deleted])
+  @@map("sys_job_log")
 }
 
 model SysConfig {
@@ -1506,6 +1567,11 @@ model SysLoginLog {
 enum Status {
   ENABLED
   DISABLED
+}
+
+enum JobType {
+  SYSTEM
+  HTTP
 }
 
 enum Gender {

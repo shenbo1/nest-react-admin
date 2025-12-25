@@ -17,6 +17,8 @@ import {
   ToolOutlined,
   NotificationOutlined,
   CodeOutlined,
+  ClockCircleOutlined,
+  MonitorOutlined,
   ShopOutlined,
   AppstoreOutlined,
   TagsOutlined,
@@ -127,6 +129,18 @@ const defaultMenuItems = [
         icon: <CodeOutlined />,
         label: '代码生成',
         permission: SYSTEM.CODEGEN.LIST,
+      },
+      {
+        key: '/system/job',
+        icon: <ClockCircleOutlined />,
+        label: '定时任务',
+        permission: SYSTEM.JOB.LIST,
+      },
+      {
+        key: '/system/job-monitor',
+        icon: <MonitorOutlined />,
+        label: '任务监控',
+        permission: SYSTEM.JOB.MONITOR,
       },
     ],
   },
@@ -305,6 +319,13 @@ const BasicLayout: React.FC = () => {
   };
 
   const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === '/system/job-monitor') {
+      const baseUrl =
+        (import.meta as any).env?.VITE_API_BASE_URL || window.location.origin;
+      const bullUrl = `${String(baseUrl).replace(/\/$/, '')}/bull`;
+      window.open(bullUrl, '_blank', 'noopener');
+      return;
+    }
     navigate(key);
   };
 

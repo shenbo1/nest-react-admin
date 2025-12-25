@@ -9,6 +9,7 @@ import { LoginLogModule } from './loginlog/loginlog.module';
 import { ConfigModule } from './config/config.module';
 import { NoticeModule } from './notice/notice.module';
 import { CodegenModule } from './codegen/codegen.module';
+import { JobModule } from './job/job.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CodegenModule } from './codegen/codegen.module';
     ConfigModule,
     NoticeModule,
     CodegenModule,
+    JobModule,
   ],
 })
 export class SystemModule {}

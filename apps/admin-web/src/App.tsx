@@ -18,6 +18,8 @@ const LoginLogList = lazy(() => import('./pages/system/loginlog'));
 const ConfigList = lazy(() => import('./pages/system/config'));
 const NoticeList = lazy(() => import('./pages/system/notice'));
 const Codegen = lazy(() => import('./pages/system/codegen'));
+const JobList = lazy(() => import('./pages/system/job'));
+const JobMonitor = lazy(() => import('./pages/system/job-monitor'));
 const ProductList = lazy(() => import('./pages/mall/product'));
 const CategoryList = lazy(() => import('./pages/mall/category'));
 const OrderList = lazy(() => import('./pages/mall/order'));
@@ -135,6 +137,22 @@ function App() {
                 element={
                   <AuthRoute requiredPermission={SYSTEM.CODEGEN.LIST}>
                     <Codegen />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="job"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.JOB.LIST}>
+                    <JobList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="job-monitor"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.JOB.MONITOR}>
+                    <JobMonitor />
                   </AuthRoute>
                 }
               />
