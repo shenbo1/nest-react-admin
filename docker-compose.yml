@@ -1,12 +1,51 @@
 version: '3.8'
 
 services:
+  admin-api:
+    build:
+      context: ./apps/admin-api
+      dockerfile: Dockerfile
+    container_name: nest-react-admin-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/nest_react_admin?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis123
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - APP_PORT=8080
+      - APP_PREFIX=api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nest-admin-network
+
+  admin-web:
+    build:
+      context: ./apps/admin-web
+      dockerfile: Dockerfile
+    container_name: nest-react-admin-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - admin-api
+    networks:
+      - nest-admin-network
+
   postgres:
     image: postgres:16-alpine
     container_name: nest-react-admin-postgres
     restart: unless-stopped
     ports:
-      - '5432:5432'
+      - "5432:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin123
@@ -15,26 +54,34 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U admin -d nest_react_admin']
+      test: ["CMD-SHELL", "pg_isready -U admin -d nest_react_admin"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nest-admin-network
 
   redis:
     image: redis:7-alpine
     container_name: nest-react-admin-redis
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - "6379:6379"
     command: redis-server --appendonly yes --requirepass redis123
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', 'redis123', 'ping']
+      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - nest-admin-network
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  nest-admin-network:
+    driver: bridge

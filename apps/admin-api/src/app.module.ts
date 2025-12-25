@@ -1,7 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
-import * as Joi from 'joi';
+import { z } from 'zod';
 import { ClsModule } from 'nestjs-cls';
 import { join } from 'path';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -25,6 +25,33 @@ import { OperLogInterceptor } from './common/interceptors/operlog.interceptor';
 import { ArticleModule } from './modules/article/article.module';
 import { appConfigs } from '@/config';
 
+// Zod 环境变量验证 schema
+const envSchema = z.object({
+  NODE_ENV: z
+    .enum(['development', 'production', 'test', 'local'])
+    .default('development'),
+  APP_PREFIX: z.string().default('api'),
+  APP_PORT: z.number().int().positive().default(3000),
+  JWT_SECRET: z.string().min(10),
+  JWT_EXPIRES_IN: z.string().default('7d'),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.number().int().positive().default(6379),
+  REDIS_PASSWORD: z.string().optional().or(z.literal('')),
+  BASE_URL: z.string().url().optional().or(z.literal('')),
+});
+
+// 环境变量验证函数
+function validateEnv(env: Record<string, unknown>) {
+  const result = envSchema.safeParse(env);
+  if (!result.success) {
+    const errors = result.error.errors.map(
+      (e) => `${e.path.join('.')}: ${e.message}`,
+    );
+    throw new Error(`环境变量验证失败:\n${errors.join('\n')}`);
+  }
+  return result.data;
+}
+
 @Module({
   imports: [
     // 配置模块
@@ -32,19 +59,7 @@ import { appConfigs } from '@/config';
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
       load: appConfigs,
-      validationSchema: Joi.object({
-        NODE_ENV: Joi.string()
-          .valid('development', 'production', 'test', 'local')
-          .default('development'),
-        APP_PREFIX: Joi.string().default('api'),
-        APP_PORT: Joi.number().port().default(3000),
-        JWT_SECRET: Joi.string().min(10).required(),
-        JWT_EXPIRES_IN: Joi.string().default('7d'),
-        REDIS_HOST: Joi.string().default('localhost'),
-        REDIS_PORT: Joi.number().port().default(6379),
-        REDIS_PASSWORD: Joi.string().allow('', null),
-        BASE_URL: Joi.string().uri().allow('', null),
-      }),
+      validate: validateEnv,
     }),
 
     // CLS 模块 - 用于存储请求上下文（当前用户等）

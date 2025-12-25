@@ -89,6 +89,68 @@ pnpm dev:web   # 前端 http://localhost:3000
 - 用户名: `admin`
 - 密码: `admin123`
 
+## 生产环境部署
+
+### 方式一：Docker Compose（推荐）
+
+```bash
+# 1. 配置生产环境变量
+cp .env.production .env
+# 编辑 .env，修改 JWT_SECRET 和其他敏感配置
+
+# 2. 构建并启动所有服务
+docker compose up -d --build
+
+# 3. 初始化数据库
+docker exec -it nest-react-admin-api sh
+pnpm db:generate
+pnpm db:migrate deploy
+exit
+
+# 4. 查看日志
+docker compose logs -f
+```
+
+### 方式二：手动部署
+
+```bash
+# 1. 安装 Node.js 20+ 和 pnpm
+
+# 2. 安装依赖
+pnpm install
+
+# 3. 构建
+pnpm build
+
+# 4. 启动后端
+cd apps/admin-api
+pnpm start:prod
+
+# 5. 构建前端
+cd apps/admin-web
+pnpm build
+
+# 6. 使用 Nginx 托管前端静态文件
+```
+
+### 访问地址
+
+| 环境 | 地址 |
+|------|------|
+| 开发前端 | http://localhost:3000 |
+| 开发后端 API | http://localhost:8080 |
+| 生产环境 | http://服务器IP |
+| API 文档 | http://localhost:8080/docs |
+
+### Docker 服务端口
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| 前端 | 80 | Nginx 托管 |
+| 后端 API | 8080 | NestJS |
+| PostgreSQL | 5432 | 数据库 |
+| Redis | 6379 | 缓存 |
+
 ## 项目结构
 
 ```
@@ -98,18 +160,24 @@ nest-react-admin/
 │   │   ├── src/
 │   │   │   ├── common/     # 公共模块
 │   │   │   └── modules/    # 业务模块
-│   │   └── prisma/         # Prisma 配置
+│   │   ├── prisma/         # Prisma 配置
+│   │   └── Dockerfile      # Docker 构建
 │   │
-│   └── admin-web/          # React 前端
-│       └── src/
-│           ├── components/ # 组件
-│           ├── layouts/    # 布局
-│           ├── pages/      # 页面
-│           ├── services/   # API 服务
-│           ├── stores/     # 状态管理
-│           └── utils/      # 工具函数
+│   ├── admin-web/          # React 前端
+│   │   ├── src/
+│   │   │   ├── components/ # 组件
+│   │   │   ├── layouts/    # 布局
+│   │   │   ├── pages/      # 页面
+│   │   │   ├── services/   # API 服务
+│   │   │   ├── stores/     # 状态管理
+│   │   │   └── utils/      # 工具函数
+│   │   ├── Dockerfile      # Docker 构建
+│   │   └── nginx.conf      # Nginx 配置
+│   │
+│   └── admin-api-gateway/  # API 网关（可选）
 │
-├── docker-compose.yml      # Docker 配置
+├── docker-compose.yml      # Docker 编排配置
+├── .env.production         # 生产环境变量模板
 └── pnpm-workspace.yaml     # Monorepo 配置
 ```
 
