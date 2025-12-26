@@ -24,6 +24,8 @@ import {
   TagsOutlined,
   ShoppingCartOutlined,
   PictureOutlined,
+  CloudOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
 import { useUserStore } from '@/stores/user';
 import { getProfile, getRouters, logout as logoutApi } from '@/services/system/auth';
@@ -141,6 +143,18 @@ const defaultMenuItems = [
         icon: <MonitorOutlined />,
         label: '任务监控',
         permission: SYSTEM.JOB.MONITOR,
+      },
+      {
+        key: '/system/cache',
+        icon: <CloudOutlined />,
+        label: '缓存管理',
+        permission: SYSTEM.CACHE.QUERY,
+      },
+      {
+        key: '/system/session',
+        icon: <SyncOutlined />,
+        label: '在线用户',
+        permission: SYSTEM.SESSION.QUERY,
       },
     ],
   },

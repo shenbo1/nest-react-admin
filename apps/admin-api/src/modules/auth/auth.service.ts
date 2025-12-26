@@ -4,12 +4,14 @@ import { PrismaService } from '@/common/prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { Status } from '@prisma/client';
+import { SessionService } from '@/modules/system/session/session.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly sessionService: SessionService,
   ) {}
 
   async login(loginDto: LoginDto, ip?: string) {
@@ -63,6 +65,15 @@ export class AuthService {
     };
 
     const token = this.jwtService.sign(payload);
+
+    // 创建会话
+    await this.sessionService.createSession(
+      user.id,
+      user.username,
+      token,
+      ip || 'Unknown',
+      'Web Browser',
+    );
 
     // 更新登录信息
     await this.prisma.sysUser.update({

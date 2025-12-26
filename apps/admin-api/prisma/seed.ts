@@ -300,6 +300,84 @@ async function main() {
       sort: 11,
       perms: 'system:job:monitor',
     },
+    // 缓存管理 - 管理 Redis 缓存
+    // 用途：查看 Redis 服务器状态、缓存键列表、删除缓存、清空缓存
+    {
+      id: 25,
+      parentId: 10,
+      name: '缓存管理',
+      path: '/system/cache',
+      component: 'system/cache/index',
+      type: MenuType.MENU,
+      icon: 'CloudOutlined',
+      sort: 12,
+      perms: 'system:cache:query',
+    },
+    // 缓存管理按钮
+    {
+      id: 300,
+      parentId: 25,
+      name: '缓存查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'system:cache:query',
+    },
+    {
+      id: 301,
+      parentId: 25,
+      name: '缓存编辑',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'system:cache:edit',
+    },
+    {
+      id: 302,
+      parentId: 25,
+      name: '缓存删除',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 3,
+      perms: 'system:cache:remove',
+    },
+    // 在线用户管理 - 管理在线会话
+    // 用途：查看在线用户列表、踢出用户
+    {
+      id: 26,
+      parentId: 10,
+      name: '在线用户',
+      path: '/system/session',
+      component: 'system/session/index',
+      type: MenuType.MENU,
+      icon: 'SyncOutlined',
+      sort: 13,
+      perms: 'system:session:query',
+    },
+    // 在线用户管理按钮
+    {
+      id: 303,
+      parentId: 26,
+      name: '会话查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'system:session:query',
+    },
+    {
+      id: 304,
+      parentId: 26,
+      name: '踢出用户',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'system:session:kick',
+    },
 
     // ============================================
     // 商城管理权限说明文档

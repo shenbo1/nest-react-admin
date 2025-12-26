@@ -10,6 +10,8 @@ import { ConfigModule } from './config/config.module';
 import { NoticeModule } from './notice/notice.module';
 import { CodegenModule } from './codegen/codegen.module';
 import { JobModule } from './job/job.module';
+import { CacheModule } from './cache/cache.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { JobModule } from './job/job.module';
     NoticeModule,
     CodegenModule,
     JobModule,
+    CacheModule,
+    SessionModule,
   ],
 })
 export class SystemModule {}

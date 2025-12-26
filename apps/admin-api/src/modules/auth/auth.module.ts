@@ -7,8 +7,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TokenBlacklistGuard } from './guards/token-blacklist.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { authConfig, type AuthConfig } from '@/config';
+import { SessionModule } from '@/modules/system/session/session.module';
 
 @Module({
   imports: [
@@ -23,11 +25,17 @@ import { authConfig, type AuthConfig } from '@/config';
       }),
       inject: [authConfig.KEY],
     }),
+    SessionModule,
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
     JwtStrategy,
+    // Token 黑名单检查（先执行）
+    {
+      provide: APP_GUARD,
+      useClass: TokenBlacklistGuard,
+    },
     // 全局启用 JWT 认证
     {
       provide: APP_GUARD,

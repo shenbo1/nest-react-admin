@@ -101,6 +101,17 @@ export const SYSTEM = {
       EXPORT: 'system:loginlog:export',
     },
   },
+  CACHE: {
+    LIST: 'system:cache:list',
+    QUERY: 'system:cache:query',
+    EDIT: 'system:cache:edit',
+    REMOVE: 'system:cache:remove',
+  },
+  SESSION: {
+    LIST: 'system:session:list',
+    QUERY: 'system:session:query',
+    KICK: 'system:session:kick',
+  },
 } as const;
 
 // 商城管理权限

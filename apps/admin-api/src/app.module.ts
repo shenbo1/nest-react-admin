@@ -19,6 +19,7 @@ import { ProductSkuModule } from './modules/mall/product-sku/product-sku.module'
 import { UploadModule } from './modules/upload/upload.module';
 import { PrometheusModule } from 'nestjs-prometheus';
 import { BullmqModule } from './common/bullmq/bullmq.module';
+import { RedisModule } from './common/redis/redis.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { MetricsMiddleware } from './common/middleware/metrics.middleware';
 import { OperLogInterceptor } from './common/interceptors/operlog.interceptor';
@@ -31,11 +32,11 @@ const envSchema = z.object({
     .enum(['development', 'production', 'test', 'local'])
     .default('development'),
   APP_PREFIX: z.string().default('api'),
-  APP_PORT: z.number().int().positive().default(3000),
+  APP_PORT: z.string().transform(val => parseInt(val, 10)).pipe(z.number().int().positive().default(3000)),
   JWT_SECRET: z.string().min(10),
   JWT_EXPIRES_IN: z.string().default('7d'),
   REDIS_HOST: z.string().default('localhost'),
-  REDIS_PORT: z.number().int().positive().default(6379),
+  REDIS_PORT: z.string().transform(val => parseInt(val, 10)).pipe(z.number().int().positive().default(6379)),
   REDIS_PASSWORD: z.string().optional().or(z.literal('')),
   BASE_URL: z.string().url().optional().or(z.literal('')),
 });
@@ -81,6 +82,9 @@ function validateEnv(env: Record<string, unknown>) {
 
     // BullMQ 任务队列
     BullmqModule,
+
+    // Redis 缓存模块
+    RedisModule,
 
     // 静态文件服务
     ServeStaticModule.forRoot({

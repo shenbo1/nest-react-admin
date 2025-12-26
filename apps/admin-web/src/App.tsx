@@ -29,6 +29,8 @@ const ProductSpecGroupList = lazy(() => import('./pages/mall/product-spec-group'
 const ProductSpecValueList = lazy(() => import('./pages/mall/product-spec-value'));
 const ProductSkuList = lazy(() => import('./pages/mall/product-sku'));
 const ArticleList = lazy(() => import('./pages/article'));
+const CacheList = lazy(() => import('./pages/system/cache'));
+const SessionList = lazy(() => import('./pages/system/session'));
 
 const Loading = () => (
   <div className="flex items-center justify-center h-full">
@@ -153,6 +155,22 @@ function App() {
                 element={
                   <AuthRoute requiredPermission={SYSTEM.JOB.MONITOR}>
                     <JobMonitor />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="cache"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.CACHE.QUERY}>
+                    <CacheList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="session"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.SESSION.QUERY}>
+                    <SessionList />
                   </AuthRoute>
                 }
               />
