@@ -4,7 +4,7 @@ import { DatabaseMonitorService } from './database-monitor.service';
 
 @ApiTags('数据库监控')
 @ApiBearerAuth()
-@Controller('system/database-monitor')
+@Controller('monitor/database')
 export class DatabaseMonitorController {
   constructor(private readonly databaseMonitorService: DatabaseMonitorService) {}
 

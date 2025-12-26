@@ -4,7 +4,7 @@ import { LogMonitorService } from './log-monitor.service';
 
 @ApiTags('日志监控')
 @ApiBearerAuth()
-@Controller('system/log-monitor')
+@Controller('monitor/log')
 export class LogMonitorController {
   constructor(private readonly logMonitorService: LogMonitorService) {}
 

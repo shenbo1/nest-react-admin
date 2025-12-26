@@ -4,7 +4,7 @@ import { ApiMonitorService } from './api-monitor.service';
 
 @ApiTags('API监控')
 @ApiBearerAuth()
-@Controller('system/api-monitor')
+@Controller('monitor/api')
 export class ApiMonitorController {
   constructor(private readonly apiMonitorService: ApiMonitorService) {}
 

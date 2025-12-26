@@ -37,7 +37,7 @@ const OperLogList: React.FC = () => {
   // 删除日志
   const deleteMutation = useMutation({
     mutationFn: async (ids: string) => {
-      const result = await request.delete('/system/operlog', {
+      const result = await request.delete('/log/operlog', {
         params: { ids },
       });
       return result;
@@ -197,7 +197,7 @@ const OperLogList: React.FC = () => {
     <>
       <ProTable
         ref={tableRef}
-        api="/system/operlog"
+        api="/log/operlog"
         columns={columns}
         rowKey="id"
         scroll={{ x: 1400 }}

@@ -23,57 +23,57 @@ export interface ProductSpecValue {
 
 // 获取规格组列表
 export const getProductSpecGroups = (params: { productId: number }) => {
-  return request.get<{ data: ProductSpecGroup[] }>('/mall/product-spec-group', {
+  return request.get<{ data: ProductSpecGroup[] }>('/mall/spec-group', {
     params,
   });
 };
 
 // 创建规格组
 export const createProductSpecGroup = (data: { productId: number; name: string; sort?: number }) => {
-  return request.post<{ data: ProductSpecGroup }>('/mall/product-spec-group', data);
+  return request.post<{ data: ProductSpecGroup }>('/mall/spec-group', data);
 };
 
 // 更新规格组
 export const updateProductSpecGroup = (id: number, data: { name?: string; sort?: number }) => {
-  return request.put<{ data: ProductSpecGroup }>(`/mall/product-spec-group/${id}`, data);
+  return request.put<{ data: ProductSpecGroup }>(`/mall/spec-group/${id}`, data);
 };
 
 // 删除规格组
 export const deleteProductSpecGroup = (id: number) => {
-  return request.delete(`/mall/product-spec-group/${id}`);
+  return request.delete(`/mall/spec-group/${id}`);
 };
 
 // 规格值相关API
 // 获取规格值列表
 export const getProductSpecValues = (params: { specGroupId: number }) => {
-  return request.get<{ data: ProductSpecValue[] }>('/mall/product-spec-value', {
+  return request.get<{ data: ProductSpecValue[] }>('/mall/spec-value', {
     params,
   });
 };
 
 // 创建规格值
 export const createProductSpecValue = (data: { specGroupId: number; name: string; sort?: number }) => {
-  return request.post<{ data: ProductSpecValue }>('/mall/product-spec-value', data);
+  return request.post<{ data: ProductSpecValue }>('/mall/spec-value', data);
 };
 
 // 批量创建规格值
 export const bulkCreateProductSpecValues = (data: Array<{ specGroupId: number; name: string; sort?: number }>) => {
-  return request.post('/mall/product-spec-value/bulk', data);
+  return request.post('/mall/spec-value/bulk', data);
 };
 
 // 更新规格值
 export const updateProductSpecValue = (id: number, data: { name?: string; sort?: number }) => {
-  return request.put<{ data: ProductSpecValue }>(`/mall/product-spec-value/${id}`, data);
+  return request.put<{ data: ProductSpecValue }>(`/mall/spec-value/${id}`, data);
 };
 
 // 删除规格值
 export const deleteProductSpecValue = (id: number) => {
-  return request.delete(`/mall/product-spec-value/${id}`);
+  return request.delete(`/mall/spec-value/${id}`);
 };
 
 // 批量删除规格值
 export const bulkDeleteProductSpecValues = (data: { ids: number[] }) => {
-  return request.delete('/mall/product-spec-value/bulk', {
+  return request.delete('/mall/spec-value/bulk', {
     data,
   });
 };
@@ -95,7 +95,7 @@ export interface ProductSku {
 
 // 获取SKU列表
 export const getProductSkus = (params: { productId: number }) => {
-  return request.get<{ data: ProductSku[] }>('/mall/product-sku', {
+  return request.get<{ data: ProductSku[] }>('/mall/sku', {
     params,
   });
 };
@@ -111,7 +111,7 @@ export const createProductSku = (data: {
   sales?: number;
   images?: string[];
 }) => {
-  return request.post<{ data: ProductSku }>('/mall/product-sku', data);
+  return request.post<{ data: ProductSku }>('/mall/sku', data);
 };
 
 // 批量创建SKU
@@ -125,7 +125,7 @@ export const bulkCreateProductSkus = (data: Array<{
   sales?: number;
   images?: string[];
 }>) => {
-  return request.post('/mall/product-sku/bulk', data);
+  return request.post('/mall/sku/bulk', data);
 };
 
 // 更新SKU
@@ -138,17 +138,17 @@ export const updateProductSku = (id: number, data: {
   sales?: number;
   images?: string[];
 }) => {
-  return request.put<{ data: ProductSku }>(`/mall/product-sku/${id}`, data);
+  return request.put<{ data: ProductSku }>(`/mall/sku/${id}`, data);
 };
 
 // 删除SKU
 export const deleteProductSku = (id: number) => {
-  return request.delete(`/mall/product-sku/${id}`);
+  return request.delete(`/mall/sku/${id}`);
 };
 
 // 批量删除SKU
 export const bulkDeleteProductSkus = (data: { ids: number[] }) => {
-  return request.delete('/mall/product-sku/bulk', {
+  return request.delete('/mall/sku/bulk', {
     data,
   });
 };

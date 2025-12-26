@@ -11,7 +11,7 @@ import { RequirePermissions } from '@/common/decorators';
 
 @ApiTags('操作日志')
 @ApiBearerAuth()
-@Controller('system/operlog')
+@Controller('log/operlog')
 export class OperLogController {
   constructor(private readonly operLogService: OperLogService) {}
 

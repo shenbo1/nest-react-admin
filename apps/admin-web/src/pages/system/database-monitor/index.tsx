@@ -89,7 +89,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: dbInfo, refetch: refetchInfo } = useQuery<DatabaseInfo>({
     queryKey: ['databaseInfo'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/info');
+      const data = await request.get('/monitor/database/info');
       return data;
     },
   });
@@ -98,7 +98,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: tables, isLoading: tablesLoading, refetch: refetchTables } = useQuery<TableInfo[]>({
     queryKey: ['databaseTables'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/tables');
+      const data = await request.get('/monitor/database/tables');
       return data;
     },
   });
@@ -107,7 +107,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: connections, isLoading: connsLoading, refetch: refetchConns } = useQuery<ConnectionInfo[]>({
     queryKey: ['databaseConnections'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/connections');
+      const data = await request.get('/monitor/database/connections');
       return data;
     },
   });
@@ -116,7 +116,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: poolStatus } = useQuery({
     queryKey: ['connectionPool'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/connection-pool');
+      const data = await request.get('/monitor/database/connection-pool');
       return data;
     },
   });
@@ -125,7 +125,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: slowQueries, isLoading: slowLoading, refetch: refetchSlow } = useQuery<SlowQuery[]>({
     queryKey: ['slowQueries'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/slow-queries');
+      const data = await request.get('/monitor/database/slow-queries');
       return data;
     },
   });
@@ -134,7 +134,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: locks, isLoading: locksLoading } = useQuery({
     queryKey: ['databaseLocks'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/locks');
+      const data = await request.get('/monitor/database/locks');
       return data;
     },
   });
@@ -143,7 +143,7 @@ const DatabaseMonitor: React.FC = () => {
   const { data: unusedIndexes, isLoading: indexesLoading } = useQuery({
     queryKey: ['unusedIndexes'],
     queryFn: async () => {
-      const data = await request.get('/system/database-monitor/unused-indexes');
+      const data = await request.get('/monitor/database/unused-indexes');
       return data;
     },
   });
@@ -153,7 +153,7 @@ const DatabaseMonitor: React.FC = () => {
     queryKey: ['tableColumns', selectedTable],
     queryFn: async () => {
       if (!selectedTable) return [];
-      const data = await request.get(`/system/database-monitor/table/${selectedTable}/columns`);
+      const data = await request.get(`/monitor/database/table/${selectedTable}/columns`);
       return data;
     },
     enabled: !!selectedTable,
@@ -162,7 +162,7 @@ const DatabaseMonitor: React.FC = () => {
   // 终止连接
   const terminateMutation = useMutation({
     mutationFn: async (pid: number) => {
-      const { data } = await request.post(`/system/database-monitor/connections/${pid}/terminate`);
+      const { data } = await request.post(`/monitor/database/connections/${pid}/terminate`);
       return data;
     },
     onSuccess: () => {

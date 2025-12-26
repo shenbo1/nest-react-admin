@@ -12,7 +12,7 @@ import { ProductSpecValueService } from './product-spec-value.service';
 import { CreateProductSpecValueDto } from './dto/create-product-spec-value.dto';
 import { UpdateProductSpecValueDto } from './dto/update-product-spec-value.dto';
 
-@Controller('mall/product-spec-value')
+@Controller('mall/spec-value')
 export class ProductSpecValueController {
   constructor(private readonly productSpecValueService: ProductSpecValueService) {}
 

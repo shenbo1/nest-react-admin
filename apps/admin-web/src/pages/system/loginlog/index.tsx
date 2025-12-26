@@ -22,7 +22,7 @@ const LoginLogList: React.FC = () => {
   // 删除日志
   const deleteMutation = {
     mutate: async (ids: string) => {
-      await request.delete('/system/loginlog', { params: { ids } });
+      await request.delete('/log/loginlog', { params: { ids } });
     },
   };
 
@@ -104,7 +104,7 @@ const LoginLogList: React.FC = () => {
   return (
     <ProTable
       ref={tableRef}
-      api="/system/loginlog"
+      api="/log/loginlog"
       columns={columns}
       rowKey="id"
       scroll={{ x: 1200 }}

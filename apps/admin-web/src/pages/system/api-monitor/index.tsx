@@ -57,7 +57,7 @@ const ApiMonitor: React.FC = () => {
   const { data: overview, refetch: refetchOverview } = useQuery<ApiOverview>({
     queryKey: ['apiOverview'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/overview');
+      const data = await request.get('/monitor/api/overview');
       return data;
     },
   });
@@ -66,7 +66,7 @@ const ApiMonitor: React.FC = () => {
   const { data: metrics, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery<ApiMetric[]>({
     queryKey: ['apiMetrics'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/metrics');
+      const data = await request.get('/monitor/api/metrics');
       return data;
     },
   });
@@ -75,7 +75,7 @@ const ApiMonitor: React.FC = () => {
   const { data: recentCalls, isLoading: callsLoading, refetch: refetchCalls } = useQuery<ApiCall[]>({
     queryKey: ['apiRecentCalls'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/recent-calls', {
+      const data = await request.get('/monitor/api/recent-calls', {
         params: { limit: 100 },
       });
       return data;
@@ -86,7 +86,7 @@ const ApiMonitor: React.FC = () => {
   const { data: recentErrors, isLoading: errorsLoading } = useQuery<ApiCall[]>({
     queryKey: ['apiRecentErrors'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/recent-errors', {
+      const data = await request.get('/monitor/api/recent-errors', {
         params: { limit: 50 },
       });
       return data;
@@ -97,7 +97,7 @@ const ApiMonitor: React.FC = () => {
   const { data: slowApis, isLoading: slowLoading } = useQuery<ApiMetric[]>({
     queryKey: ['apiSlowApis'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/slow-apis');
+      const data = await request.get('/monitor/api/slow-apis');
       return data;
     },
   });
@@ -106,7 +106,7 @@ const ApiMonitor: React.FC = () => {
   const { data: highErrorApis, isLoading: highErrorLoading } = useQuery<ApiMetric[]>({
     queryKey: ['apiHighErrorApis'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/high-error-rate');
+      const data = await request.get('/monitor/api/high-error-rate');
       return data;
     },
   });
@@ -115,7 +115,7 @@ const ApiMonitor: React.FC = () => {
   const { data: trend } = useQuery({
     queryKey: ['apiTrend'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/trend');
+      const data = await request.get('/monitor/api/trend');
       return data;
     },
   });
@@ -124,7 +124,7 @@ const ApiMonitor: React.FC = () => {
   const { data: statusDistribution } = useQuery({
     queryKey: ['apiStatusDistribution'],
     queryFn: async () => {
-      const data = await request.get('/system/api-monitor/status-distribution');
+      const data = await request.get('/monitor/api/status-distribution');
       return data;
     },
   });
@@ -132,7 +132,7 @@ const ApiMonitor: React.FC = () => {
   // 清除统计
   const clearMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await request.delete('/system/api-monitor/metrics');
+      const { data } = await request.delete('/monitor/api/metrics');
       return data;
     },
     onSuccess: () => {

@@ -73,7 +73,7 @@ const LogMonitor: React.FC = () => {
   const { data: stats, refetch: refetchStats } = useQuery<LogStats>({
     queryKey: ['logStats'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/overview');
+      const data = await request.get('/monitor/log/overview');
       return data;
     },
   });
@@ -82,7 +82,7 @@ const LogMonitor: React.FC = () => {
   const { data: loginTrend } = useQuery<LogTrend[]>({
     queryKey: ['loginTrend'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/login-trend');
+      const data = await request.get('/monitor/log/login-trend');
       return data;
     },
   });
@@ -91,7 +91,7 @@ const LogMonitor: React.FC = () => {
   const { data: operTrend } = useQuery<LogTrend[]>({
     queryKey: ['operTrend'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/oper-trend');
+      const data = await request.get('/monitor/log/oper-trend');
       return data;
     },
   });
@@ -100,7 +100,7 @@ const LogMonitor: React.FC = () => {
   const { data: loginStatusDist } = useQuery<DistributionItem[]>({
     queryKey: ['loginStatusDistribution'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/login-status-distribution');
+      const data = await request.get('/monitor/log/login-status-distribution');
       return data;
     },
   });
@@ -109,7 +109,7 @@ const LogMonitor: React.FC = () => {
   const { data: operTypeDist } = useQuery<DistributionItem[]>({
     queryKey: ['operTypeDistribution'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/oper-type-distribution');
+      const data = await request.get('/monitor/log/oper-type-distribution');
       return data;
     },
   });
@@ -118,7 +118,7 @@ const LogMonitor: React.FC = () => {
   const { data: locationDist } = useQuery<DistributionItem[]>({
     queryKey: ['loginLocationDistribution'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/login-location-distribution');
+      const data = await request.get('/monitor/log/login-location-distribution');
       return data;
     },
   });
@@ -127,7 +127,7 @@ const LogMonitor: React.FC = () => {
   const { data: browserDist } = useQuery<DistributionItem[]>({
     queryKey: ['browserDistribution'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/browser-distribution');
+      const data = await request.get('/monitor/log/browser-distribution');
       return data;
     },
   });
@@ -136,7 +136,7 @@ const LogMonitor: React.FC = () => {
   const { data: osDist } = useQuery<DistributionItem[]>({
     queryKey: ['osDistribution'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/os-distribution');
+      const data = await request.get('/monitor/log/os-distribution');
       return data;
     },
   });
@@ -145,7 +145,7 @@ const LogMonitor: React.FC = () => {
   const { data: topOperators } = useQuery<DistributionItem[]>({
     queryKey: ['topOperators'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/top-operators');
+      const data = await request.get('/monitor/log/top-operators');
       return data;
     },
   });
@@ -154,7 +154,7 @@ const LogMonitor: React.FC = () => {
   const { data: recentErrors } = useQuery<{ operErrors: ErrorLog[]; loginErrors: ErrorLog[] }>({
     queryKey: ['recentErrors'],
     queryFn: async () => {
-      const data = await request.get('/system/log-monitor/recent-errors', {
+      const data = await request.get('/monitor/log/recent-errors', {
         params: { limit: 20 },
       });
       return data;
@@ -164,7 +164,7 @@ const LogMonitor: React.FC = () => {
   // 清理过期日志
   const cleanupMutation = useMutation({
     mutationFn: async (days: number) => {
-      const { data } = await request.delete('/system/log-monitor/cleanup', {
+      const { data } = await request.delete('/monitor/log/cleanup', {
         params: { days },
       });
       return data;

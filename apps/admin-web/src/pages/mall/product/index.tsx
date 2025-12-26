@@ -1395,7 +1395,7 @@ function SkuManageTab({
       message.success(`成功生成 ${generatedSkus.length} 个 SKU`);
 
       // 刷新 SKU 列表
-      const res = await fetch(`/api/mall/product-sku?productId=${productId}`).then(r => r.json());
+      const res = await fetch(`/api/mall/sku?productId=${productId}`).then(r => r.json());
       if (res.data) {
         onSkuChange(res.data);
       }

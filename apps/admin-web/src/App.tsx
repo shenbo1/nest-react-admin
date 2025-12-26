@@ -107,22 +107,6 @@ function App() {
                 }
               />
               <Route
-                path="operlog"
-                element={
-                  <AuthRoute requiredPermission={SYSTEM.LOG.OPERLOG.LIST}>
-                    <OperLogList />
-                  </AuthRoute>
-                }
-              />
-              <Route
-                path="loginlog"
-                element={
-                  <AuthRoute requiredPermission={SYSTEM.LOG.LOGINLOG.LIST}>
-                    <LoginLogList />
-                  </AuthRoute>
-                }
-              />
-              <Route
                 path="config"
                 element={
                   <AuthRoute requiredPermission={SYSTEM.CONFIG.LIST}>
@@ -178,8 +162,32 @@ function App() {
                   </AuthRoute>
                 }
               />
+            </Route>
+
+            {/* 日志管理模块 */}
+            <Route path="log">
               <Route
-                path="database-monitor"
+                path="operlog"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.LOG.OPERLOG.LIST}>
+                    <OperLogList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="loginlog"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.LOG.LOGINLOG.LIST}>
+                    <LoginLogList />
+                  </AuthRoute>
+                }
+              />
+            </Route>
+
+            {/* 监控管理模块 */}
+            <Route path="monitor">
+              <Route
+                path="database"
                 element={
                   <AuthRoute requiredPermission={SYSTEM.MANAGE}>
                     <DatabaseMonitor />
@@ -187,7 +195,7 @@ function App() {
                 }
               />
               <Route
-                path="api-monitor"
+                path="api"
                 element={
                   <AuthRoute requiredPermission={SYSTEM.MANAGE}>
                     <ApiMonitor />
@@ -195,7 +203,7 @@ function App() {
                 }
               />
               <Route
-                path="log-monitor"
+                path="log"
                 element={
                   <AuthRoute requiredPermission={SYSTEM.MANAGE}>
                     <LogMonitor />
@@ -253,7 +261,7 @@ function App() {
                 }
               />
               <Route
-                path="product-spec-group"
+                path="spec-group"
                 element={
                   <AuthRoute requiredPermission={MALL.PRODUCT_SPEC_GROUP.LIST}>
                     <ProductSpecGroupList />
@@ -261,7 +269,7 @@ function App() {
                 }
               />
               <Route
-                path="product-spec-value"
+                path="spec-value"
                 element={
                   <AuthRoute requiredPermission={MALL.PRODUCT_SPEC_VALUE.LIST}>
                     <ProductSpecValueList />
@@ -269,7 +277,7 @@ function App() {
                 }
               />
               <Route
-                path="product-sku"
+                path="sku"
                 element={
                   <AuthRoute requiredPermission={MALL.PRODUCT_SKU.LIST}>
                     <ProductSkuList />
@@ -278,7 +286,7 @@ function App() {
               />
             </Route>
             <Route
-              path="article/list"
+              path="article"
               element={
                 <AuthRoute requiredPermission={ARTICLE.LIST}>
                   <ArticleList />

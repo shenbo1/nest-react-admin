@@ -131,1437 +131,250 @@ async function main() {
     )
   `;
 
-  // 创建菜单
-  const menus = [
-    // 首页仪表盘
-    {
-      id: 1,
-      parentId: 0,
-      name: '首页',
-      path: '/dashboard',
-      component: 'dashboard/index',
-      type: MenuType.MENU,
-      icon: 'DashboardOutlined',
-      sort: 0,
-      perms: 'dashboard:list',
-    },
+// ============================================
+// 菜单辅助函数
+// ============================================
 
-    // 系统管理
-    {
-      id: 10,
-      parentId: 0,
-      name: '系统管理',
-      path: '/system',
-      type: MenuType.DIR,
-      icon: 'SettingOutlined',
-      sort: 1,
-      perms: 'system:manage',
-    },
-    {
-      id: 11,
-      parentId: 10,
-      name: '用户管理',
-      path: '/system/user',
-      component: 'system/user/index',
-      type: MenuType.MENU,
-      icon: 'UserOutlined',
-      sort: 1,
-      perms: 'system:user:list',
-    },
-    {
-      id: 12,
-      parentId: 10,
-      name: '角色管理',
-      path: '/system/role',
-      component: 'system/role/index',
-      type: MenuType.MENU,
-      icon: 'TeamOutlined',
-      sort: 2,
-      perms: 'system:role:list',
-    },
-    {
-      id: 13,
-      parentId: 10,
-      name: '菜单管理',
-      path: '/system/menu',
-      component: 'system/menu/index',
-      type: MenuType.MENU,
-      icon: 'MenuOutlined',
-      sort: 3,
-      perms: 'system:menu:list',
-    },
-    {
-      id: 14,
-      parentId: 10,
-      name: '部门管理',
-      path: '/system/dept',
-      component: 'system/dept/index',
-      type: MenuType.MENU,
-      icon: 'ApartmentOutlined',
-      sort: 4,
-      perms: 'system:dept:list',
-    },
-    // 注意: 岗位管理 (ID 15) 暂未实现，如需使用请先创建后端和前端模块
-    {
-      id: 16,
-      parentId: 10,
-      name: '字典管理',
-      path: '/system/dict',
-      component: 'system/dict/index',
-      type: MenuType.MENU,
-      icon: 'BookOutlined',
-      sort: 5,
-      perms: 'system:dict:list',
-    },
-    {
-      id: 17,
-      parentId: 10,
-      name: '参数设置',
-      path: '/system/config',
-      component: 'system/config/index',
-      type: MenuType.MENU,
-      icon: 'ToolOutlined',
-      sort: 6,
-      perms: 'system:config:list',
-    },
-    {
-      id: 18,
-      parentId: 10,
-      name: '通知公告',
-      path: '/system/notice',
-      component: 'system/notice/index',
-      type: MenuType.MENU,
-      icon: 'NotificationOutlined',
-      sort: 7,
-      perms: 'system:notice:list',
-    },
-    {
-      id: 19,
-      parentId: 10,
-      name: '日志管理',
-      path: '/system/log',
-      type: MenuType.DIR,
-      icon: 'FileTextOutlined',
-      sort: 8,
-      perms: 'system:log:list',
-    },
-    {
-      id: 20,
-      parentId: 19,
-      name: '操作日志',
-      path: '/system/operlog',
-      component: 'system/operlog/index',
-      type: MenuType.MENU,
-      icon: 'FormOutlined',
-      sort: 1,
-      perms: 'system:operlog:list',
-    },
-    {
-      id: 21,
-      parentId: 19,
-      name: '登录日志',
-      path: '/system/loginlog',
-      component: 'system/loginlog/index',
-      type: MenuType.MENU,
-      icon: 'LoginOutlined',
-      sort: 2,
-      perms: 'system:loginlog:list',
-    },
-    {
-      id: 22,
-      parentId: 10,
-      name: '代码生成',
-      path: '/system/codegen',
-      component: 'system/codegen/index',
-      type: MenuType.MENU,
-      icon: 'CodeOutlined',
-      sort: 9,
-      perms: 'system:codegen:list',
-    },
-    {
-      id: 23,
-      parentId: 10,
-      name: '定时任务',
-      path: '/system/job',
-      component: 'system/job/index',
-      type: MenuType.MENU,
-      icon: 'ClockCircleOutlined',
-      sort: 10,
-      perms: 'system:job:list',
-    },
-    {
-      id: 24,
-      parentId: 10,
-      name: '任务监控',
-      path: '/system/job-monitor',
-      component: 'system/job-monitor/index',
-      type: MenuType.MENU,
-      icon: 'MonitorOutlined',
-      sort: 11,
-      perms: 'system:job:monitor',
-    },
-    // 缓存管理 - 管理 Redis 缓存
-    // 用途：查看 Redis 服务器状态、缓存键列表、删除缓存、清空缓存
-    {
-      id: 25,
-      parentId: 10,
-      name: '缓存管理',
-      path: '/system/cache',
-      component: 'system/cache/index',
-      type: MenuType.MENU,
-      icon: 'CloudOutlined',
-      sort: 12,
-      perms: 'system:cache:query',
-    },
-    // 缓存管理按钮
-    {
-      id: 300,
-      parentId: 25,
-      name: '缓存查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:cache:query',
-    },
-    {
-      id: 301,
-      parentId: 25,
-      name: '缓存编辑',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:cache:edit',
-    },
-    {
-      id: 302,
-      parentId: 25,
-      name: '缓存删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:cache:remove',
-    },
-    // 在线用户管理 - 管理在线会话
-    // 用途：查看在线用户列表、踢出用户
-    {
-      id: 26,
-      parentId: 10,
-      name: '在线用户',
-      path: '/system/session',
-      component: 'system/session/index',
-      type: MenuType.MENU,
-      icon: 'SyncOutlined',
-      sort: 13,
-      perms: 'system:session:query',
-    },
-    // 在线用户管理按钮
-    {
-      id: 303,
-      parentId: 26,
-      name: '会话查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:session:query',
-    },
-    {
-      id: 304,
-      parentId: 26,
-      name: '踢出用户',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:session:kick',
-    },
+/** 创建目录菜单 */
+function dir(
+  id: number,
+  parentId: number,
+  name: string,
+  path: string,
+  icon: string,
+  perms: string,
+  sort = 0
+) {
+  return { id, parentId, name, path, type: MenuType.DIR, icon, perms, sort };
+}
 
-    // ============================================
-    // 监控管理模块
-    // ============================================
-    // 用途：系统监控和告警管理，包括数据库监控、API监控、日志监控、告警规则等
-    // 相关表：sys_alert_rule（告警规则）、sys_alert（告警事件）
-    {
-      id: 27,
-      parentId: 10,
-      name: '监控管理',
-      path: '/system/monitor',
-      type: MenuType.DIR,
-      icon: 'MonitorOutlined',
-      sort: 14,
-      perms: 'system:monitor:manage',
-    },
-    // 数据库监控
-    {
-      id: 271,
-      parentId: 27,
-      name: '数据库监控',
-      path: '/system/database-monitor',
-      component: 'system/database-monitor/index',
-      type: MenuType.MENU,
-      icon: 'DatabaseOutlined',
-      sort: 1,
-      perms: 'system:database-monitor:query',
-    },
-    // API监控
-    {
-      id: 272,
-      parentId: 27,
-      name: 'API监控',
-      path: '/system/api-monitor',
-      component: 'system/api-monitor/index',
-      type: MenuType.MENU,
-      icon: 'ApiOutlined',
-      sort: 2,
-      perms: 'system:api-monitor:query',
-    },
-    // 日志监控
-    {
-      id: 273,
-      parentId: 27,
-      name: '日志监控',
-      path: '/system/log-monitor',
-      component: 'system/log-monitor/index',
-      type: MenuType.MENU,
-      icon: 'BarChartOutlined',
-      sort: 3,
-      perms: 'system:log-monitor:query',
-    },
-    // 告警管理
-    {
-      id: 274,
-      parentId: 27,
-      name: '告警管理',
-      path: '/system/alert',
-      component: 'system/alert/index',
-      type: MenuType.MENU,
-      icon: 'BellOutlined',
-      sort: 4,
-      perms: 'system:alert:manage',
-    },
-    // 告警管理按钮
-    {
-      id: 305,
-      parentId: 274,
-      name: '告警规则查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:alert:rule:query',
-    },
-    {
-      id: 306,
-      parentId: 274,
-      name: '告警规则新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:alert:rule:add',
-    },
-    {
-      id: 307,
-      parentId: 274,
-      name: '告警规则修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:alert:rule:edit',
-    },
-    {
-      id: 308,
-      parentId: 274,
-      name: '告警规则删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:alert:rule:remove',
-    },
-    {
-      id: 309,
-      parentId: 274,
-      name: '告警事件处理',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'system:alert:event:handle',
-    },
+/** 创建页面菜单 */
+function menu(
+  id: number,
+  parentId: number,
+  name: string,
+  path: string,
+  component: string,
+  icon: string,
+  perms: string,
+  sort = 0
+) {
+  return { id, parentId, name, path, component, type: MenuType.MENU, icon, perms, sort };
+}
 
-    // ============================================
-    // 商城管理权限说明文档
-    // ============================================
-    // 商城管理模块包含以下子模块：
-    // 1. 商品管理 - 管理商品信息、SKU、规格等
-    // 2. 分类管理 - 管理商品分类体系
-    // 3. 订单管理 - 管理用户订单和交易
-    // 4. 会员管理 - 管理平台会员信息
-    // 5. 运营配置 - 管理banner、公告等运营内容
-    //
-    // 权限层级说明：
-    // - 目录权限(mall:manage)：商城管理总入口权限
-    // - 列表权限(mall:xxx:list)：查看对应模块列表页权限
-    // - 查询权限(mall:xxx:query)：查询/搜索权限
-    // - 新增权限(mall:xxx:add)：新增数据权限
-    // - 修改权限(mall:xxx:edit)：编辑数据权限
-    // - 删除权限(mall:xxx:remove)：删除数据权限
-    // - 导出权限(mall:xxx:export)：数据导出权限
-    //
-    // 角色权限分配建议：
-    // - 超级管理员：拥有所有商城权限
-    // - 商品管理员：拥有商品管理、分类管理权限
-    // - 运营人员：拥有订单查询、会员查询、运营配置权限
-    // - 客服人员：拥有订单查询、会员查询权限
-    // ============================================
+/** 创建单个按钮 */
+function button(id: number, parentId: number, name: string, perms: string, sort = 0) {
+  return { id, parentId, name, path: null, type: MenuType.BUTTON, icon: null, perms, sort };
+}
 
-    // 商城管理
-    {
-      id: 200,
-      parentId: 0,
-      name: '商城管理',
-      path: '/mall',
-      type: MenuType.DIR,
-      icon: 'ShopOutlined',
-      sort: 2,
-      perms: 'mall:manage',
-    },
+/** 批量创建按钮权限（标准 CRUD） */
+function buttons(
+  baseId: number,
+  parentId: number,
+  name: string,
+  permsPrefix: string,
+  options: { query?: boolean; add?: boolean; edit?: boolean; remove?: boolean; export?: boolean; resetPwd?: boolean; run?: boolean; log?: boolean } = {}
+) {
+  const result: ReturnType<typeof button>[] = [];
+  const labels: Record<string, string> = {
+    query: '查询',
+    add: '新增',
+    edit: '修改',
+    remove: '删除',
+    export: '导出',
+    resetPwd: '重置密码',
+    run: '立即执行',
+    log: '执行记录',
+  };
+  const permsMap: Record<string, string> = {
+    query: 'query',
+    add: 'add',
+    edit: 'edit',
+    remove: 'remove',
+    export: 'export',
+    resetPwd: 'resetPwd',
+    run: 'run',
+    log: 'log',
+  };
 
-    // 商品管理 - 管理商品信息、SKU、规格组等
-    // 用途：商家添加、编辑、删除商品信息，管理商品规格和SKU
-    // 相关表：product(商品表)、product_sku(SKU表)、product_spec_group(规格组表)、product_spec_value(规格值表)
-    {
-      id: 201,
-      parentId: 200,
-      name: '商品管理',
-      path: '/mall/product',
-      component: 'product/index',
-      type: MenuType.MENU,
-      icon: 'AppstoreOutlined',
-      sort: 1,
-      perms: 'mall:product:list',
-    },
+  let i = 0;
+  for (const [key, enabled] of Object.entries(options)) {
+    if (enabled) {
+      result.push(button(baseId + i++, parentId, `${name}${labels[key]}`, `${permsPrefix}:${permsMap[key]}`));
+    }
+  }
+  return result;
+}
 
-    // 分类管理 - 管理商品分类体系
-    // 用途：创建、编辑商品分类，构建商品分类树结构
-    // 相关表：product_category(商品分类表)
-    {
-      id: 202,
-      parentId: 200,
-      name: '分类管理',
-      path: '/mall/category',
-      component: 'category/index',
-      type: MenuType.MENU,
-      icon: 'TagsOutlined',
-      sort: 2,
-      perms: 'mall:category:list',
-    },
-
-    // 订单管理 - 管理用户订单和交易
-    // 用途：查看、处理用户订单，包括订单状态更新、发货、退款等操作
-    // 相关表：order(订单表)、order_item(订单项表)
-    {
-      id: 203,
-      parentId: 200,
-      name: '订单管理',
-      path: '/mall/order',
-      component: 'order/index',
-      type: MenuType.MENU,
-      icon: 'ShoppingCartOutlined',
-      sort: 3,
-      perms: 'mall:order:list',
-    },
-
-    // 会员管理 - 管理平台会员信息
-    // 用途：查看、编辑会员信息，管理会员等级、积分等
-    // 相关表：member(会员表)
-    {
-      id: 204,
-      parentId: 200,
-      name: '会员管理',
-      path: '/mall/member',
-      component: 'member/index',
-      type: MenuType.MENU,
-      icon: 'UserOutlined',
-      sort: 4,
-      perms: 'mall:member:list',
-    },
-
-    // 运营配置 - 管理banner、公告等运营内容
-    // 用途：管理首页轮播图、公告、运营活动等展示内容
-    // 相关表：banner(轮播图表)、announcement(公告表)
-    {
-      id: 205,
-      parentId: 200,
-      name: '运营配置',
-      path: '/mall/banner',
-      component: 'banner/index',
-      type: MenuType.MENU,
-      icon: 'PictureOutlined',
-      sort: 5,
-      perms: 'mall:banner:list',
-    },
-
-    // 商品规格组管理 - 管理商品规格组
-    // 用途：创建、编辑商品规格组，如颜色、尺寸等
-    // 相关表：product_spec_group(规格组表)
-    {
-      id: 206,
-      parentId: 200,
-      name: '商品规格组',
-      path: '/mall/product-spec-group',
-      component: 'product-spec-group/index',
-      type: MenuType.MENU,
-      icon: 'TagsOutlined',
-      sort: 6,
-      perms: 'mall:product-spec-group:list',
-    },
-
-    // 商品规格值管理 - 管理商品规格值
-    // 用途：为规格组添加具体的规格值，如红色、蓝色、XL、XXL等
-    // 相关表：product_spec_value(规格值表)
-    {
-      id: 207,
-      parentId: 200,
-      name: '商品规格值',
-      path: '/mall/product-spec-value',
-      component: 'product-spec-value/index',
-      type: MenuType.MENU,
-      icon: 'TagsOutlined',
-      sort: 7,
-      perms: 'mall:product-spec-value:list',
-    },
-
-    // SKU管理 - 管理商品SKU
-    // 用途：管理商品的SKU信息，包括价格、库存等
-    // 相关表：product_sku(SKU表)
-    {
-      id: 208,
-      parentId: 200,
-      name: 'SKU管理',
-      path: '/mall/product-sku',
-      component: 'product-sku/index',
-      type: MenuType.MENU,
-      icon: 'ShoppingCartOutlined',
-      sort: 8,
-      perms: 'mall:product-sku:list',
-    },
-
-    // ============================================
-    // 商城模块按钮权限详细说明
-    // ============================================
-    // 按钮权限用于控制页面内的具体操作功能
-    // 每个模块都包含以下按钮权限：
-    // - 查询(query)：搜索、筛选、查看详情
-    // - 新增(add)：创建新数据
-    // - 修改(edit)：编辑已有数据
-    // - 删除(remove)：删除数据
-    // - 导出(export)：导出数据到Excel等格式
-    // ============================================
-
-    // 商品管理按钮权限
-    // 说明：控制商品列表页面的各种操作按钮
-    // query：搜索商品、筛选商品状态、查看商品详情
-    // add：新增商品按钮、新建商品表单
-    // edit：编辑商品信息、修改商品价格/库存
-    // remove：删除单个或批量删除商品
-    // export：导出商品列表到Excel
-    {
-      id: 210,
-      parentId: 201,
-      name: '商品查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:product:query',
-    },
-    {
-      id: 211,
-      parentId: 201,
-      name: '商品新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:product:add',
-    },
-    {
-      id: 212,
-      parentId: 201,
-      name: '商品修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:product:edit',
-    },
-    {
-      id: 213,
-      parentId: 201,
-      name: '商品删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:product:remove',
-    },
-    {
-      id: 214,
-      parentId: 201,
-      name: '商品导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:product:export',
-    },
-
-    // 分类管理按钮权限
-    // 说明：控制商品分类树形结构的操作
-    // query：搜索分类、查看分类树形结构
-    // add：新增一级/二级分类
-    // edit：编辑分类名称、排序、状态
-    // remove：删除分类（注意：删除分类前需要确保该分类下没有商品）
-    // export：导出分类列表到Excel
-    {
-      id: 220,
-      parentId: 202,
-      name: '分类查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:category:query',
-    },
-    {
-      id: 221,
-      parentId: 202,
-      name: '分类新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:category:add',
-    },
-    {
-      id: 222,
-      parentId: 202,
-      name: '分类修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:category:edit',
-    },
-    {
-      id: 223,
-      parentId: 202,
-      name: '分类删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:category:remove',
-    },
-    {
-      id: 224,
-      parentId: 202,
-      name: '分类导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:category:export',
-    },
-
-    // 订单管理按钮权限
-    // 说明：控制订单流程的各项操作
-    // query：搜索订单、筛选订单状态、查看订单详情
-    // add：手动创建订单（通常用于线下订单录入）
-    // edit：修改订单状态、发货处理、订单备注
-    // remove：删除订单（注意：已支付订单通常不允许删除）
-    // export：导出订单列表到Excel（用于财务对账、数据分析）
-    {
-      id: 230,
-      parentId: 203,
-      name: '订单查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:order:query',
-    },
-    {
-      id: 231,
-      parentId: 203,
-      name: '订单新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:order:add',
-    },
-    {
-      id: 232,
-      parentId: 203,
-      name: '订单修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:order:edit',
-    },
-    {
-      id: 233,
-      parentId: 203,
-      name: '订单删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:order:remove',
-    },
-    {
-      id: 234,
-      parentId: 203,
-      name: '订单导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:order:export',
-    },
-
-    // 会员管理按钮权限
-    // 说明：控制会员信息管理的各项操作
-    // query：搜索会员、筛选会员等级/状态、查看会员详情和订单历史
-    // add：手动添加会员账户
-    // edit：修改会员信息、调整会员等级、积分管理、账户状态
-    // remove：删除会员账户（注意：删除会员会同时删除其订单记录）
-    // export：导出会员列表到Excel（用于营销推广、数据分析）
-    {
-      id: 240,
-      parentId: 204,
-      name: '会员查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:member:query',
-    },
-    {
-      id: 241,
-      parentId: 204,
-      name: '会员新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:member:add',
-    },
-    {
-      id: 242,
-      parentId: 204,
-      name: '会员修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:member:edit',
-    },
-    {
-      id: 243,
-      parentId: 204,
-      name: '会员删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:member:remove',
-    },
-    {
-      id: 244,
-      parentId: 204,
-      name: '会员导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:member:export',
-    },
-
-    // 运营配置按钮权限
-    // 说明：控制平台运营内容的配置管理
-    // query：查看轮播图列表、公告列表、活动列表
-    // add：新增banner图、发布公告、创建运营活动
-    // edit：编辑banner链接、修改公告内容、调整活动配置
-    // remove：删除banner、撤回公告、结束运营活动
-    // export：导出配置列表到Excel（用于数据统计）
-    {
-      id: 250,
-      parentId: 205,
-      name: '配置查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:banner:query',
-    },
-    {
-      id: 251,
-      parentId: 205,
-      name: '配置新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:banner:add',
-    },
-    {
-      id: 252,
-      parentId: 205,
-      name: '配置修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:banner:edit',
-    },
-    {
-      id: 253,
-      parentId: 205,
-      name: '配置删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:banner:remove',
-    },
-    {
-      id: 254,
-      parentId: 205,
-      name: '配置导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:banner:export',
-    },
-
-    // 商品规格组管理按钮权限
-    // 说明：控制商品规格组的管理操作
-    // query：查看规格组列表、搜索规格组
-    // add：新增规格组（如颜色、尺寸等）
-    // edit：编辑规格组名称、排序、状态
-    // remove：删除规格组
-    // export：导出规格组列表
-    {
-      id: 260,
-      parentId: 206,
-      name: '规格组查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:product-spec-group:query',
-    },
-    {
-      id: 261,
-      parentId: 206,
-      name: '规格组新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:product-spec-group:add',
-    },
-    {
-      id: 262,
-      parentId: 206,
-      name: '规格组修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:product-spec-group:edit',
-    },
-    {
-      id: 263,
-      parentId: 206,
-      name: '规格组删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:product-spec-group:remove',
-    },
-    {
-      id: 264,
-      parentId: 206,
-      name: '规格组导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:product-spec-group:export',
-    },
-
-    // 商品规格值管理按钮权限
-    // 说明：控制商品规格值的管理操作
-    // query：查看规格值列表、搜索规格值
-    // add：为规格组添加规格值（如为颜色添加红色、蓝色）
-    // edit：编辑规格值名称、排序、状态
-    // remove：删除规格值
-    // export：导出规格值列表
-    {
-      id: 270,
-      parentId: 207,
-      name: '规格值查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:product-spec-value:query',
-    },
-    {
-      id: 271,
-      parentId: 207,
-      name: '规格值新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:product-spec-value:add',
-    },
-    {
-      id: 272,
-      parentId: 207,
-      name: '规格值修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:product-spec-value:edit',
-    },
-    {
-      id: 273,
-      parentId: 207,
-      name: '规格值删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:product-spec-value:remove',
-    },
-    {
-      id: 274,
-      parentId: 207,
-      name: '规格值导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:product-spec-value:export',
-    },
-
-    // SKU管理按钮权限
-    // 说明：控制商品SKU的管理操作
-    // query：查看SKU列表、搜索SKU、查看SKU详情
-    // add：新增SKU（为商品添加规格组合）
-    // edit：编辑SKU价格、库存、状态等信息
-    // remove：删除SKU
-    // export：导出SKU列表
-    {
-      id: 280,
-      parentId: 208,
-      name: 'SKU查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'mall:product-sku:query',
-    },
-    {
-      id: 281,
-      parentId: 208,
-      name: 'SKU新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'mall:product-sku:add',
-    },
-    {
-      id: 282,
-      parentId: 208,
-      name: 'SKU修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'mall:product-sku:edit',
-    },
-    {
-      id: 283,
-      parentId: 208,
-      name: 'SKU删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'mall:product-sku:remove',
-    },
-    {
-      id: 284,
-      parentId: 208,
-      name: 'SKU导出',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'mall:product-sku:export',
-    },
-
-    // 用户管理按钮
-    {
-      id: 100,
-      parentId: 11,
-      name: '用户查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:user:query',
-    },
-    {
-      id: 101,
-      parentId: 11,
-      name: '用户新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:user:add',
-    },
-    {
-      id: 102,
-      parentId: 11,
-      name: '用户修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:user:edit',
-    },
-    {
-      id: 103,
-      parentId: 11,
-      name: '用户删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:user:remove',
-    },
-    {
-      id: 104,
-      parentId: 11,
-      name: '重置密码',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'system:user:resetPwd',
-    },
-
-    // 角色管理按钮
-    {
-      id: 110,
-      parentId: 12,
-      name: '角色查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:role:query',
-    },
-    {
-      id: 111,
-      parentId: 12,
-      name: '角色新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:role:add',
-    },
-    {
-      id: 112,
-      parentId: 12,
-      name: '角色修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:role:edit',
-    },
-    {
-      id: 113,
-      parentId: 12,
-      name: '角色删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:role:remove',
-    },
-
-    // 菜单管理按钮
-    {
-      id: 120,
-      parentId: 13,
-      name: '菜单查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:menu:query',
-    },
-    {
-      id: 121,
-      parentId: 13,
-      name: '菜单新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:menu:add',
-    },
-    {
-      id: 122,
-      parentId: 13,
-      name: '菜单修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:menu:edit',
-    },
-    {
-      id: 123,
-      parentId: 13,
-      name: '菜单删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:menu:remove',
-    },
-
-    // 部门管理按钮
-    {
-      id: 130,
-      parentId: 14,
-      name: '部门查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:dept:query',
-    },
-    {
-      id: 131,
-      parentId: 14,
-      name: '部门新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:dept:add',
-    },
-    {
-      id: 132,
-      parentId: 14,
-      name: '部门修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:dept:edit',
-    },
-    {
-      id: 133,
-      parentId: 14,
-      name: '部门删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:dept:remove',
-    },
-
-    // 字典管理按钮
-    {
-      id: 140,
-      parentId: 16,
-      name: '字典查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:dict:query',
-    },
-    {
-      id: 141,
-      parentId: 16,
-      name: '字典新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:dict:add',
-    },
-    {
-      id: 142,
-      parentId: 16,
-      name: '字典修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:dict:edit',
-    },
-    {
-      id: 143,
-      parentId: 16,
-      name: '字典删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:dict:remove',
-    },
-
-    // 注意: 岗位管理按钮 (ID 150-153) 暂未实现
-
-    // 参数设置按钮
-    {
-      id: 160,
-      parentId: 17,
-      name: '参数查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:config:query',
-    },
-    {
-      id: 161,
-      parentId: 17,
-      name: '参数新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:config:add',
-    },
-    {
-      id: 162,
-      parentId: 17,
-      name: '参数修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:config:edit',
-    },
-    {
-      id: 163,
-      parentId: 17,
-      name: '参数删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:config:remove',
-    },
-
-    // 通知公告按钮
-    {
-      id: 170,
-      parentId: 18,
-      name: '公告查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:notice:query',
-    },
-    {
-      id: 171,
-      parentId: 18,
-      name: '公告新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:notice:add',
-    },
-    {
-      id: 172,
-      parentId: 18,
-      name: '公告修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:notice:edit',
-    },
-    {
-      id: 173,
-      parentId: 18,
-      name: '公告删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:notice:remove',
-    },
-
-    // 操作日志按钮
-    {
-      id: 180,
-      parentId: 20,
-      name: '操作日志查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:operlog:query',
-    },
-    {
-      id: 181,
-      parentId: 20,
-      name: '操作日志删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:operlog:remove',
-    },
-
-    // 登录日志按钮
-    {
-      id: 185,
-      parentId: 21,
-      name: '登录日志查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:loginlog:query',
-    },
-    {
-      id: 186,
-      parentId: 21,
-      name: '登录日志删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:loginlog:remove',
-    },
-
-    // 代码生成按钮
-    {
-      id: 190,
-      parentId: 22,
-      name: '生成代码',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:codegen:generate',
-    },
-    // 定时任务按钮
-    {
-      id: 191,
-      parentId: 23,
-      name: '任务查询',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 1,
-      perms: 'system:job:query',
-    },
-    {
-      id: 192,
-      parentId: 23,
-      name: '任务新增',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 2,
-      perms: 'system:job:add',
-    },
-    {
-      id: 193,
-      parentId: 23,
-      name: '任务修改',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 3,
-      perms: 'system:job:edit',
-    },
-    {
-      id: 194,
-      parentId: 23,
-      name: '任务删除',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 4,
-      perms: 'system:job:remove',
-    },
-    {
-      id: 195,
-      parentId: 23,
-      name: '立即执行',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 5,
-      perms: 'system:job:run',
-    },
-    {
-      id: 196,
-      parentId: 23,
-      name: '执行记录',
-      path: null,
-      type: MenuType.BUTTON,
-      icon: null,
-      sort: 6,
-      perms: 'system:job:log',
-    },
-    // article管理菜单
-    { id: 200, parentId: 0, name: 'article管理', path: '/article', type: MenuType.DIR, icon: 'AppstoreOutlined', sort: 10, perms: 'article:manage' },
-    { id: 201, parentId: 200, name: 'article管理列表', path: '/article/list', component: 'article/index', type: MenuType.MENU, icon: 'UnorderedListOutlined', sort: 1, perms: 'article:list' },
-    { id: 210, parentId: 201, name: 'article管理查询', path: null, type: MenuType.BUTTON, icon: null, sort: 1, perms: 'article:query' },
-    { id: 211, parentId: 201, name: 'article管理新增', path: null, type: MenuType.BUTTON, icon: null, sort: 2, perms: 'article:add' },
-    { id: 212, parentId: 201, name: 'article管理修改', path: null, type: MenuType.BUTTON, icon: null, sort: 3, perms: 'article:edit' },
-    { id: 213, parentId: 201, name: 'article管理删除', path: null, type: MenuType.BUTTON, icon: null, sort: 4, perms: 'article:remove' },
-    { id: 214, parentId: 201, name: 'article管理导出', path: null, type: MenuType.BUTTON, icon: null, sort: 5, perms: 'article:export' },
-
+/** 批量创建告警按钮权限 */
+function alertButtons(baseId: number, parentId: number, name: string) {
+  return [
+    button(baseId, parentId, `${name}规则查询`, `${name}:rule:query`),
+    button(baseId + 1, parentId, `${name}规则新增`, `${name}:rule:add`),
+    button(baseId + 2, parentId, `${name}规则修改`, `${name}:rule:edit`),
+    button(baseId + 3, parentId, `${name}规则删除`, `${name}:rule:remove`),
+    button(baseId + 4, parentId, `${name}事件处理`, `${name}:event:handle`),
   ];
+}
 
-  for (const menu of menus) {
+/** 批量创建缓存/会话按钮权限 */
+function simpleButtons(baseId: number, parentId: number, name: string) {
+  return [
+    button(baseId, parentId, `${name}查询`, `${name}:query`),
+    button(baseId + 1, parentId, `${name}编辑`, `${name}:edit`),
+    button(baseId + 2, parentId, `${name}删除`, `${name}:remove`),
+  ];
+}
+
+// ============================================
+// 菜单定义
+// ============================================
+
+const menus = [
+  // 首页仪表盘
+  menu(1, 0, '首页', '/dashboard', 'dashboard/index', 'DashboardOutlined', 'dashboard:list', 0),
+
+  // ============================================
+  // 系统管理模块
+  // ============================================
+  dir(10, 0, '系统管理', '/system', 'SettingOutlined', 'system:manage', 1),
+  menu(11, 10, '用户管理', '/system/user', 'system/user/index', 'UserOutlined', 'system:user:list', 1),
+  menu(12, 10, '角色管理', '/system/role', 'system/role/index', 'TeamOutlined', 'system:role:list', 2),
+  menu(13, 10, '菜单管理', '/system/menu', 'system/menu/index', 'MenuOutlined', 'system:menu:list', 3),
+  menu(14, 10, '部门管理', '/system/dept', 'system/dept/index', 'ApartmentOutlined', 'system:dept:list', 4),
+  menu(16, 10, '字典管理', '/system/dict', 'system/dict/index', 'BookOutlined', 'system:dict:list', 5),
+  menu(17, 10, '参数设置', '/system/config', 'system/config/index', 'ToolOutlined', 'system:config:list', 6),
+  menu(18, 10, '通知公告', '/system/notice', 'system/notice/index', 'NotificationOutlined', 'system:notice:list', 7),
+  menu(22, 10, '代码生成', '/system/codegen', 'system/codegen/index', 'CodeOutlined', 'system:codegen:list', 8),
+  menu(23, 10, '定时任务', '/system/job', 'system/job/index', 'ClockCircleOutlined', 'system:job:list', 9),
+  menu(24, 10, '任务监控', '/system/job-monitor', 'system/job-monitor/index', 'MonitorOutlined', 'system:job:monitor', 10),
+  menu(25, 10, '缓存管理', '/system/cache', 'system/cache/index', 'CloudOutlined', 'system:cache:query', 11),
+  menu(26, 10, '在线用户', '/system/session', 'system/session/index', 'SyncOutlined', 'system:session:query', 12),
+
+  // ============================================
+  // 日志管理模块 (一级目录)
+  // ============================================
+  dir(30, 0, '日志管理', '/log', 'FileTextOutlined', 'system:log:list', 2),
+  menu(31, 30, '操作日志', '/log/operlog', 'system/operlog/index', 'FormOutlined', 'system:operlog:list', 1),
+  menu(32, 30, '登录日志', '/log/loginlog', 'system/loginlog/index', 'LoginOutlined', 'system:loginlog:list', 2),
+
+  // ============================================
+  // 监控管理模块 (一级目录)
+  // ============================================
+  dir(40, 0, '监控管理', '/monitor', 'MonitorOutlined', 'system:monitor:manage', 3),
+  menu(41, 40, '数据库监控', '/monitor/database', 'system/database-monitor/index', 'DatabaseOutlined', 'system:database-monitor:query', 1),
+  menu(42, 40, 'API监控', '/monitor/api', 'system/api-monitor/index', 'ApiOutlined', 'system:api-monitor:query', 2),
+  menu(43, 40, '日志监控', '/monitor/log', 'system/log-monitor/index', 'BarChartOutlined', 'system:log-monitor:query', 3),
+  menu(44, 40, '告警管理', '/monitor/alert', 'system/alert/index', 'BellOutlined', 'system:alert:manage', 4),
+
+  // ============================================
+  // 商城管理模块
+  // ============================================
+  dir(200, 0, '商城管理', '/mall', 'ShopOutlined', 'mall:manage', 4),
+  menu(201, 200, '商品管理', '/mall/product', 'product/index', 'AppstoreOutlined', 'mall:product:list', 1),
+  menu(202, 200, '分类管理', '/mall/category', 'category/index', 'TagsOutlined', 'mall:category:list', 2),
+  menu(203, 200, '订单管理', '/mall/order', 'order/index', 'ShoppingCartOutlined', 'mall:order:list', 3),
+  menu(204, 200, '会员管理', '/mall/member', 'member/index', 'UserOutlined', 'mall:member:list', 4),
+  menu(205, 200, '运营配置', '/mall/banner', 'banner/index', 'PictureOutlined', 'mall:banner:list', 5),
+  menu(206, 200, '商品规格组', '/mall/spec-group', 'product-spec-group/index', 'TagsOutlined', 'mall:product-spec-group:list', 6),
+  menu(207, 200, '商品规格值', '/mall/spec-value', 'product-spec-value/index', 'TagsOutlined', 'mall:product-spec-value:list', 7),
+  menu(208, 200, 'SKU管理', '/mall/sku', 'product-sku/index', 'ShoppingCartOutlined', 'mall:product-sku:list', 8),
+
+  // ============================================
+  // 文章管理模块
+  // ============================================
+  dir(300, 0, '文章管理', '/article', 'FileTextOutlined', 'article:manage', 5),
+  menu(301, 300, '文章列表', '/article/list', 'article/index', 'UnorderedListOutlined', 'article:list', 1),
+
+  // ============================================
+  // 按钮权限
+  // ============================================
+
+  // 用户管理按钮
+  buttons(100, 11, '用户', 'system:user', { query: true, add: true, edit: true, remove: true, resetPwd: true }),
+
+  // 角色管理按钮
+  buttons(110, 12, '角色', 'system:role', { query: true, add: true, edit: true, remove: true }),
+
+  // 菜单管理按钮
+  buttons(120, 13, '菜单', 'system:menu', { query: true, add: true, edit: true, remove: true }),
+
+  // 部门管理按钮
+  buttons(130, 14, '部门', 'system:dept', { query: true, add: true, edit: true, remove: true }),
+
+  // 字典管理按钮
+  buttons(140, 16, '字典', 'system:dict', { query: true, add: true, edit: true, remove: true }),
+
+  // 参数设置按钮
+  buttons(160, 17, '参数', 'system:config', { query: true, add: true, edit: true, remove: true }),
+
+  // 通知公告按钮
+  buttons(170, 18, '公告', 'system:notice', { query: true, add: true, edit: true, remove: true }),
+
+  // 代码生成按钮
+  button(190, 22, '生成代码', 'system:codegen:generate'),
+
+  // 定时任务按钮
+  buttons(191, 23, '任务', 'system:job', { query: true, add: true, edit: true, remove: true, run: true, log: true }),
+
+  // 缓存管理按钮
+  simpleButtons(300, 25, '缓存'),
+
+  // 在线用户按钮
+  button(303, 26, '会话查询', 'system:session:query'),
+  button(304, 26, '踢出用户', 'system:session:kick'),
+
+  // 操作日志按钮
+  button(180, 31, '操作日志查询', 'system:operlog:query'),
+  button(181, 31, '操作日志删除', 'system:operlog:remove'),
+
+  // 登录日志按钮
+  button(185, 32, '登录日志查询', 'system:loginlog:query'),
+  button(186, 32, '登录日志删除', 'system:loginlog:remove'),
+
+  // 告警管理按钮
+  alertButtons(305, 44, 'system:alert'),
+
+  // 商品管理按钮
+  buttons(210, 201, '商品', 'mall:product', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 分类管理按钮
+  buttons(220, 202, '分类', 'mall:category', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 订单管理按钮
+  buttons(230, 203, '订单', 'mall:order', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 会员管理按钮
+  buttons(240, 204, '会员', 'mall:member', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 运营配置按钮
+  buttons(250, 205, '配置', 'mall:banner', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 商品规格组按钮
+  buttons(260, 206, '规格组', 'mall:product-spec-group', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 商品规格值按钮
+  buttons(270, 207, '规格值', 'mall:product-spec-value', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // SKU管理按钮
+  buttons(280, 208, 'SKU', 'mall:product-sku', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 文章管理按钮
+  buttons(310, 301, '文章', 'article', { query: true, add: true, edit: true, remove: true, export: true }),
+];
+
+  // 扁平化所有菜单（展平 buttons 返回的数组）
+  const flatMenus: any[] = [];
+
+  for (const item of menus) {
+    if (Array.isArray(item)) {
+      flatMenus.push(...item);
+    } else {
+      flatMenus.push(item);
+    }
+  }
+
+  for (const menu of flatMenus) {
     await prisma.sysMenu.upsert({
       where: { id: menu.id },
       update: {},

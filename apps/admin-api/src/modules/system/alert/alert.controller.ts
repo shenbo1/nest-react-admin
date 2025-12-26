@@ -21,7 +21,7 @@ import { CurrentUser, CurrentUserType } from '@/common/decorators';
 
 @ApiTags('告警管理')
 @ApiBearerAuth()
-@Controller('system/alert')
+@Controller('monitor/alert')
 export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 

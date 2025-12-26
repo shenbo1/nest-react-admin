@@ -12,7 +12,7 @@ import { ProductSkuService } from './product-sku.service';
 import { CreateProductSkuDto } from './dto/create-product-sku.dto';
 import { UpdateProductSkuDto } from './dto/update-product-sku.dto';
 
-@Controller('mall/product-sku')
+@Controller('mall/sku')
 export class ProductSkuController {
   constructor(private readonly productSkuService: ProductSkuService) {}
 

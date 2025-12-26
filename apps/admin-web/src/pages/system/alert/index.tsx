@@ -86,7 +86,7 @@ const AlertManagement: React.FC = () => {
   const { data: rules, isLoading: rulesLoading } = useQuery<AlertRule[]>({
     queryKey: ['alertRules'],
     queryFn: async () => {
-      const data = await request.get('/system/alert/rules');
+      const data = await request.get('/monitor/alert/rules');
       return data;
     },
   });
@@ -95,7 +95,7 @@ const AlertManagement: React.FC = () => {
   const { data: alertsData, isLoading: alertsLoading } = useQuery({
     queryKey: ['alertEvents'],
     queryFn: async () => {
-      const data = await request.get('/system/alert/events', {
+      const data = await request.get('/monitor/alert/events', {
         params: { page: 1, pageSize: 20 },
       });
       return data;
@@ -106,7 +106,7 @@ const AlertManagement: React.FC = () => {
   const { data: stats } = useQuery<AlertStats>({
     queryKey: ['alertStats'],
     queryFn: async () => {
-      const data = await request.get('/system/alert/stats');
+      const data = await request.get('/monitor/alert/stats');
       return data;
     },
   });
@@ -114,7 +114,7 @@ const AlertManagement: React.FC = () => {
   // 创建规则
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { data: res } = await request.post('/system/alert/rules', data);
+      const { data: res } = await request.post('/monitor/alert/rules', data);
       return res;
     },
     onSuccess: () => {
@@ -128,7 +128,7 @@ const AlertManagement: React.FC = () => {
   // 更新规则
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const { data: res } = await request.put(`/system/alert/rules/${id}`, data);
+      const { data: res } = await request.put(`/monitor/alert/rules/${id}`, data);
       return res;
     },
     onSuccess: () => {
@@ -143,7 +143,7 @@ const AlertManagement: React.FC = () => {
   // 删除规则
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const { data } = await request.delete(`/system/alert/rules/${id}`);
+      const { data } = await request.delete(`/monitor/alert/rules/${id}`);
       return data;
     },
     onSuccess: () => {
@@ -155,7 +155,7 @@ const AlertManagement: React.FC = () => {
   // 切换规则状态
   const toggleMutation = useMutation({
     mutationFn: async ({ id, enabled }: { id: number; enabled: boolean }) => {
-      const { data } = await request.put(`/system/alert/rules/${id}/toggle`, { enabled });
+      const { data } = await request.put(`/monitor/alert/rules/${id}/toggle`, { enabled });
       return data;
     },
     onSuccess: () => {
@@ -167,7 +167,7 @@ const AlertManagement: React.FC = () => {
   // 处理告警
   const handleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const { data: res } = await request.put(`/system/alert/events/${id}/handle`, data);
+      const { data: res } = await request.put(`/monitor/alert/events/${id}/handle`, data);
       return res;
     },
     onSuccess: () => {
@@ -183,7 +183,7 @@ const AlertManagement: React.FC = () => {
   // 删除告警
   const deleteAlertMutation = useMutation({
     mutationFn: async (id: number) => {
-      const { data } = await request.delete(`/system/alert/events/${id}`);
+      const { data } = await request.delete(`/monitor/alert/events/${id}`);
       return data;
     },
     onSuccess: () => {

@@ -11,7 +11,7 @@ import { RequirePermissions } from '@/common/decorators';
 
 @ApiTags('登录日志')
 @ApiBearerAuth()
-@Controller('system/loginlog')
+@Controller('log/loginlog')
 export class LoginLogController {
   constructor(private readonly loginLogService: LoginLogService) {}
 

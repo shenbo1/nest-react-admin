@@ -12,7 +12,7 @@ import { ProductSpecGroupService } from './product-spec-group.service';
 import { CreateProductSpecGroupDto } from './dto/create-product-spec-group.dto';
 import { UpdateProductSpecGroupDto } from './dto/update-product-spec-group.dto';
 
-@Controller('mall/product-spec-group')
+@Controller('mall/spec-group')
 export class ProductSpecGroupController {
   constructor(private readonly productSpecGroupService: ProductSpecGroupService) {}
 
