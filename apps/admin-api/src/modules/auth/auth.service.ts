@@ -5,6 +5,8 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { Status } from '@prisma/client';
 import { SessionService } from '@/modules/system/session/session.service';
+import { UAParser } from 'ua-parser-js';
+import { getIpLocation } from '@/common/utils/ip.util';
 
 @Injectable()
 export class AuthService {
@@ -14,8 +16,29 @@ export class AuthService {
     private readonly sessionService: SessionService,
   ) {}
 
-  async login(loginDto: LoginDto, ip?: string) {
+  async login(loginDto: LoginDto, ip?: string, userAgent?: string) {
     const { username, password } = loginDto;
+
+    // 解析 User-Agent（提前解析，用于记录失败日志）
+    const uaResult = UAParser(userAgent || '');
+    const browser = uaResult.browser.name || 'Unknown';
+    const os = uaResult.os.name ? `${uaResult.os.name} ${uaResult.os.version || ''}`.trim() : 'Unknown';
+
+    // 记录登录失败日志的辅助函数
+    const logLoginFail = async (msg: string) => {
+      const location = await getIpLocation(ip || '');
+      await this.prisma.sysLoginLog.create({
+        data: {
+          username,
+          status: '1', // 失败
+          msg,
+          ipaddr: ip,
+          location,
+          browser,
+          os,
+        },
+      });
+    };
 
     // 查找用户
     const user = await this.prisma.sysUser.findFirst({
@@ -39,16 +62,19 @@ export class AuthService {
     });
 
     if (!user) {
+      await logLoginFail('用户名或密码错误');
       throw new UnauthorizedException('用户名或密码错误');
     }
 
     if (user.status === Status.DISABLED) {
+      await logLoginFail('用户已被禁用');
       throw new UnauthorizedException('用户已被禁用');
     }
 
     // 验证密码
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      await logLoginFail('用户名或密码错误');
       throw new UnauthorizedException('用户名或密码错误');
     }
 
@@ -66,13 +92,16 @@ export class AuthService {
 
     const token = this.jwtService.sign(payload);
 
+    // 获取 IP 地理位置
+    const location = await getIpLocation(ip || '');
+
     // 创建会话
     await this.sessionService.createSession(
       user.id,
       user.username,
       token,
       ip || 'Unknown',
-      'Web Browser',
+      browser,
     );
 
     // 更新登录信息
@@ -91,6 +120,9 @@ export class AuthService {
         status: '0',
         msg: '登录成功',
         ipaddr: ip,
+        location,
+        browser,
+        os,
       },
     });
 

@@ -16,8 +16,13 @@ export class AuthController {
   @ApiOperation({ summary: "用户登录" })
   async login(@Body() loginDto: LoginDto, @Req() req: Request) {
     // 获取客户端 IP
-    const ip = ""; //req.ip || req.headers['x-forwarded-for']?.toString() || '';
-    return this.authService.login(loginDto, ip);
+    const ip = req.headers['x-forwarded-for']?.toString().split(',')[0].trim()
+      || req.headers['x-real-ip']?.toString()
+      || req.ip
+      || '';
+    // 获取 User-Agent
+    const userAgent = req.headers['user-agent'] || '';
+    return this.authService.login(loginDto, ip, userAgent);
   }
 
   @Get("profile")

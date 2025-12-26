@@ -1,4 +1,14 @@
-import { Card, Row, Col, Statistic, Table, Tag, Typography, Space, Spin } from 'antd';
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  Space,
+  Spin,
+} from 'antd';
 import {
   UserOutlined,
   TeamOutlined,
@@ -23,11 +33,6 @@ const Dashboard: React.FC = () => {
   const { data: statistics, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-statistics'],
     queryFn: dashboardApi.getStatistics,
-  });
-
-  const { data: recentLogins, isLoading: loginsLoading } = useQuery({
-    queryKey: ['dashboard-recent-logins'],
-    queryFn: dashboardApi.getRecentLogins,
   });
 
   const loginColumns = [
@@ -71,7 +76,13 @@ const Dashboard: React.FC = () => {
       width: 80,
       render: (status: string) => (
         <Tag
-          icon={status === 'SUCCESS' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+          icon={
+            status === 'SUCCESS' ? (
+              <CheckCircleOutlined />
+            ) : (
+              <CloseCircleOutlined />
+            )
+          }
           color={status === 'SUCCESS' ? 'success' : 'error'}
         >
           {status === 'SUCCESS' ? '成功' : '失败'}
@@ -88,7 +99,8 @@ const Dashboard: React.FC = () => {
   ];
 
   const currentHour = new Date().getHours();
-  const greeting = currentHour < 12 ? '上午好' : currentHour < 18 ? '下午好' : '晚上好';
+  const greeting =
+    currentHour < 12 ? '上午好' : currentHour < 18 ? '下午好' : '晚上好';
 
   return (
     <div>
@@ -106,7 +118,9 @@ const Dashboard: React.FC = () => {
           <Col>
             <Space>
               <ClockCircleOutlined style={{ color: '#1890ff' }} />
-              <Text type="secondary">{dayjs().format('YYYY年MM月DD日 dddd')}</Text>
+              <Text type="secondary">
+                {dayjs().format('YYYY年MM月DD日 dddd')}
+              </Text>
             </Space>
           </Col>
         </Row>
@@ -180,19 +194,6 @@ const Dashboard: React.FC = () => {
           </Col>
         </Row>
       </Spin>
-
-      {/* 最近登录记录 */}
-      <Card title="最近登录记录">
-        <Table<LoginLog>
-          dataSource={recentLogins || []}
-          columns={loginColumns}
-          rowKey="id"
-          loading={loginsLoading}
-          pagination={false}
-          size="small"
-          scroll={{ x: 900 }}
-        />
-      </Card>
 
       {/* 实时系统监控 */}
       <SystemMetricsComponent />
