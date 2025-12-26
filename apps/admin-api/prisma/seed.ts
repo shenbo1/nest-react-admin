@@ -380,6 +380,121 @@ async function main() {
     },
 
     // ============================================
+    // 监控管理模块
+    // ============================================
+    // 用途：系统监控和告警管理，包括数据库监控、API监控、日志监控、告警规则等
+    // 相关表：sys_alert_rule（告警规则）、sys_alert（告警事件）
+    {
+      id: 27,
+      parentId: 10,
+      name: '监控管理',
+      path: '/system/monitor',
+      type: MenuType.DIR,
+      icon: 'MonitorOutlined',
+      sort: 14,
+      perms: 'system:monitor:manage',
+    },
+    // 数据库监控
+    {
+      id: 271,
+      parentId: 27,
+      name: '数据库监控',
+      path: '/system/database-monitor',
+      component: 'system/database-monitor/index',
+      type: MenuType.MENU,
+      icon: 'DatabaseOutlined',
+      sort: 1,
+      perms: 'system:database-monitor:query',
+    },
+    // API监控
+    {
+      id: 272,
+      parentId: 27,
+      name: 'API监控',
+      path: '/system/api-monitor',
+      component: 'system/api-monitor/index',
+      type: MenuType.MENU,
+      icon: 'ApiOutlined',
+      sort: 2,
+      perms: 'system:api-monitor:query',
+    },
+    // 日志监控
+    {
+      id: 273,
+      parentId: 27,
+      name: '日志监控',
+      path: '/system/log-monitor',
+      component: 'system/log-monitor/index',
+      type: MenuType.MENU,
+      icon: 'BarChartOutlined',
+      sort: 3,
+      perms: 'system:log-monitor:query',
+    },
+    // 告警管理
+    {
+      id: 274,
+      parentId: 27,
+      name: '告警管理',
+      path: '/system/alert',
+      component: 'system/alert/index',
+      type: MenuType.MENU,
+      icon: 'BellOutlined',
+      sort: 4,
+      perms: 'system:alert:manage',
+    },
+    // 告警管理按钮
+    {
+      id: 305,
+      parentId: 274,
+      name: '告警规则查询',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 1,
+      perms: 'system:alert:rule:query',
+    },
+    {
+      id: 306,
+      parentId: 274,
+      name: '告警规则新增',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 2,
+      perms: 'system:alert:rule:add',
+    },
+    {
+      id: 307,
+      parentId: 274,
+      name: '告警规则修改',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 3,
+      perms: 'system:alert:rule:edit',
+    },
+    {
+      id: 308,
+      parentId: 274,
+      name: '告警规则删除',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 4,
+      perms: 'system:alert:rule:remove',
+    },
+    {
+      id: 309,
+      parentId: 274,
+      name: '告警事件处理',
+      path: null,
+      type: MenuType.BUTTON,
+      icon: null,
+      sort: 5,
+      perms: 'system:alert:event:handle',
+    },
+
+    // ============================================
     // 商城管理权限说明文档
     // ============================================
     // 商城管理模块包含以下子模块：
@@ -1819,6 +1934,112 @@ async function main() {
   `;
 
   console.log('SKU系统测试数据创建完成!');
+
+  // ============================================
+  // 告警规则初始化
+  // ============================================
+  console.log('创建默认告警规则...');
+
+  const defaultAlertRules = [
+    {
+      id: 1,
+      name: 'CPU使用率过高',
+      type: 'CPU',
+      condition: 'GT',
+      threshold: 80,
+      level: 'WARNING',
+      notifyType: 'WEBHOOK',
+      silenceMins: 10,
+      remark: 'CPU使用率超过80%时告警',
+    },
+    {
+      id: 2,
+      name: '内存使用率过高',
+      type: 'MEMORY',
+      condition: 'GT',
+      threshold: 85,
+      level: 'WARNING',
+      notifyType: 'WEBHOOK',
+      silenceMins: 10,
+      remark: '内存使用率超过85%时告警',
+    },
+    {
+      id: 3,
+      name: '磁盘使用率过高',
+      type: 'DISK',
+      condition: 'GT',
+      threshold: 90,
+      level: 'CRITICAL',
+      notifyType: 'WEBHOOK,EMAIL',
+      silenceMins: 30,
+      remark: '磁盘使用率超过90%时告警',
+    },
+    {
+      id: 4,
+      name: 'API错误率过高',
+      type: 'API_ERROR_RATE',
+      condition: 'GT',
+      threshold: 5,
+      level: 'ERROR',
+      notifyType: 'WEBHOOK',
+      silenceMins: 5,
+      remark: 'API错误率超过5%时告警',
+    },
+    {
+      id: 5,
+      name: 'API响应时间过慢',
+      type: 'API_RESPONSE_TIME',
+      condition: 'GT',
+      threshold: 1000,
+      level: 'WARNING',
+      notifyType: 'WEBHOOK',
+      silenceMins: 5,
+      remark: 'API平均响应时间超过1000ms时告警',
+    },
+    {
+      id: 6,
+      name: '登录失败次数过多',
+      type: 'LOGIN_FAIL',
+      condition: 'GT',
+      threshold: 10,
+      level: 'WARNING',
+      silenceMins: 15,
+      remark: '15分钟内登录失败超过10次时告警',
+    },
+    {
+      id: 7,
+      name: '数据库连接数过高',
+      type: 'DB_CONNECTION',
+      condition: 'GT',
+      threshold: 80,
+      level: 'WARNING',
+      notifyType: 'WEBHOOK',
+      silenceMins: 10,
+      remark: '数据库连接数使用率超过80%时告警',
+    },
+  ];
+
+  for (const rule of defaultAlertRules) {
+    await prisma.sysAlertRule.upsert({
+      where: { id: rule.id },
+      update: {},
+      create: {
+        ...rule,
+        enabled: true,
+        createdBy: 'system',
+      },
+    });
+  }
+
+  // 重置告警规则ID序列
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('sys_alert_rule', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM sys_alert_rule)
+    )
+  `;
+
+  console.log('默认告警规则创建完成!');
   console.log('数据初始化完成!');
   console.log('默认账号: admin / admin123');
 }

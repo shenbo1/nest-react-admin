@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SubnodeOutlined } from '@ant-design/icons';
 import { ProColumns, ModalForm, ProFormText, ProFormSelect, ProFormTreeSelect, ProFormDigit } from '@ant-design/pro-components';
-import { message, Popconfirm, Space, Tag, Switch, Modal } from 'antd';
+import { message, Space, Switch, Modal, Popconfirm } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deptApi, Dept, CreateDeptParams } from '@/services/system/system';
 import PermissionButton from '@/components/PermissionButton';

@@ -26,6 +26,10 @@ import {
   PictureOutlined,
   CloudOutlined,
   SyncOutlined,
+  DatabaseOutlined,
+  ApiOutlined,
+  BellOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { useUserStore } from '@/stores/user';
 import { getProfile, getRouters, logout as logoutApi } from '@/services/system/auth';
@@ -155,6 +159,30 @@ const defaultMenuItems = [
         icon: <SyncOutlined />,
         label: '在线用户',
         permission: SYSTEM.SESSION.QUERY,
+      },
+      {
+        key: '/system/database-monitor',
+        icon: <DatabaseOutlined />,
+        label: '数据库监控',
+        permission: SYSTEM.MANAGE,
+      },
+      {
+        key: '/system/api-monitor',
+        icon: <ApiOutlined />,
+        label: 'API监控',
+        permission: SYSTEM.MANAGE,
+      },
+      {
+        key: '/system/log-monitor',
+        icon: <BarChartOutlined />,
+        label: '日志监控',
+        permission: SYSTEM.MANAGE,
+      },
+      {
+        key: '/system/alert',
+        icon: <BellOutlined />,
+        label: '告警管理',
+        permission: SYSTEM.MANAGE,
       },
     ],
   },

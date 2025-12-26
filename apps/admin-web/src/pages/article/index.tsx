@@ -1,8 +1,6 @@
 import { useRef, useState } from 'react';
 import { message, Modal, Space, Switch } from 'antd';
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
   EditOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
@@ -14,7 +12,6 @@ import {
   ProFormDigit,
   ProFormSelect,
 } from '@ant-design/pro-components';
-import { useQueryClient } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { articleApi, Article, ArticleForm } from '@/services/article';
 import { PermissionButton } from '@/components/PermissionButton';
@@ -25,7 +22,6 @@ export default function ArticlePage() {
   const actionRef = useRef<ProTableRef>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Article | null>(null);
-  const queryClient = useQueryClient();
 
   // 创建/更新
   const saveMutation = useMutation({

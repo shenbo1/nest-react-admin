@@ -31,6 +31,10 @@ const ProductSkuList = lazy(() => import('./pages/mall/product-sku'));
 const ArticleList = lazy(() => import('./pages/article'));
 const CacheList = lazy(() => import('./pages/system/cache'));
 const SessionList = lazy(() => import('./pages/system/session'));
+const DatabaseMonitor = lazy(() => import('./pages/system/database-monitor'));
+const ApiMonitor = lazy(() => import('./pages/system/api-monitor'));
+const LogMonitor = lazy(() => import('./pages/system/log-monitor'));
+const AlertManagement = lazy(() => import('./pages/system/alert'));
 
 const Loading = () => (
   <div className="flex items-center justify-center h-full">
@@ -171,6 +175,38 @@ function App() {
                 element={
                   <AuthRoute requiredPermission={SYSTEM.SESSION.QUERY}>
                     <SessionList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="database-monitor"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.MANAGE}>
+                    <DatabaseMonitor />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="api-monitor"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.MANAGE}>
+                    <ApiMonitor />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="log-monitor"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.MANAGE}>
+                    <LogMonitor />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="alert"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.MANAGE}>
+                    <AlertManagement />
                   </AuthRoute>
                 }
               />

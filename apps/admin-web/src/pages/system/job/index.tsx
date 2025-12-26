@@ -492,7 +492,7 @@ const JobList: React.FC = () => {
         modalProps={{
           destroyOnHidden: true,
         }}
-        onFinish={async (values) => {
+        onFinish={async (values: any) => {
           try {
             let payload = undefined;
             if (typeof values.payload === 'string' && values.payload.trim()) {
@@ -633,7 +633,7 @@ const JobList: React.FC = () => {
           placeholder='例如 {"key":"value"}'
           rules={[
             {
-              validator: async (_, value) => {
+              validator: async (_: any, value: any) => {
                 if (!value || !value.trim()) {
                   return Promise.resolve();
                 }

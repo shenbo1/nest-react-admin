@@ -1,8 +1,6 @@
 import { useRef, useState } from 'react';
 import { message, Modal, Space, Tag, Image, Switch } from 'antd';
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -76,9 +74,6 @@ export default function BannerPage() {
     onSuccess: () => {
       message.success('状态更新成功');
       actionRef.current?.reload();
-    },
-    onError: (error: any) => {
-      // message.error(error?.message || '状态更新失败');
     },
   });
 

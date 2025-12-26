@@ -3,8 +3,6 @@ import {
   Row,
   Col,
   Statistic,
-  Table,
-  Tag,
   Typography,
   Space,
   Spin,
@@ -16,11 +14,9 @@ import {
   ApartmentOutlined,
   LoginOutlined,
   ClockCircleOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { dashboardApi, LoginLog } from '@/services/system/dashboard';
+import { dashboardApi } from '@/services/system/dashboard';
 import { useUserStore } from '@/stores/user';
 import dayjs from 'dayjs';
 import SystemMetricsComponent from './SystemMetrics';
@@ -34,69 +30,6 @@ const Dashboard: React.FC = () => {
     queryKey: ['dashboard-statistics'],
     queryFn: dashboardApi.getStatistics,
   });
-
-  const loginColumns = [
-    {
-      title: '用户名',
-      dataIndex: 'username',
-      key: 'username',
-      width: 120,
-    },
-    {
-      title: '登录IP',
-      dataIndex: 'ip',
-      key: 'ip',
-      width: 130,
-    },
-    {
-      title: '登录地点',
-      dataIndex: 'location',
-      key: 'location',
-      width: 120,
-      render: (text: string) => text || '-',
-    },
-    {
-      title: '浏览器',
-      dataIndex: 'browser',
-      key: 'browser',
-      width: 120,
-      render: (text: string) => text || '-',
-    },
-    {
-      title: '操作系统',
-      dataIndex: 'os',
-      key: 'os',
-      width: 120,
-      render: (text: string) => text || '-',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 80,
-      render: (status: string) => (
-        <Tag
-          icon={
-            status === 'SUCCESS' ? (
-              <CheckCircleOutlined />
-            ) : (
-              <CloseCircleOutlined />
-            )
-          }
-          color={status === 'SUCCESS' ? 'success' : 'error'}
-        >
-          {status === 'SUCCESS' ? '成功' : '失败'}
-        </Tag>
-      ),
-    },
-    {
-      title: '登录时间',
-      dataIndex: 'loginTime',
-      key: 'loginTime',
-      width: 160,
-      render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm:ss'),
-    },
-  ];
 
   const currentHour = new Date().getHours();
   const greeting =
@@ -194,7 +127,6 @@ const Dashboard: React.FC = () => {
           </Col>
         </Row>
       </Spin>
-
       {/* 实时系统监控 */}
       <SystemMetricsComponent />
 

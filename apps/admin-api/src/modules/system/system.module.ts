@@ -12,6 +12,10 @@ import { CodegenModule } from './codegen/codegen.module';
 import { JobModule } from './job/job.module';
 import { CacheModule } from './cache/cache.module';
 import { SessionModule } from './session/session.module';
+import { DatabaseMonitorModule } from './database-monitor/database-monitor.module';
+import { ApiMonitorModule } from './api-monitor/api-monitor.module';
+import { LogMonitorModule } from './log-monitor/log-monitor.module';
+import { AlertModule } from './alert/alert.module';
 
 @Module({
   imports: [
@@ -28,6 +32,10 @@ import { SessionModule } from './session/session.module';
     JobModule,
     CacheModule,
     SessionModule,
+    DatabaseMonitorModule,
+    ApiMonitorModule,
+    LogMonitorModule,
+    AlertModule,
   ],
 })
 export class SystemModule {}

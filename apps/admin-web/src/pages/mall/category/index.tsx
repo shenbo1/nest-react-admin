@@ -2,8 +2,6 @@ import { useRef, useState } from 'react';
 import { message, Modal, Space, Tag, Switch } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   Row,
@@ -22,7 +22,7 @@ import {
   WarningOutlined,
   CloudServerOutlined,
 } from '@ant-design/icons';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import request from '@/utils/request';
 import PermissionButton from '@/components/PermissionButton';
 import { SYSTEM } from '@/constants/permissions';
@@ -50,8 +50,6 @@ interface CacheKey {
 const CacheList: React.FC = () => {
   const [searchKey, setSearchKey] = useState('');
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
-  const queryClient = useQueryClient();
-
   // 检查缓存键是否受保护
   const isProtectedKey = (key: string): boolean => {
     if (!protectedPrefixes || protectedPrefixes.length === 0) return false;
@@ -61,7 +59,6 @@ const CacheList: React.FC = () => {
   // 获取缓存信息
   const {
     data: cacheInfo,
-    isLoading: infoLoading,
     refetch: refetchInfo,
   } = useQuery<CacheInfo>({
     queryKey: ['cacheInfo'],

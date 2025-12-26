@@ -1564,6 +1564,98 @@ model SysLoginLog {
   @@map("sys_login_log")
 }
 
+/// 告警规则
+model SysAlertRule {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  /// 规则类型: CPU, MEMORY, DISK, API_ERROR_RATE, API_RESPONSE_TIME, LOGIN_FAIL, DB_CONNECTION
+  type        String   @db.VarChar(50)
+  /// 触发条件: GT(大于), LT(小于), EQ(等于), GTE(大于等于), LTE(小于等于)
+  condition   String   @db.VarChar(10)
+  /// 阈值
+  threshold   Float
+  /// 告警级别: INFO, WARNING, ERROR, CRITICAL
+  level       String   @default("WARNING") @db.VarChar(20)
+  /// 通知方式: EMAIL, SMS, WEBHOOK (逗号分隔)
+  notifyType  String?  @map("notify_type") @db.VarChar(100)
+  /// Webhook URL
+  webhookUrl  String?  @map("webhook_url") @db.VarChar(500)
+  /// 邮件接收人 (逗号分隔)
+  emailTo     String?  @map("email_to") @db.VarChar(500)
+  /// 是否启用
+  enabled     Boolean  @default(true)
+  /// 静默时间（分钟）：同一规则触发后多久内不再告警
+  silenceMins Int      @default(5) @map("silence_mins")
+  /// 最后触发时间
+  lastTriggeredAt DateTime? @map("last_triggered_at")
+  /// 备注
+  remark      String?  @db.VarChar(500)
+  /// 创建者ID
+  createdBy   String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy   String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted     Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt   DateTime? @map("deleted_at")
+
+  alerts      SysAlert[]
+
+  @@index([type])
+  @@index([enabled])
+  @@index([deleted])
+  @@map("sys_alert_rule")
+}
+
+/// 告警事件
+model SysAlert {
+  id          Int      @id @default(autoincrement())
+  ruleId      Int      @map("rule_id")
+  /// 告警级别
+  level       String   @db.VarChar(20)
+  /// 告警标题
+  title       String   @db.VarChar(200)
+  /// 告警内容
+  content     String   @db.Text
+  /// 当前值
+  currentValue Float   @map("current_value")
+  /// 阈值
+  threshold   Float
+  /// 状态: PENDING(待处理), ACKNOWLEDGED(已确认), RESOLVED(已解决)
+  status      String   @default("PENDING") @db.VarChar(20)
+  /// 处理人
+  handledBy   String?  @map("handled_by") @db.VarChar(50)
+  /// 处理时间
+  handledAt   DateTime? @map("handled_at")
+  /// 处理备注
+  handleRemark String? @map("handle_remark") @db.VarChar(500)
+  /// 创建者ID
+  createdBy   String?  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy   String?  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted     Boolean  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt   DateTime? @map("deleted_at")
+
+  rule        SysAlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@index([status])
+  @@index([level])
+  @@index([createdAt])
+  @@index([deleted])
+  @@map("sys_alert")
+}
+
 enum Status {
   ENABLED
   DISABLED
