@@ -24,6 +24,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { MetricsMiddleware } from './common/middleware/metrics.middleware';
 import { OperLogInterceptor } from './common/interceptors/operlog.interceptor';
 import { ArticleModule } from './modules/article/article.module';
+import { WorkflowModule } from './modules/workflow/workflow.module';
 import { appConfigs } from '@/config';
 
 // Zod 环境变量验证 schema
@@ -106,6 +107,7 @@ function validateEnv(env: Record<string, unknown>) {
     ProductSkuModule,
     UploadModule,
     ArticleModule,
+    WorkflowModule,
   ],
   providers: [
     {

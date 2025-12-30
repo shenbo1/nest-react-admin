@@ -1845,3 +1845,522 @@ enum ProductStatus {
   /// 草稿
   DRAFT     @map("draft")
 }
+
+// ================================
+// 工作流审批系统模型
+// ================================
+
+/// 流程分类表
+model WfCategory {
+  id          Int               @id @default(autoincrement())
+  /// 分类编码（唯一标识）
+  code        String            @db.VarChar(50)
+  /// 分类名称
+  name        String            @db.VarChar(100)
+  /// 分类图标
+  icon        String?           @db.VarChar(100)
+  /// 分类颜色
+  color       String?           @db.VarChar(20)
+  /// 排序号
+  sort        Int               @default(0)
+  /// 状态
+  status      WfCategoryStatus  @default(ENABLED)
+  /// 父分类ID
+  parentId    Int?              @map("parent_id")
+  /// 层级（0-根级，1-一级子分类，以此类推）
+  level       Int               @default(0)
+  /// 备注
+  remark      String?           @db.VarChar(500)
+  /// 创建者ID
+  createdBy   String?           @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt   DateTime          @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy   String?           @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted     Boolean           @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt   DateTime?         @map("deleted_at")
+
+  /// 父分类
+  parent       WfCategory?       @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  /// 子分类
+  children     WfCategory[]      @relation("CategoryHierarchy")
+  /// 关联的流程定义
+  flowDefinitions WfFlowDefinition[]
+
+  @@index([parentId])
+  @@index([code])
+  @@index([status])
+  @@index([sort])
+  @@map("wf_category")
+}
+
+/// 流程定义表
+model WfFlowDefinition {
+  id            Int           @id @default(autoincrement())
+  /// 流程编码（唯一标识）
+  code          String        @db.VarChar(50)
+  /// 流程名称
+  name          String        @db.VarChar(100)
+  /// 流程分类ID
+  categoryId    Int?          @map("category_id")
+  /// 流程分类关联
+  category      WfCategory?   @relation(fields: [categoryId], references: [id])
+  /// 版本号
+  version       Int           @default(1)
+  /// 流程图数据（nodes + edges）
+  flowData      Json?         @map("flow_data") @db.Json
+  /// 表单配置数据
+  formData      Json?         @map("form_data") @db.Json
+  /// 流程状态
+  status        WfFlowStatus  @default(DRAFT)
+  /// 是否为主版本（同一code只能有一个主版本）
+  isMain        Boolean       @default(false) @map("is_main")
+  /// 关联业务表名（可选）
+  businessTable String?       @map("business_table") @db.VarChar(100)
+  /// 流程描述
+  description   String?       @db.VarChar(500)
+  /// 备注
+  remark        String?       @db.VarChar(500)
+  /// 创建者ID
+  createdBy     String?       @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt     DateTime      @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy     String?       @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted       Boolean       @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt     DateTime?     @map("deleted_at")
+  /// 节点配置
+  nodeConfigs   WfNodeConfig[]
+  /// 流程实例
+  instances     WfFlowInstance[]
+
+  @@unique([code, version, deletedAt])
+  @@index([code])
+  @@index([categoryId])
+  @@index([status])
+  @@index([isMain])
+  @@index([deleted])
+  @@map("wf_flow_definition")
+}
+
+/// 节点配置表
+model WfNodeConfig {
+  id                 Int                   @id @default(autoincrement())
+  /// 流程定义ID
+  flowDefinitionId   Int                   @map("flow_definition_id")
+  /// 节点ID（流程图中的节点ID）
+  nodeId             String                @map("node_id") @db.VarChar(50)
+  /// 节点类型
+  nodeType           WfNodeType            @map("node_type")
+  /// 节点名称
+  nodeName           String                @map("node_name") @db.VarChar(100)
+  /// 审批方式（审批节点专用）
+  approvalType       WfApprovalType?       @map("approval_type")
+  /// 审批人选择方式
+  assigneeType       WfAssigneeType?       @map("assignee_type")
+  /// 审批人配置（roleIds/userIds/deptLevel/fieldName等）
+  assigneeConfig     Json?                 @map("assignee_config") @db.Json
+  /// 审批人为空时的处理策略
+  emptyAssigneeAction WfEmptyAssigneeAction? @default(ERROR) @map("empty_assignee_action")
+  /// 条件表达式（条件节点专用）
+  conditionExpr      Json?                 @map("condition_expr") @db.Json
+  /// 表单字段权限配置
+  formPerms          Json?                 @map("form_perms") @db.Json
+  /// 超时时间（分钟）
+  timeLimit          Int?                  @map("time_limit")
+  /// 超时处理方式
+  timeoutAction      WfTimeoutAction?      @map("timeout_action")
+  /// 抄送人配置
+  ccConfig           Json?                 @map("cc_config") @db.Json
+  /// 备注
+  remark             String?               @db.VarChar(500)
+  /// 创建者ID
+  createdBy          String?               @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt          DateTime              @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy          String?               @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted            Boolean               @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt          DateTime?             @map("deleted_at")
+  /// 流程定义
+  flowDefinition     WfFlowDefinition      @relation(fields: [flowDefinitionId], references: [id], onDelete: Cascade)
+
+  @@unique([flowDefinitionId, nodeId, deletedAt])
+  @@index([flowDefinitionId])
+  @@index([nodeId])
+  @@index([nodeType])
+  @@index([deleted])
+  @@map("wf_node_config")
+}
+
+/// 流程实例表
+model WfFlowInstance {
+  id                 Int               @id @default(autoincrement())
+  /// 实例编号（唯一）
+  instanceNo         String            @unique @map("instance_no") @db.VarChar(50)
+  /// 流程定义ID
+  flowDefinitionId   Int               @map("flow_definition_id")
+  /// 流程标题
+  title              String            @db.VarChar(200)
+  /// 关联业务ID（可选）
+  businessId         String?           @map("business_id") @db.VarChar(64)
+  /// 关联业务编号
+  businessNo         String?           @map("business_no") @db.VarChar(100)
+  /// 关联业务表名
+  businessTable      String?           @map("business_table") @db.VarChar(100)
+  /// 表单数据快照
+  formDataSnapshot   Json?             @map("form_data_snapshot") @db.Json
+  /// 流程状态
+  status             WfInstanceStatus  @default(RUNNING)
+  /// 发起人ID
+  initiatorId        Int               @map("initiator_id")
+  /// 发起人姓名
+  initiatorName      String?           @map("initiator_name") @db.VarChar(50)
+  /// 发起人部门ID
+  initiatorDeptId    Int?              @map("initiator_dept_id")
+  /// 发起人部门名称
+  initiatorDeptName  String?           @map("initiator_dept_name") @db.VarChar(100)
+  /// 当前节点ID列表（JSON数组，支持并行多节点）
+  currentNodeIds     Json?             @map("current_node_ids") @db.Json
+  /// 流程变量（运行时数据）
+  variables          Json?             @db.Json
+  /// 流程开始时间
+  startTime          DateTime          @default(now()) @map("start_time")
+  /// 流程结束时间
+  endTime            DateTime?         @map("end_time")
+  /// 流程耗时（秒）
+  duration           Int?
+  /// 结果备注（完成/驳回/撤回原因）
+  resultRemark       String?           @map("result_remark") @db.VarChar(500)
+  /// 备注
+  remark             String?           @db.VarChar(500)
+  /// 创建者ID
+  createdBy          String?           @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt          DateTime          @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy          String?           @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted            Boolean           @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt          DateTime?         @map("deleted_at")
+  /// 流程定义
+  flowDefinition     WfFlowDefinition  @relation(fields: [flowDefinitionId], references: [id])
+  /// 审批任务
+  tasks              WfTask[]
+  /// 流程日志
+  logs               WfFlowLog[]
+  /// 抄送记录
+  copyRecords        WfCopyRecord[]
+
+  @@index([instanceNo])
+  @@index([flowDefinitionId])
+  @@index([initiatorId])
+  @@index([initiatorDeptId])
+  @@index([status])
+  @@index([businessId])
+  @@index([businessTable])
+  @@index([startTime])
+  @@index([deleted])
+  @@map("wf_flow_instance")
+}
+
+/// 审批任务表
+model WfTask {
+  id               Int             @id @default(autoincrement())
+  /// 任务编号（唯一）
+  taskNo           String          @unique @map("task_no") @db.VarChar(50)
+  /// 流程实例ID
+  flowInstanceId   Int             @map("flow_instance_id")
+  /// 节点ID
+  nodeId           String          @map("node_id") @db.VarChar(50)
+  /// 节点名称
+  nodeName         String          @map("node_name") @db.VarChar(100)
+  /// 节点类型
+  nodeType         WfNodeType      @map("node_type")
+  /// 任务状态
+  status           WfTaskStatus    @default(PENDING)
+  /// 审批人ID
+  assigneeId       Int?            @map("assignee_id")
+  /// 审批人姓名
+  assigneeName     String?         @map("assignee_name") @db.VarChar(50)
+  /// 审批人部门ID
+  assigneeDeptId   Int?            @map("assignee_dept_id")
+  /// 审批人部门名称
+  assigneeDeptName String?         @map("assignee_dept_name") @db.VarChar(100)
+  /// 审批结果
+  result           WfTaskResult?
+  /// 审批意见
+  comment          String?         @db.VarChar(500)
+  /// 表单数据（审批时可修改的字段）
+  formData         Json?           @map("form_data") @db.Json
+  /// 任务开始时间
+  startTime        DateTime        @default(now()) @map("start_time")
+  /// 任务完成时间
+  completedTime    DateTime?       @map("completed_time")
+  /// 截止时间
+  dueTime          DateTime?       @map("due_time")
+  /// 任务耗时（秒）
+  duration         Int?
+  /// 是否超时
+  isTimeout        Boolean         @default(false) @map("is_timeout")
+  /// 转办/加签来源任务ID
+  sourceTaskId     Int?            @map("source_task_id")
+  /// 备注
+  remark           String?         @db.VarChar(500)
+  /// 创建者ID
+  createdBy        String?         @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt        DateTime        @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy        String?         @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted          Boolean         @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt        DateTime?       @map("deleted_at")
+  /// 流程实例
+  flowInstance     WfFlowInstance  @relation(fields: [flowInstanceId], references: [id], onDelete: Cascade)
+  /// 流程日志
+  logs             WfFlowLog[]
+  /// 抄送记录
+  copyRecords      WfCopyRecord[]
+
+  @@index([taskNo])
+  @@index([flowInstanceId])
+  @@index([nodeId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([result])
+  @@index([startTime])
+  @@index([dueTime])
+  @@index([deleted])
+  @@map("wf_task")
+}
+
+/// 流程操作日志表
+model WfFlowLog {
+  id               Int             @id @default(autoincrement())
+  /// 流程实例ID
+  flowInstanceId   Int             @map("flow_instance_id")
+  /// 任务ID（可选）
+  taskId           Int?            @map("task_id")
+  /// 节点ID
+  nodeId           String?         @map("node_id") @db.VarChar(50)
+  /// 节点名称
+  nodeName         String?         @map("node_name") @db.VarChar(100)
+  /// 操作类型
+  action           WfLogAction
+  /// 操作前状态
+  fromStatus       String?         @map("from_status") @db.VarChar(50)
+  /// 操作后状态
+  toStatus         String?         @map("to_status") @db.VarChar(50)
+  /// 操作人ID
+  operatorId       Int?            @map("operator_id")
+  /// 操作人姓名
+  operatorName     String?         @map("operator_name") @db.VarChar(50)
+  /// 操作意见/备注
+  comment          String?         @db.VarChar(500)
+  /// 详细信息（JSON）
+  detail           Json?           @db.Json
+  /// 创建时间
+  createdAt        DateTime        @default(now()) @map("created_at")
+  /// 流程实例
+  flowInstance     WfFlowInstance  @relation(fields: [flowInstanceId], references: [id], onDelete: Cascade)
+  /// 任务
+  task             WfTask?         @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([flowInstanceId])
+  @@index([taskId])
+  @@index([action])
+  @@index([operatorId])
+  @@index([createdAt])
+  @@map("wf_flow_log")
+}
+
+/// 抄送记录表
+model WfCopyRecord {
+  id               Int             @id @default(autoincrement())
+  /// 流程实例ID
+  flowInstanceId   Int             @map("flow_instance_id")
+  /// 任务ID（产生抄送的任务）
+  taskId           Int?            @map("task_id")
+  /// 接收人ID
+  userId           Int             @map("user_id")
+  /// 接收人姓名
+  userName         String?         @map("user_name") @db.VarChar(50)
+  /// 是否已读
+  isRead           Boolean         @default(false) @map("is_read")
+  /// 阅读时间
+  readTime         DateTime?       @map("read_time")
+  /// 创建时间
+  createdAt        DateTime        @default(now()) @map("created_at")
+  /// 流程实例
+  flowInstance     WfFlowInstance  @relation(fields: [flowInstanceId], references: [id], onDelete: Cascade)
+  /// 任务
+  task             WfTask?         @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([flowInstanceId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("wf_copy_record")
+}
+
+// ================================
+// 工作流相关枚举
+// ================================
+
+/// 分类状态
+enum WfCategoryStatus {
+  /// 启用
+  ENABLED  @map("enabled")
+  /// 禁用
+  DISABLED @map("disabled")
+}
+
+/// 流程定义状态
+enum WfFlowStatus {
+  /// 草稿
+  DRAFT     @map("draft")
+  /// 已发布
+  PUBLISHED @map("published")
+  /// 已停用
+  DISABLED  @map("disabled")
+}
+
+/// 节点类型
+enum WfNodeType {
+  /// 开始节点
+  START     @map("start")
+  /// 结束节点
+  END       @map("end")
+  /// 审批节点
+  APPROVAL  @map("approval")
+  /// 条件分支
+  CONDITION @map("condition")
+  /// 并行网关
+  PARALLEL  @map("parallel")
+  /// 汇聚网关
+  JOIN      @map("join")
+}
+
+/// 审批方式
+enum WfApprovalType {
+  /// 或签（任一人通过即可）
+  OR_SIGN   @map("or_sign")
+  /// 会签（所有人必须通过）
+  AND_SIGN  @map("and_sign")
+}
+
+/// 审批人选择方式
+enum WfAssigneeType {
+  /// 按角色
+  ROLE              @map("role")
+  /// 部门领导
+  DEPT_LEADER       @map("dept_leader")
+  /// 指定人员
+  SPECIFIC_USER     @map("specific_user")
+  /// 发起人上级
+  INITIATOR_LEADER  @map("initiator_leader")
+  /// 表单字段
+  FORM_FIELD        @map("form_field")
+}
+
+/// 审批人为空时的处理策略
+enum WfEmptyAssigneeAction {
+  /// 跳过该节点
+  SKIP      @map("skip")
+  /// 转给管理员
+  TO_ADMIN  @map("to_admin")
+  /// 报错终止
+  ERROR     @map("error")
+}
+
+/// 超时处理方式
+enum WfTimeoutAction {
+  /// 自动通过
+  AUTO_PASS   @map("auto_pass")
+  /// 自动驳回
+  AUTO_REJECT @map("auto_reject")
+  /// 仅提醒
+  REMIND      @map("remind")
+}
+
+/// 流程实例状态
+enum WfInstanceStatus {
+  /// 进行中
+  RUNNING    @map("running")
+  /// 已完成
+  COMPLETED  @map("completed")
+  /// 已驳回
+  REJECTED   @map("rejected")
+  /// 已撤回
+  CANCELLED  @map("cancelled")
+  /// 已终止
+  TERMINATED @map("terminated")
+}
+
+/// 任务状态
+enum WfTaskStatus {
+  /// 待处理
+  PENDING       @map("pending")
+  /// 已完成
+  COMPLETED     @map("completed")
+  /// 已取消
+  CANCELLED     @map("cancelled")
+  /// 已转办
+  TRANSFERRED   @map("transferred")
+  /// 已加签
+  COUNTERSIGNED @map("countersigned")
+}
+
+/// 任务结果
+enum WfTaskResult {
+  /// 通过
+  APPROVED      @map("approved")
+  /// 驳回
+  REJECTED      @map("rejected")
+  /// 转办
+  TRANSFERRED   @map("transferred")
+  /// 加签
+  COUNTERSIGNED @map("countersigned")
+}
+
+/// 操作日志类型
+enum WfLogAction {
+  /// 发起
+  START       @map("start")
+  /// 通过
+  APPROVE     @map("approve")
+  /// 驳回
+  REJECT      @map("reject")
+  /// 转办
+  TRANSFER    @map("transfer")
+  /// 加签
+  COUNTERSIGN @map("countersign")
+  /// 撤回
+  CANCEL      @map("cancel")
+  /// 催办
+  URGE        @map("urge")
+  /// 终止
+  TERMINATE   @map("terminate")
+  /// 自动处理
+  AUTO        @map("auto")
+}

@@ -37,7 +37,87 @@ async function main() {
       ancestors: '0,1',
       name: '技术部',
       sort: 1,
-      leader: '技术总监',
+      leader: '张技术',
+      status: Status.ENABLED,
+      createdBy: 'system',
+    },
+  });
+
+  // 财务部
+  const financeDept = await prisma.sysDept.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      parentId: 1,
+      ancestors: '0,1',
+      name: '财务部',
+      sort: 2,
+      leader: '李财务',
+      status: Status.ENABLED,
+      createdBy: 'system',
+    },
+  });
+
+  // 人事部
+  const hrDept = await prisma.sysDept.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      id: 4,
+      parentId: 1,
+      ancestors: '0,1',
+      name: '人事部',
+      sort: 3,
+      leader: '王人事',
+      status: Status.ENABLED,
+      createdBy: 'system',
+    },
+  });
+
+  // 行政部
+  const adminDept = await prisma.sysDept.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      id: 5,
+      parentId: 1,
+      ancestors: '0,1',
+      name: '行政部',
+      sort: 4,
+      leader: '赵行政',
+      status: Status.ENABLED,
+      createdBy: 'system',
+    },
+  });
+
+  // 市场部
+  const marketDept = await prisma.sysDept.upsert({
+    where: { id: 6 },
+    update: {},
+    create: {
+      id: 6,
+      parentId: 1,
+      ancestors: '0,1',
+      name: '市场部',
+      sort: 5,
+      leader: '孙市场',
+      status: Status.ENABLED,
+      createdBy: 'system',
+    },
+  });
+
+  // 运营部
+  const operationDept = await prisma.sysDept.upsert({
+    where: { id: 7 },
+    update: {},
+    create: {
+      id: 7,
+      parentId: 1,
+      ancestors: '0,1',
+      name: '运营部',
+      sort: 6,
+      leader: '周运营',
       status: Status.ENABLED,
       createdBy: 'system',
     },
@@ -83,6 +163,118 @@ async function main() {
     },
   });
 
+  // 部门主管角色
+  const deptManagerRole = await prisma.sysRole.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      name: '部门主管',
+      key: 'dept_manager',
+      sort: 3,
+      dataScope: DataScope.DEPT,
+      status: Status.ENABLED,
+      remark: '部门主管，负责本部门审批',
+      createdBy: 'system',
+    },
+  });
+
+  // 人事经理角色
+  const hrManagerRole = await prisma.sysRole.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      id: 4,
+      name: '人事经理',
+      key: 'hr_manager',
+      sort: 4,
+      dataScope: DataScope.ALL,
+      status: Status.ENABLED,
+      remark: '人事部经理，负责人事相关审批',
+      createdBy: 'system',
+    },
+  });
+
+  // 财务主管角色
+  const financeManagerRole = await prisma.sysRole.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      id: 5,
+      name: '财务主管',
+      key: 'finance_manager',
+      sort: 5,
+      dataScope: DataScope.ALL,
+      status: Status.ENABLED,
+      remark: '财务部主管，负责5000以内费用审批',
+      createdBy: 'system',
+    },
+  });
+
+  // 财务总监角色
+  const financeDirectorRole = await prisma.sysRole.upsert({
+    where: { id: 6 },
+    update: {},
+    create: {
+      id: 6,
+      name: '财务总监',
+      key: 'finance_director',
+      sort: 6,
+      dataScope: DataScope.ALL,
+      status: Status.ENABLED,
+      remark: '财务总监，负责大额费用审批',
+      createdBy: 'system',
+    },
+  });
+
+  // 行政主管角色
+  const adminManagerRole = await prisma.sysRole.upsert({
+    where: { id: 7 },
+    update: {},
+    create: {
+      id: 7,
+      name: '行政主管',
+      key: 'admin_manager',
+      sort: 7,
+      dataScope: DataScope.ALL,
+      status: Status.ENABLED,
+      remark: '行政部主管，负责行政相关审批',
+      createdBy: 'system',
+    },
+  });
+
+  // 部门总监角色
+  const deptDirectorRole = await prisma.sysRole.upsert({
+    where: { id: 8 },
+    update: {},
+    create: {
+      id: 8,
+      name: '部门总监',
+      key: 'dept_director',
+      sort: 8,
+      dataScope: DataScope.DEPT,
+      status: Status.ENABLED,
+      remark: '部门总监，负责重大事项审批',
+      createdBy: 'system',
+    },
+  });
+
+  // 总经理角色
+  const gmRole = await prisma.sysRole.upsert({
+    where: { id: 9 },
+    update: {},
+    create: {
+      id: 9,
+      name: '总经理',
+      key: 'general_manager',
+      sort: 9,
+      dataScope: DataScope.ALL,
+      status: Status.ENABLED,
+      remark: '总经理，最高审批权限',
+      createdBy: 'system',
+    },
+  });
+
   console.log('角色创建完成');
 
   await prisma.$executeRaw`
@@ -121,6 +313,258 @@ async function main() {
       roleId: 1,
     },
   });
+
+  // 创建技术部主管
+  const techManager = await prisma.sysUser.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
+      deptId: 2,
+      username: 'zhangjs',
+      password: hashedPassword,
+      nickname: '张技术',
+      email: 'zhangjs@example.com',
+      phone: '13800000002',
+      gender: Gender.MALE,
+      status: Status.ENABLED,
+      remark: '技术部主管',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 2, roleId: 3 } },
+    update: {},
+    create: { userId: 2, roleId: 3 },
+  });
+
+  // 创建财务主管
+  const financeManager = await prisma.sysUser.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      id: 3,
+      deptId: 3,
+      username: 'licw',
+      password: hashedPassword,
+      nickname: '李财务',
+      email: 'licw@example.com',
+      phone: '13800000003',
+      gender: Gender.FEMALE,
+      status: Status.ENABLED,
+      remark: '财务部主管',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 3, roleId: 5 } },
+    update: {},
+    create: { userId: 3, roleId: 5 },
+  });
+
+  // 创建财务总监
+  const financeDirector = await prisma.sysUser.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      id: 4,
+      deptId: 3,
+      username: 'qiancz',
+      password: hashedPassword,
+      nickname: '钱总监',
+      email: 'qiancz@example.com',
+      phone: '13800000004',
+      gender: Gender.MALE,
+      status: Status.ENABLED,
+      remark: '财务总监',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 4, roleId: 6 } },
+    update: {},
+    create: { userId: 4, roleId: 6 },
+  });
+
+  // 创建人事经理
+  const hrManager = await prisma.sysUser.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      id: 5,
+      deptId: 4,
+      username: 'wangrs',
+      password: hashedPassword,
+      nickname: '王人事',
+      email: 'wangrs@example.com',
+      phone: '13800000005',
+      gender: Gender.FEMALE,
+      status: Status.ENABLED,
+      remark: '人事部经理',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 5, roleId: 4 } },
+    update: {},
+    create: { userId: 5, roleId: 4 },
+  });
+
+  // 创建行政主管
+  const adminManager = await prisma.sysUser.upsert({
+    where: { id: 6 },
+    update: {},
+    create: {
+      id: 6,
+      deptId: 5,
+      username: 'zhaoxz',
+      password: hashedPassword,
+      nickname: '赵行政',
+      email: 'zhaoxz@example.com',
+      phone: '13800000006',
+      gender: Gender.MALE,
+      status: Status.ENABLED,
+      remark: '行政部主管',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 6, roleId: 7 } },
+    update: {},
+    create: { userId: 6, roleId: 7 },
+  });
+
+  // 创建市场部主管
+  const marketManager = await prisma.sysUser.upsert({
+    where: { id: 7 },
+    update: {},
+    create: {
+      id: 7,
+      deptId: 6,
+      username: 'sunsc',
+      password: hashedPassword,
+      nickname: '孙市场',
+      email: 'sunsc@example.com',
+      phone: '13800000007',
+      gender: Gender.MALE,
+      status: Status.ENABLED,
+      remark: '市场部主管',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 7, roleId: 3 } },
+    update: {},
+    create: { userId: 7, roleId: 3 },
+  });
+
+  // 创建运营部主管
+  const operationManager = await prisma.sysUser.upsert({
+    where: { id: 8 },
+    update: {},
+    create: {
+      id: 8,
+      deptId: 7,
+      username: 'zhouyy',
+      password: hashedPassword,
+      nickname: '周运营',
+      email: 'zhouyy@example.com',
+      phone: '13800000008',
+      gender: Gender.FEMALE,
+      status: Status.ENABLED,
+      remark: '运营部主管',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 8, roleId: 3 } },
+    update: {},
+    create: { userId: 8, roleId: 3 },
+  });
+
+  // 创建技术部总监
+  const techDirector = await prisma.sysUser.upsert({
+    where: { id: 9 },
+    update: {},
+    create: {
+      id: 9,
+      deptId: 2,
+      username: 'wuzj',
+      password: hashedPassword,
+      nickname: '吴总监',
+      email: 'wuzj@example.com',
+      phone: '13800000009',
+      gender: Gender.MALE,
+      status: Status.ENABLED,
+      remark: '技术部总监',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 9, roleId: 8 } },
+    update: {},
+    create: { userId: 9, roleId: 8 },
+  });
+
+  // 创建总经理
+  const gm = await prisma.sysUser.upsert({
+    where: { id: 10 },
+    update: {},
+    create: {
+      id: 10,
+      deptId: 1,
+      username: 'chenzy',
+      password: hashedPassword,
+      nickname: '陈总',
+      email: 'chenzy@example.com',
+      phone: '13800000010',
+      gender: Gender.MALE,
+      status: Status.ENABLED,
+      remark: '总经理',
+      createdBy: 'system',
+    },
+  });
+  await prisma.sysUserRole.upsert({
+    where: { userId_roleId: { userId: 10, roleId: 9 } },
+    update: {},
+    create: { userId: 10, roleId: 9 },
+  });
+
+  // 创建几个普通员工
+  const employees = [
+    { id: 11, deptId: 2, username: 'tech01', nickname: '技术员工1', phone: '13800000011' },
+    { id: 12, deptId: 2, username: 'tech02', nickname: '技术员工2', phone: '13800000012' },
+    { id: 13, deptId: 3, username: 'finance01', nickname: '财务员工1', phone: '13800000013' },
+    { id: 14, deptId: 4, username: 'hr01', nickname: '人事员工1', phone: '13800000014' },
+    { id: 15, deptId: 5, username: 'admin01', nickname: '行政员工1', phone: '13800000015' },
+    { id: 16, deptId: 6, username: 'market01', nickname: '市场员工1', phone: '13800000016' },
+    { id: 17, deptId: 7, username: 'operation01', nickname: '运营员工1', phone: '13800000017' },
+  ];
+
+  for (const emp of employees) {
+    await prisma.sysUser.upsert({
+      where: { id: emp.id },
+      update: {},
+      create: {
+        id: emp.id,
+        deptId: emp.deptId,
+        username: emp.username,
+        password: hashedPassword,
+        nickname: emp.nickname,
+        email: `${emp.username}@example.com`,
+        phone: emp.phone,
+        gender: Gender.MALE,
+        status: Status.ENABLED,
+        remark: '普通员工',
+        createdBy: 'system',
+      },
+    });
+    await prisma.sysUserRole.upsert({
+      where: { userId_roleId: { userId: emp.id, roleId: 2 } },
+      update: {},
+      create: { userId: emp.id, roleId: 2 },
+    });
+  }
 
   console.log('用户创建完成');
 
@@ -173,7 +617,26 @@ function buttons(
   parentId: number,
   name: string,
   permsPrefix: string,
-  options: { query?: boolean; add?: boolean; edit?: boolean; remove?: boolean; export?: boolean; resetPwd?: boolean; run?: boolean; log?: boolean } = {}
+  options: {
+    query?: boolean;
+    add?: boolean;
+    edit?: boolean;
+    remove?: boolean;
+    export?: boolean;
+    resetPwd?: boolean;
+    run?: boolean;
+    log?: boolean;
+    publish?: boolean;
+    disable?: boolean;
+    cancel?: boolean;
+    terminate?: boolean;
+    approve?: boolean;
+    reject?: boolean;
+    transfer?: boolean;
+    countersign?: boolean;
+    urge?: boolean;
+    read?: boolean;
+  } = {}
 ) {
   const result: ReturnType<typeof button>[] = [];
   const labels: Record<string, string> = {
@@ -185,6 +648,16 @@ function buttons(
     resetPwd: '重置密码',
     run: '立即执行',
     log: '执行记录',
+    publish: '发布',
+    disable: '停用',
+    cancel: '取消',
+    terminate: '终止',
+    approve: '通过',
+    reject: '驳回',
+    transfer: '转办',
+    countersign: '加签',
+    urge: '催办',
+    read: '标记已读',
   };
   const permsMap: Record<string, string> = {
     query: 'query',
@@ -195,6 +668,16 @@ function buttons(
     resetPwd: 'resetPwd',
     run: 'run',
     log: 'log',
+    publish: 'publish',
+    disable: 'disable',
+    cancel: 'cancel',
+    terminate: 'terminate',
+    approve: 'approve',
+    reject: 'reject',
+    transfer: 'transfer',
+    countersign: 'countersign',
+    urge: 'urge',
+    read: 'read',
   };
 
   let i = 0;
@@ -287,6 +770,16 @@ const menus = [
   menu(301, 300, '文章列表', '/article/list', 'article/index', 'UnorderedListOutlined', 'article:list', 1),
 
   // ============================================
+  // 审批管理模块
+  // ============================================
+  dir(400, 0, '审批管理', '/workflow', 'BranchesOutlined', 'workflow:manage', 6),
+  menu(401, 400, '流程分类', '/workflow/category', 'workflow/category/index', 'TagsOutlined', 'workflow:category:list', 1),
+  menu(402, 400, '流程定义', '/workflow/definition', 'workflow/definition/index', 'ProjectOutlined', 'workflow:definition:list', 2),
+  menu(403, 400, '流程实例', '/workflow/instance', 'workflow/instance/index', 'AuditOutlined', 'workflow:instance:list', 3),
+  menu(404, 400, '任务管理', '/workflow/task', 'workflow/task/index', 'CheckCircleOutlined', 'workflow:task:list', 4),
+  menu(405, 400, '抄送记录', '/workflow/copy', 'workflow/copy/index', 'NotificationOutlined', 'workflow:copy:list', 5),
+
+  // ============================================
   // 按钮权限
   // ============================================
 
@@ -361,6 +854,23 @@ const menus = [
 
   // 文章管理按钮
   buttons(310, 301, '文章', 'article', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 流程分类按钮
+  buttons(410, 401, '分类', 'workflow:category', { query: true, add: true, edit: true, remove: true }),
+
+  // 流程定义按钮
+  buttons(420, 402, '流程', 'workflow:definition', { query: true, add: true, edit: true, remove: true, publish: true, disable: true }),
+  button(421, 402, '流程设计', 'workflow:definition:design'),
+
+  // 流程实例按钮
+  buttons(430, 403, '实例', 'workflow:instance', { query: true, cancel: true, terminate: true }),
+  button(435, 403, '发起流程', 'workflow:instance:start'),
+
+  // 任务管理按钮
+  buttons(440, 404, '任务', 'workflow:task', { query: true, approve: true, reject: true, transfer: true, countersign: true, urge: true }),
+
+  // 抄送记录按钮
+  buttons(450, 405, '抄送', 'workflow:copy', { query: true, read: true }),
 ];
 
   // 扁平化所有菜单（展平 buttons 返回的数组）
@@ -406,6 +916,63 @@ const menus = [
       },
     });
   }
+
+  console.log('管理员菜单权限分配完成');
+
+  // ============================================
+  // 为其他角色分配菜单权限
+  // ============================================
+
+  // 普通用户权限（发起流程、查看自己的实例、抄送记录）
+  // buttons函数从baseId开始递增分配ID
+  // 流程实例(430): query=430, cancel=431, terminate=432; start=435
+  // 抄送记录(450): query=450, read=451
+  const commonUserMenuIds = [
+    1,    // 首页
+    400,  // 审批管理目录
+    403,  // 流程实例菜单
+    430,  // workflow:instance:query - 实例查询
+    435,  // workflow:instance:start - 发起流程
+    405,  // 抄送记录菜单
+    450,  // workflow:copy:query - 抄送查询
+    451,  // workflow:copy:read - 标记已读
+  ];
+
+  // 审批人员权限（在普通用户基础上增加任务管理权限）
+  // 任务管理(440): query=440, approve=441, reject=442, transfer=443, countersign=444, urge=445
+  const approverMenuIds = [
+    ...commonUserMenuIds,
+    404,  // 任务管理菜单
+    440,  // workflow:task:query - 任务查询
+    441,  // workflow:task:approve - 任务通过
+    442,  // workflow:task:reject - 任务驳回
+    443,  // workflow:task:transfer - 任务转办
+    444,  // workflow:task:countersign - 任务加签
+    445,  // workflow:task:urge - 任务催办
+  ];
+
+  // 为普通用户角色分配权限 (roleId: 2)
+  for (const menuId of commonUserMenuIds) {
+    await prisma.sysRoleMenu.upsert({
+      where: { roleId_menuId: { roleId: 2, menuId } },
+      update: {},
+      create: { roleId: 2, menuId },
+    });
+  }
+  console.log('普通用户菜单权限分配完成');
+
+  // 为审批类角色分配权限 (roleId: 3-9)
+  const approverRoleIds = [3, 4, 5, 6, 7, 8, 9]; // 部门主管、人事经理、财务主管、财务总监、行政主管、部门总监、总经理
+  for (const roleId of approverRoleIds) {
+    for (const menuId of approverMenuIds) {
+      await prisma.sysRoleMenu.upsert({
+        where: { roleId_menuId: { roleId, menuId } },
+        update: {},
+        create: { roleId, menuId },
+      });
+    }
+  }
+  console.log('审批角色菜单权限分配完成');
 
   console.log('菜单创建完成');
 
@@ -853,6 +1420,326 @@ const menus = [
   `;
 
   console.log('默认告警规则创建完成!');
+
+  // ============================================
+  // 工作流示例数据
+  // ============================================
+  console.log('创建工作流示例数据...');
+
+  // 创建流程分类
+  const workflowCategories = [
+    {
+      id: 1,
+      code: 'HR',
+      name: '人事审批',
+      icon: 'TeamOutlined',
+      color: '#1890ff',
+      sort: 1,
+      remark: '人事相关的审批流程',
+    },
+    {
+      id: 2,
+      code: 'FINANCE',
+      name: '财务审批',
+      icon: 'AccountBookOutlined',
+      color: '#52c41a',
+      sort: 2,
+      remark: '财务相关的审批流程',
+    },
+    {
+      id: 3,
+      code: 'ADMIN',
+      name: '行政审批',
+      icon: 'FileTextOutlined',
+      color: '#faad14',
+      sort: 3,
+      remark: '行政相关的审批流程',
+    },
+    {
+      id: 4,
+      code: 'PROJECT',
+      name: '项目审批',
+      icon: 'ProjectOutlined',
+      color: '#722ed1',
+      sort: 4,
+      remark: '项目相关的审批流程',
+    },
+  ];
+
+  for (const category of workflowCategories) {
+    await prisma.wfCategory.upsert({
+      where: { id: category.id },
+      update: {},
+      create: {
+        ...category,
+        status: 'ENABLED',
+        level: 0,
+        createdBy: 'system',
+      },
+    });
+  }
+
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('wf_category', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM wf_category)
+    )
+  `;
+
+  console.log('流程分类创建完成');
+
+  // 创建示例流程定义
+  const flowDefinitions = [
+    {
+      id: 1,
+      code: 'LEAVE_APPLY',
+      name: '请假申请',
+      categoryId: 1,
+      version: 1,
+      status: 'PUBLISHED',
+      isMain: true,
+      description: '员工请假申请流程，支持年假、事假、病假等类型',
+      flowData: {
+        nodes: [
+          { id: 'start_1', type: 'start-node', x: 300, y: 50, data: { label: '开始', nodeType: 'START' } },
+          { id: 'approval_1', type: 'approval-node', x: 300, y: 150, data: { label: '部门主管审批', nodeType: 'APPROVAL' } },
+          { id: 'condition_1', type: 'condition-node', x: 300, y: 270, data: { label: '请假天数判断', nodeType: 'CONDITION' } },
+          { id: 'approval_2', type: 'approval-node', x: 500, y: 380, data: { label: '人事经理审批', nodeType: 'APPROVAL' } },
+          { id: 'end_1', type: 'end-node', x: 300, y: 500, data: { label: '结束', nodeType: 'END' } },
+        ],
+        edges: [
+          { id: 'edge_1', source: 'start_1', target: 'approval_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_2', source: 'approval_1', target: 'condition_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_3', source: 'condition_1', target: 'approval_2', sourcePort: 'port-right', targetPort: 'port-top', data: { label: '>=3天' } },
+          { id: 'edge_4', source: 'condition_1', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-top', data: { label: '<3天' } },
+          { id: 'edge_5', source: 'approval_2', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-right' },
+        ],
+      },
+      formData: [
+        { fieldName: 'leaveType', fieldLabel: '请假类型', fieldType: 'select', required: true, options: [
+          { label: '年假', value: 'annual' },
+          { label: '事假', value: 'personal' },
+          { label: '病假', value: 'sick' },
+          { label: '婚假', value: 'marriage' },
+          { label: '产假', value: 'maternity' },
+        ]},
+        { fieldName: 'startDate', fieldLabel: '开始日期', fieldType: 'date', required: true },
+        { fieldName: 'endDate', fieldLabel: '结束日期', fieldType: 'date', required: true },
+        { fieldName: 'days', fieldLabel: '请假天数', fieldType: 'number', required: true },
+        { fieldName: 'reason', fieldLabel: '请假事由', fieldType: 'textarea', required: true },
+      ],
+    },
+    {
+      id: 2,
+      code: 'EXPENSE_CLAIM',
+      name: '费用报销',
+      categoryId: 2,
+      version: 1,
+      status: 'PUBLISHED',
+      isMain: true,
+      description: '员工费用报销流程，支持差旅费、交通费、餐饮费等报销',
+      flowData: {
+        nodes: [
+          { id: 'start_1', type: 'start-node', x: 300, y: 50, data: { label: '开始', nodeType: 'START' } },
+          { id: 'approval_1', type: 'approval-node', x: 300, y: 150, data: { label: '部门主管审批', nodeType: 'APPROVAL' } },
+          { id: 'condition_1', type: 'condition-node', x: 300, y: 270, data: { label: '金额判断', nodeType: 'CONDITION' } },
+          { id: 'approval_2', type: 'approval-node', x: 120, y: 380, data: { label: '财务主管审批', nodeType: 'APPROVAL' } },
+          { id: 'approval_3', type: 'approval-node', x: 480, y: 380, data: { label: '财务总监审批', nodeType: 'APPROVAL' } },
+          { id: 'end_1', type: 'end-node', x: 300, y: 500, data: { label: '结束', nodeType: 'END' } },
+        ],
+        edges: [
+          { id: 'edge_1', source: 'start_1', target: 'approval_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_2', source: 'approval_1', target: 'condition_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_3', source: 'condition_1', target: 'approval_2', sourcePort: 'port-left', targetPort: 'port-top', data: { label: '<=5000' } },
+          { id: 'edge_4', source: 'condition_1', target: 'approval_3', sourcePort: 'port-right', targetPort: 'port-top', data: { label: '>5000' } },
+          { id: 'edge_5', source: 'approval_2', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-left' },
+          { id: 'edge_6', source: 'approval_3', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-right' },
+        ],
+      },
+      formData: [
+        { fieldName: 'expenseType', fieldLabel: '费用类型', fieldType: 'select', required: true, options: [
+          { label: '差旅费', value: 'travel' },
+          { label: '交通费', value: 'transport' },
+          { label: '餐饮费', value: 'meal' },
+          { label: '办公用品', value: 'office' },
+          { label: '其他', value: 'other' },
+        ]},
+        { fieldName: 'amount', fieldLabel: '报销金额', fieldType: 'number', required: true },
+        { fieldName: 'expenseDate', fieldLabel: '费用发生日期', fieldType: 'date', required: true },
+        { fieldName: 'description', fieldLabel: '费用说明', fieldType: 'textarea', required: true },
+      ],
+    },
+    {
+      id: 3,
+      code: 'PURCHASE_REQUEST',
+      name: '采购申请',
+      categoryId: 3,
+      version: 1,
+      status: 'PUBLISHED',
+      isMain: true,
+      description: '物资采购申请流程，需要部门主管和行政部审批',
+      flowData: {
+        nodes: [
+          { id: 'start_1', type: 'start-node', x: 300, y: 50, data: { label: '开始', nodeType: 'START' } },
+          { id: 'approval_1', type: 'approval-node', x: 300, y: 160, data: { label: '部门主管审批', nodeType: 'APPROVAL' } },
+          { id: 'approval_2', type: 'approval-node', x: 300, y: 270, data: { label: '行政部审批', nodeType: 'APPROVAL' } },
+          { id: 'end_1', type: 'end-node', x: 300, y: 380, data: { label: '结束', nodeType: 'END' } },
+        ],
+        edges: [
+          { id: 'edge_1', source: 'start_1', target: 'approval_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_2', source: 'approval_1', target: 'approval_2', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_3', source: 'approval_2', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+        ],
+      },
+      formData: [
+        { fieldName: 'itemName', fieldLabel: '物品名称', fieldType: 'text', required: true },
+        { fieldName: 'quantity', fieldLabel: '数量', fieldType: 'number', required: true },
+        { fieldName: 'estimatedPrice', fieldLabel: '预估单价', fieldType: 'number', required: true },
+        { fieldName: 'totalAmount', fieldLabel: '预估总价', fieldType: 'number', required: true },
+        { fieldName: 'purpose', fieldLabel: '用途说明', fieldType: 'textarea', required: true },
+        { fieldName: 'expectedDate', fieldLabel: '期望到货日期', fieldType: 'date', required: false },
+      ],
+    },
+    {
+      id: 4,
+      code: 'PROJECT_APPROVAL',
+      name: '项目立项申请',
+      categoryId: 4,
+      version: 1,
+      status: 'PUBLISHED',
+      isMain: true,
+      description: '新项目立项审批流程，需要部门总监和总经理审批',
+      flowData: {
+        nodes: [
+          { id: 'start_1', type: 'start-node', x: 300, y: 50, data: { label: '开始', nodeType: 'START' } },
+          { id: 'approval_1', type: 'approval-node', x: 300, y: 160, data: { label: '部门总监审批', nodeType: 'APPROVAL' } },
+          { id: 'approval_2', type: 'approval-node', x: 300, y: 270, data: { label: '总经理审批', nodeType: 'APPROVAL' } },
+          { id: 'end_1', type: 'end-node', x: 300, y: 380, data: { label: '结束', nodeType: 'END' } },
+        ],
+        edges: [
+          { id: 'edge_1', source: 'start_1', target: 'approval_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_2', source: 'approval_1', target: 'approval_2', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_3', source: 'approval_2', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+        ],
+      },
+      formData: [
+        { fieldName: 'projectName', fieldLabel: '项目名称', fieldType: 'text', required: true },
+        { fieldName: 'projectType', fieldLabel: '项目类型', fieldType: 'select', required: true, options: [
+          { label: '研发项目', value: 'rd' },
+          { label: '市场项目', value: 'market' },
+          { label: '运营项目', value: 'operation' },
+          { label: '内部项目', value: 'internal' },
+        ]},
+        { fieldName: 'budget', fieldLabel: '项目预算', fieldType: 'number', required: true },
+        { fieldName: 'startDate', fieldLabel: '预计开始日期', fieldType: 'date', required: true },
+        { fieldName: 'endDate', fieldLabel: '预计结束日期', fieldType: 'date', required: true },
+        { fieldName: 'objectives', fieldLabel: '项目目标', fieldType: 'textarea', required: true },
+        { fieldName: 'teamMembers', fieldLabel: '项目成员', fieldType: 'text', required: false },
+      ],
+    },
+    {
+      id: 5,
+      code: 'OVERTIME_APPLY',
+      name: '加班申请',
+      categoryId: 1,
+      version: 1,
+      status: 'PUBLISHED',
+      isMain: true,
+      description: '员工加班申请流程，需要部门主管审批',
+      flowData: {
+        nodes: [
+          { id: 'start_1', type: 'start-node', x: 300, y: 50, data: { label: '开始', nodeType: 'START' } },
+          { id: 'approval_1', type: 'approval-node', x: 300, y: 160, data: { label: '部门主管审批', nodeType: 'APPROVAL' } },
+          { id: 'end_1', type: 'end-node', x: 300, y: 270, data: { label: '结束', nodeType: 'END' } },
+        ],
+        edges: [
+          { id: 'edge_1', source: 'start_1', target: 'approval_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+          { id: 'edge_2', source: 'approval_1', target: 'end_1', sourcePort: 'port-bottom', targetPort: 'port-top' },
+        ],
+      },
+      formData: [
+        { fieldName: 'overtimeDate', fieldLabel: '加班日期', fieldType: 'date', required: true },
+        { fieldName: 'startTime', fieldLabel: '开始时间', fieldType: 'text', required: true },
+        { fieldName: 'endTime', fieldLabel: '结束时间', fieldType: 'text', required: true },
+        { fieldName: 'hours', fieldLabel: '加班时长(小时)', fieldType: 'number', required: true },
+        { fieldName: 'reason', fieldLabel: '加班事由', fieldType: 'textarea', required: true },
+      ],
+    },
+  ];
+
+  for (const flow of flowDefinitions) {
+    await prisma.wfFlowDefinition.upsert({
+      where: { id: flow.id },
+      update: {},
+      create: {
+        ...flow,
+        status: flow.status as any,
+        createdBy: 'system',
+      },
+    });
+  }
+
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('wf_flow_definition', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM wf_flow_definition)
+    )
+  `;
+
+  // 创建节点配置（为每个审批节点配置审批人）
+  // 角色ID对应关系：
+  // 3 - 部门主管 (dept_manager)
+  // 4 - 人事经理 (hr_manager)
+  // 5 - 财务主管 (finance_manager)
+  // 6 - 财务总监 (finance_director)
+  // 7 - 行政主管 (admin_manager)
+  // 8 - 部门总监 (dept_director)
+  // 9 - 总经理 (general_manager)
+  const nodeConfigs = [
+    // 请假申请流程节点配置
+    { flowDefinitionId: 1, nodeId: 'approval_1', nodeType: 'APPROVAL', nodeName: '部门主管审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [3] }, emptyAssigneeAction: 'TO_ADMIN' },
+    { flowDefinitionId: 1, nodeId: 'approval_2', nodeType: 'APPROVAL', nodeName: '人事经理审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [4] }, emptyAssigneeAction: 'TO_ADMIN' },
+    // 费用报销流程节点配置
+    { flowDefinitionId: 2, nodeId: 'approval_1', nodeType: 'APPROVAL', nodeName: '部门主管审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [3] }, emptyAssigneeAction: 'TO_ADMIN' },
+    { flowDefinitionId: 2, nodeId: 'approval_2', nodeType: 'APPROVAL', nodeName: '财务主管审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [5] }, emptyAssigneeAction: 'TO_ADMIN' },
+    { flowDefinitionId: 2, nodeId: 'approval_3', nodeType: 'APPROVAL', nodeName: '财务总监审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [6] }, emptyAssigneeAction: 'TO_ADMIN' },
+    // 采购申请流程节点配置
+    { flowDefinitionId: 3, nodeId: 'approval_1', nodeType: 'APPROVAL', nodeName: '部门主管审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [3] }, emptyAssigneeAction: 'TO_ADMIN' },
+    { flowDefinitionId: 3, nodeId: 'approval_2', nodeType: 'APPROVAL', nodeName: '行政部审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [7] }, emptyAssigneeAction: 'TO_ADMIN' },
+    // 项目立项流程节点配置
+    { flowDefinitionId: 4, nodeId: 'approval_1', nodeType: 'APPROVAL', nodeName: '部门总监审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [8] }, emptyAssigneeAction: 'TO_ADMIN' },
+    { flowDefinitionId: 4, nodeId: 'approval_2', nodeType: 'APPROVAL', nodeName: '总经理审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [9] }, emptyAssigneeAction: 'TO_ADMIN' },
+    // 加班申请流程节点配置
+    { flowDefinitionId: 5, nodeId: 'approval_1', nodeType: 'APPROVAL', nodeName: '部门主管审批', assigneeType: 'ROLE', assigneeConfig: { roleIds: [3] }, emptyAssigneeAction: 'TO_ADMIN' },
+  ];
+
+  for (const config of nodeConfigs) {
+    // 先检查是否已存在
+    const existing = await prisma.wfNodeConfig.findFirst({
+      where: {
+        flowDefinitionId: config.flowDefinitionId,
+        nodeId: config.nodeId,
+        deleted: false,
+      },
+    });
+
+    if (!existing) {
+      await prisma.wfNodeConfig.create({
+        data: {
+          ...config,
+          nodeType: config.nodeType as any,
+          assigneeType: config.assigneeType as any,
+          emptyAssigneeAction: config.emptyAssigneeAction as any,
+          createdBy: 'system',
+        },
+      });
+    }
+  }
+
+  console.log('节点配置创建完成');
+  console.log('流程定义示例创建完成');
+  console.log('工作流示例数据创建完成!');
+
   console.log('数据初始化完成!');
   console.log('默认账号: admin / admin123');
 }

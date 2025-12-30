@@ -30,10 +30,14 @@ import {
   ApiOutlined,
   BellOutlined,
   BarChartOutlined,
+  ProjectOutlined,
+  SolutionOutlined,
+  AuditOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
 import { useUserStore } from '@/stores/user';
 import { getProfile, getRouters, logout as logoutApi } from '@/services/system/auth';
-import { DASHBOARD, SYSTEM, MALL } from '@/constants/permissions';
+import { DASHBOARD, SYSTEM, MALL, WORKFLOW } from '@/constants/permissions';
 
 const { Header, Sider, Content } = Layout;
 
@@ -239,6 +243,38 @@ const defaultMenuItems = [
         icon: <PictureOutlined />,
         label: '运营配置',
         permission: MALL.BANNER.LIST,
+      },
+    ],
+  },
+  {
+    key: '/workflow',
+    icon: <ProjectOutlined />,
+    label: '流程管理',
+    permission: WORKFLOW.MANAGE,
+    children: [
+      {
+        key: '/workflow/category',
+        icon: <BranchesOutlined />,
+        label: '流程分类',
+        permission: WORKFLOW.CATEGORY.LIST,
+      },
+      {
+        key: '/workflow/definition',
+        icon: <SolutionOutlined />,
+        label: '流程定义',
+        permission: WORKFLOW.DEFINITION.LIST,
+      },
+      {
+        key: '/workflow/instance',
+        icon: <AuditOutlined />,
+        label: '流程实例',
+        permission: WORKFLOW.INSTANCE.LIST,
+      },
+      {
+        key: '/workflow/task',
+        icon: <SolutionOutlined />,
+        label: '任务管理',
+        permission: WORKFLOW.TASK.LIST,
       },
     ],
   },

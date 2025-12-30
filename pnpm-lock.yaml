@@ -219,6 +219,18 @@ importers:
       '@ant-design/pro-components':
         specifier: ^2.8.6
         version: 2.8.10(antd@6.1.1(luxon@3.7.2)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(rc-field-form@2.7.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@antv/x6':
+        specifier: ^3.1.3
+        version: 3.1.3
+      '@antv/x6-plugin-history':
+        specifier: ^2.2.4
+        version: 2.2.4(@antv/x6@3.1.3)
+      '@antv/x6-plugin-scroller':
+        specifier: ^2.0.10
+        version: 2.0.10(@antv/x6@3.1.3)
+      '@antv/x6-react':
+        specifier: ^0.1.26
+        version: 0.1.26(@antv/x6@3.1.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@tanstack/react-query':
         specifier: ^5.80.6
         version: 5.90.12(react@19.2.3)
@@ -466,6 +478,27 @@ packages:
     peerDependencies:
       react: ^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  '@antv/x6-plugin-history@2.2.4':
+    resolution: {integrity: sha512-9gHHvEW4Fla+1hxUV49zNgJyIMoV9CjVM52MrFgAJcvyRn1Kvxz4MfxiKlG+DEZUs+/zvfjl9pS6gJOd8laRkg==}
+    peerDependencies:
+      '@antv/x6': ^2.x
+
+  '@antv/x6-plugin-scroller@2.0.10':
+    resolution: {integrity: sha512-CrC5zCbtPe7LJEKK8ucLcDN+9lMtTJNApFmFObAiR/y2LO1QFCHz8GGLVeNOZaIEmJbR/Z/etpJkvc1LE7WhTg==}
+    peerDependencies:
+      '@antv/x6': ^2.x
+
+  '@antv/x6-react@0.1.26':
+    resolution: {integrity: sha512-EajozwucssoxDr9mga/qnprsc9Z/A6rRLK6iKL/S/0+jrUSpCovVa1RH3Z8Z1pGovnnLFT5TQ13UvB4DGGSCSQ==}
+    peerDependencies:
+      '@antv/x6': ^0.13.7
+      react: '>=16.8.6'
+      react-dom: '>=16.8.6'
+
+  '@antv/x6@3.1.3':
+    resolution: {integrity: sha512-IeLQaHJc5f4Syxi9uJcCA5EKPC7GncWvDA84ZVW+JIg+5YMhFoWD5b1Nl56+n9APzLebjJRdxdW2DrCz4XlmPw==}
+    engines: {node: '>=20.0.0'}
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -2503,6 +2536,9 @@ packages:
   dlv@1.1.3:
     resolution: {integrity: sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==}
 
+  dom-align@1.12.4:
+    resolution: {integrity: sha512-R8LUSEay/68zE5c8/3BDxiTEvgb4xZTF0RKmAHfiEVN3klfIpXfi2/QCoiWPccVQ0J/ZGdz9OjzL4uJEP/MRAw==}
+
   dotenv-expand@12.0.1:
     resolution: {integrity: sha512-LaKRbou8gt0RNID/9RoI+J2rvXsBRPMV7p+ElHlPhcSARbCPDYcYG2s1TIzAfWv4YSgyY5taidWzzs31lNV3yQ==}
     engines: {node: '>=12'}
@@ -3282,6 +3318,9 @@ packages:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
     engines: {node: '>=10'}
     hasBin: true
+
+  mousetrap@1.6.5:
+    resolution: {integrity: sha512-QNo4kEepaIBwiT8CDhP98umTetp+JNfQYBWvC1pc6/OAibuXtRcxZ58Qz8skvEHYvURne/7R8T5VoOI7rDsEUA==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -4245,6 +4284,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  utility-types@3.11.0:
+    resolution: {integrity: sha512-6Z7Ma2aVEWisaL6TvBCy7P8rm2LQoPv6dJ7ecIaIixHcwfbJ0x7mWdbcwlIM5IGQxPZSFYeqRCqlOOeKoJYMkw==}
+    engines: {node: '>= 4'}
+
   utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
@@ -4752,6 +4795,27 @@ snapshots:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       throttle-debounce: 5.0.2
+
+  '@antv/x6-plugin-history@2.2.4(@antv/x6@3.1.3)':
+    dependencies:
+      '@antv/x6': 3.1.3
+
+  '@antv/x6-plugin-scroller@2.0.10(@antv/x6@3.1.3)':
+    dependencies:
+      '@antv/x6': 3.1.3
+
+  '@antv/x6-react@0.1.26(@antv/x6@3.1.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@antv/x6': 3.1.3
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
+  '@antv/x6@3.1.3':
+    dependencies:
+      dom-align: 1.12.4
+      lodash-es: 4.17.22
+      mousetrap: 1.6.5
+      utility-types: 3.11.0
 
   '@babel/code-frame@7.27.1':
     dependencies:
@@ -6890,6 +6954,8 @@ snapshots:
 
   dlv@1.1.3: {}
 
+  dom-align@1.12.4: {}
+
   dotenv-expand@12.0.1:
     dependencies:
       dotenv: 16.4.7
@@ -7774,6 +7840,8 @@ snapshots:
       minimist: 1.2.8
 
   mkdirp@1.0.4: {}
+
+  mousetrap@1.6.5: {}
 
   ms@2.1.3: {}
 
@@ -8799,6 +8867,8 @@ snapshots:
       react: 19.2.3
 
   util-deprecate@1.0.2: {}
+
+  utility-types@3.11.0: {}
 
   utils-merge@1.0.1: {}
 

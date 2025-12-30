@@ -191,12 +191,57 @@ export const ARTICLE = {
   EXPORT: 'article:export',
 } as const;
 
+// 工作流权限
+export const WORKFLOW = {
+  MANAGE: 'workflow:manage',
+  // 流程分类
+  CATEGORY: {
+    LIST: 'workflow:category:list',
+    ADD: 'workflow:category:add',
+    EDIT: 'workflow:category:edit',
+    REMOVE: 'workflow:category:remove',
+    QUERY: 'workflow:category:query',
+  },
+  // 流程定义
+  DEFINITION: {
+    LIST: 'workflow:definition:list',
+    ADD: 'workflow:definition:add',
+    EDIT: 'workflow:definition:edit',
+    REMOVE: 'workflow:definition:remove',
+    QUERY: 'workflow:definition:query',
+    PUBLISH: 'workflow:definition:publish',
+    DESIGN: 'workflow:definition:design',
+  },
+  // 流程实例
+  INSTANCE: {
+    LIST: 'workflow:instance:list',
+    QUERY: 'workflow:instance:query',
+    START: 'workflow:instance:start',
+    TERMINATE: 'workflow:instance:terminate',
+  },
+  // 审批任务
+  TASK: {
+    LIST: 'workflow:task:list',
+    QUERY: 'workflow:task:query',
+    APPROVE: 'workflow:task:approve',
+    REJECT: 'workflow:task:reject',
+    TRANSFER: 'workflow:task:transfer',
+    COUNTERSIGN: 'workflow:task:countersign',
+  },
+  // 抄送记录
+  COPY: {
+    LIST: 'workflow:copy:list',
+    QUERY: 'workflow:copy:query',
+  },
+} as const;
+
 // 所有权限
 export const ALL_PERMISSIONS = {
   ...DASHBOARD,
   ...SYSTEM,
   ...MALL,
   ...ARTICLE,
+  ...WORKFLOW,
 } as const;
 
 // 菜单权限映射
@@ -228,6 +273,17 @@ export const MENU_PERMISSIONS = {
   '/mall/banner': MALL.BANNER.LIST,
 
   '/article': ARTICLE.LIST,
+
+  // 工作流
+  '/workflow': WORKFLOW.MANAGE,
+  '/workflow/category': WORKFLOW.CATEGORY.LIST,
+  '/workflow/definition': WORKFLOW.DEFINITION.LIST,
+  '/workflow/definition/design': WORKFLOW.DEFINITION.DESIGN,
+  '/workflow/instance': WORKFLOW.INSTANCE.LIST,
+  '/workflow/task': WORKFLOW.TASK.LIST,
+  '/workflow/task/pending': WORKFLOW.TASK.LIST,
+  '/workflow/task/completed': WORKFLOW.TASK.LIST,
+  '/workflow/copy': WORKFLOW.COPY.LIST,
 } as const;
 
 // 路由权限要求
@@ -255,6 +311,15 @@ export const ROUTE_PERMISSIONS = {
   '/mall/banner': MALL.BANNER.LIST,
 
   '/article': ARTICLE.LIST,
+
+  // 工作流
+  '/workflow/category': WORKFLOW.CATEGORY.LIST,
+  '/workflow/definition': WORKFLOW.DEFINITION.LIST,
+  '/workflow/definition/design': WORKFLOW.DEFINITION.DESIGN,
+  '/workflow/instance': WORKFLOW.INSTANCE.LIST,
+  '/workflow/task/pending': WORKFLOW.TASK.LIST,
+  '/workflow/task/completed': WORKFLOW.TASK.LIST,
+  '/workflow/copy': WORKFLOW.COPY.LIST,
 } as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[keyof typeof ALL_PERMISSIONS];

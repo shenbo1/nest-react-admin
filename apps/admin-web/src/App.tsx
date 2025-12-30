@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 import { Spin } from 'antd';
 import BasicLayout from './layouts/BasicLayout';
 import AuthRoute from './components/AuthRoute';
-import { DASHBOARD, SYSTEM, MALL, ARTICLE } from './constants/permissions';
+import { DASHBOARD, SYSTEM, MALL, ARTICLE, WORKFLOW } from './constants/permissions';
 
 // 懒加载页面
 const Login = lazy(() => import('./pages/login'));
@@ -35,6 +35,16 @@ const DatabaseMonitor = lazy(() => import('./pages/system/database-monitor'));
 const ApiMonitor = lazy(() => import('./pages/system/api-monitor'));
 const LogMonitor = lazy(() => import('./pages/system/log-monitor'));
 const AlertManagement = lazy(() => import('./pages/system/alert'));
+
+// 工作流模块
+const FlowDefinitionList = lazy(() => import('./pages/workflow/definition'));
+const FlowDesigner = lazy(() => import('./pages/workflow/definition/design'));
+const FlowInstanceList = lazy(() => import('./pages/workflow/instance'));
+const FlowInstanceDetail = lazy(() => import('./pages/workflow/instance/detail'));
+const StartFlow = lazy(() => import('./pages/workflow/instance/start'));
+const TaskPending = lazy(() => import('./pages/workflow/task'));
+// CopyRecordList 已整合到 TaskPending 页面中
+const WorkflowCategoryList = lazy(() => import('./pages/workflow/category'));
 
 const Loading = () => (
   <div className="flex items-center justify-center h-full">
@@ -293,6 +303,66 @@ function App() {
                 </AuthRoute>
               }
             />
+
+            {/* 工作流模块 */}
+            <Route path="workflow">
+              <Route
+                path="category"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.CATEGORY.LIST}>
+                    <WorkflowCategoryList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="definition"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.DEFINITION.LIST}>
+                    <FlowDefinitionList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="definition/design/:id"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.DEFINITION.DESIGN}>
+                    <FlowDesigner />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="instance"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.INSTANCE.LIST}>
+                    <FlowInstanceList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="instance/detail/:id"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.INSTANCE.QUERY}>
+                    <FlowInstanceDetail />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="instance/start"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.INSTANCE.START}>
+                    <StartFlow />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="task"
+                element={
+                  <AuthRoute requiredPermission={WORKFLOW.TASK.LIST}>
+                    <TaskPending />
+                  </AuthRoute>
+                }
+              />
+            </Route>
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

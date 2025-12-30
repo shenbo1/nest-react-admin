@@ -39,7 +39,13 @@ interface RequestProTableProps<T = any> extends BaseProTableProps<T> {
   request: RequestFunc<T>;
 }
 
-export type ProTableProps<T = any> = ApiProTableProps<T> | RequestProTableProps<T>;
+// 纯 dataSource 模式（用于树形表格）
+interface DataSourceProTableProps<T = any> extends BaseProTableProps<T> {
+  api?: never;
+  request?: never;
+}
+
+export type ProTableProps<T = any> = ApiProTableProps<T> | RequestProTableProps<T> | DataSourceProTableProps<T>;
 
 /**
  * 通用 ProTable 组件
@@ -77,15 +83,24 @@ const ProTable = forwardRef<ProTableRef, ProTableProps>(function ProTable(props,
       return requestFunc(params);
     }
 
-    // 默认处理：API + 分页参数转换
-    const { current, pageSize, ...restParams } = params;
-    const result = await request.get(api!, {
-      params: { page: current, pageSize, ...restParams },
-    }) as any;
-    // request 已经处理了响应拦截器，直接返回
+    if (api) {
+      // 默认处理：API + 分页参数转换
+      const { current, pageSize, ...restParams } = params;
+      const result = await request.get(api!, {
+        params: { page: current, pageSize, ...restParams },
+      }) as any;
+      // request 已经处理了响应拦截器，直接返回
+      return {
+        data: result.data,
+        total: result.total,
+        success: true,
+      };
+    }
+
+    // 没有 api 和 request 时返回空数据（用于纯 dataSource 模式）
     return {
-      data: result.data,
-      total: result.total,
+      data: [],
+      total: 0,
       success: true,
     };
   };
