@@ -757,16 +757,21 @@ const menus = [
   menu(201, 200, '商品管理', '/mall/product', 'product/index', 'AppstoreOutlined', 'mall:product:list', 1),
   menu(202, 200, '分类管理', '/mall/category', 'category/index', 'TagsOutlined', 'mall:category:list', 2),
   menu(203, 200, '订单管理', '/mall/order', 'order/index', 'ShoppingCartOutlined', 'mall:order:list', 3),
-  menu(204, 200, '会员管理', '/mall/member', 'member/index', 'UserOutlined', 'mall:member:list', 4),
-  menu(205, 200, '运营配置', '/mall/banner', 'banner/index', 'PictureOutlined', 'mall:banner:list', 5),
-  menu(206, 200, '商品规格组', '/mall/spec-group', 'product-spec-group/index', 'TagsOutlined', 'mall:product-spec-group:list', 6),
-  menu(207, 200, '商品规格值', '/mall/spec-value', 'product-spec-value/index', 'TagsOutlined', 'mall:product-spec-value:list', 7),
-  menu(208, 200, 'SKU管理', '/mall/sku', 'product-sku/index', 'ShoppingCartOutlined', 'mall:product-sku:list', 8),
+  menu(205, 200, '运营配置', '/mall/banner', 'banner/index', 'PictureOutlined', 'mall:banner:list', 4),
+  menu(206, 200, '规格管理', '/mall/spec', 'product-spec-group/index', 'TagsOutlined', 'mall:product-spec-group:list', 5),
+  menu(208, 200, 'SKU管理', '/mall/sku', 'product-sku/index', 'ShoppingCartOutlined', 'mall:product-sku:list', 6),
+
+  // ============================================
+  // 会员管理模块
+  // ============================================
+  dir(500, 0, '会员管理', '/member', 'TeamOutlined', 'member:manage', 5),
+  menu(501, 500, '会员列表', '/member/list', 'member/index', 'UserOutlined', 'member:member:list', 1),
+  menu(502, 500, '会员等级', '/member/level', 'member-level/index', 'CrownOutlined', 'member:level:list', 2),
 
   // ============================================
   // 文章管理模块
   // ============================================
-  dir(300, 0, '文章管理', '/article', 'FileTextOutlined', 'article:manage', 5),
+  dir(300, 0, '文章管理', '/article', 'FileTextOutlined', 'article:manage', 6),
   menu(301, 300, '文章列表', '/article/list', 'article/index', 'UnorderedListOutlined', 'article:list', 1),
 
   // ============================================
@@ -777,7 +782,6 @@ const menus = [
   menu(402, 400, '流程定义', '/workflow/definition', 'workflow/definition/index', 'ProjectOutlined', 'workflow:definition:list', 2),
   menu(403, 400, '流程实例', '/workflow/instance', 'workflow/instance/index', 'AuditOutlined', 'workflow:instance:list', 3),
   menu(404, 400, '任务管理', '/workflow/task', 'workflow/task/index', 'CheckCircleOutlined', 'workflow:task:list', 4),
-  menu(405, 400, '抄送记录', '/workflow/copy', 'workflow/copy/index', 'NotificationOutlined', 'workflow:copy:list', 5),
 
   // ============================================
   // 按钮权限
@@ -837,20 +841,21 @@ const menus = [
   // 订单管理按钮
   buttons(230, 203, '订单', 'mall:order', { query: true, add: true, edit: true, remove: true, export: true }),
 
-  // 会员管理按钮
-  buttons(240, 204, '会员', 'mall:member', { query: true, add: true, edit: true, remove: true, export: true }),
-
   // 运营配置按钮
   buttons(250, 205, '配置', 'mall:banner', { query: true, add: true, edit: true, remove: true, export: true }),
 
-  // 商品规格组按钮
-  buttons(260, 206, '规格组', 'mall:product-spec-group', { query: true, add: true, edit: true, remove: true, export: true }),
-
-  // 商品规格值按钮
-  buttons(270, 207, '规格值', 'mall:product-spec-value', { query: true, add: true, edit: true, remove: true, export: true }),
+  // 规格管理按钮（规格组+规格值）
+  buttons(260, 206, '规格组', 'mall:product-spec-group', { query: true, add: true, edit: true, remove: true }),
+  buttons(270, 206, '规格值', 'mall:product-spec-value', { query: true, add: true, edit: true, remove: true }),
 
   // SKU管理按钮
   buttons(280, 208, 'SKU', 'mall:product-sku', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 会员列表按钮
+  buttons(510, 501, '会员', 'member:member', { query: true, add: true, edit: true, remove: true, export: true }),
+
+  // 会员等级按钮
+  buttons(520, 502, '会员等级', 'member:level', { query: true, add: true, edit: true, remove: true }),
 
   // 文章管理按钮
   buttons(310, 301, '文章', 'article', { query: true, add: true, edit: true, remove: true, export: true }),
@@ -866,11 +871,11 @@ const menus = [
   buttons(430, 403, '实例', 'workflow:instance', { query: true, cancel: true, terminate: true }),
   button(435, 403, '发起流程', 'workflow:instance:start'),
 
-  // 任务管理按钮
+  // 任务管理按钮（包含抄送记录权限）
   buttons(440, 404, '任务', 'workflow:task', { query: true, approve: true, reject: true, transfer: true, countersign: true, urge: true }),
-
-  // 抄送记录按钮
-  buttons(450, 405, '抄送', 'workflow:copy', { query: true, read: true }),
+  // 抄送记录权限（整合到任务管理中）
+  button(450, 404, '抄送查询', 'workflow:copy:query'),
+  button(451, 404, '抄送标记已读', 'workflow:copy:read'),
 ];
 
   // 扁平化所有菜单（展平 buttons 返回的数组）
@@ -923,26 +928,26 @@ const menus = [
   // 为其他角色分配菜单权限
   // ============================================
 
-  // 普通用户权限（发起流程、查看自己的实例、抄送记录）
+  // 普通用户权限（发起流程、查看自己的实例、任务管理中的抄送记录）
   // buttons函数从baseId开始递增分配ID
   // 流程实例(430): query=430, cancel=431, terminate=432; start=435
-  // 抄送记录(450): query=450, read=451
+  // 抄送记录权限(450-451): 现在挂在任务管理(404)下
   const commonUserMenuIds = [
     1,    // 首页
     400,  // 审批管理目录
     403,  // 流程实例菜单
     430,  // workflow:instance:query - 实例查询
     435,  // workflow:instance:start - 发起流程
-    405,  // 抄送记录菜单
+    404,  // 任务管理菜单（包含抄送记录Tab）
     450,  // workflow:copy:query - 抄送查询
     451,  // workflow:copy:read - 标记已读
   ];
 
-  // 审批人员权限（在普通用户基础上增加任务管理权限）
+  // 审批人员权限（在普通用户基础上增加任务审批权限）
   // 任务管理(440): query=440, approve=441, reject=442, transfer=443, countersign=444, urge=445
   const approverMenuIds = [
     ...commonUserMenuIds,
-    404,  // 任务管理菜单
+    // 404 任务管理菜单已在 commonUserMenuIds 中
     440,  // workflow:task:query - 任务查询
     441,  // workflow:task:approve - 任务通过
     442,  // workflow:task:reject - 任务驳回
@@ -1284,19 +1289,19 @@ const menus = [
           data: {
             productId: 1,
             skuCode: skuCode,
-            specCombination: JSON.stringify({
+            specCombination: {
               颜色: color.name,
               尺寸: size.name,
-            }),
+            },
             price: 99.99,
             costPrice: 49.99,
             stock: 50,
             lowStockAlert: 10,
             sales: Math.floor(Math.random() * 20),
             weight: 0.25,
-            images: JSON.stringify([
+            images: [
               `https://example.com/product-${color.name}-${size.name}.jpg`,
-            ]),
+            ],
           },
         });
       }
@@ -1314,6 +1319,101 @@ const menus = [
   `;
 
   console.log('SKU系统测试数据创建完成!');
+
+  // ============================================
+  // 会员等级规则初始化
+  // ============================================
+  console.log('创建会员等级规则...');
+
+  const memberLevelRules = [
+    {
+      id: 1,
+      code: 'LEVEL_1',
+      name: '普通会员',
+      level: 1,
+      minGrowth: 0,
+      maxGrowth: 999,
+      discountRate: 1.0,
+      pointsRate: 1.0,
+      benefits: '基础会员权益',
+      sort: 1,
+      remark: '注册即成为普通会员',
+    },
+    {
+      id: 2,
+      code: 'LEVEL_2',
+      name: '白银会员',
+      level: 2,
+      minGrowth: 1000,
+      maxGrowth: 4999,
+      discountRate: 0.98,
+      pointsRate: 1.2,
+      benefits: '享受98折优惠,积分1.2倍',
+      sort: 2,
+      remark: '累计成长值达到1000升级',
+    },
+    {
+      id: 3,
+      code: 'LEVEL_3',
+      name: '黄金会员',
+      level: 3,
+      minGrowth: 5000,
+      maxGrowth: 19999,
+      discountRate: 0.95,
+      pointsRate: 1.5,
+      benefits: '享受95折优惠,积分1.5倍,专属客服',
+      sort: 3,
+      remark: '累计成长值达到5000升级',
+    },
+    {
+      id: 4,
+      code: 'LEVEL_4',
+      name: '铂金会员',
+      level: 4,
+      minGrowth: 20000,
+      maxGrowth: 49999,
+      discountRate: 0.92,
+      pointsRate: 2.0,
+      benefits: '享受92折优惠,积分2倍,专属客服,生日礼包',
+      sort: 4,
+      remark: '累计成长值达到20000升级',
+    },
+    {
+      id: 5,
+      code: 'LEVEL_5',
+      name: '钻石会员',
+      level: 5,
+      minGrowth: 50000,
+      maxGrowth: null,
+      discountRate: 0.88,
+      pointsRate: 3.0,
+      benefits: '享受88折优惠,积分3倍,专属客服,生日礼包,优先发货',
+      sort: 5,
+      remark: '累计成长值达到50000升级',
+    },
+  ];
+
+  for (const rule of memberLevelRules) {
+    await prisma.memberLevelRule.upsert({
+      where: { id: rule.id },
+      update: {},
+      create: {
+        ...rule,
+        status: Status.ENABLED,
+        createdBy: 'system',
+      },
+    });
+  }
+
+  // 重置会员等级ID序列
+  await prisma.$executeRaw`
+    SELECT setval(
+      pg_get_serial_sequence('member_level_rule', 'id'),
+      (SELECT COALESCE(MAX(id), 0) FROM member_level_rule)
+    )
+  `;
+
+  console.log('会员等级规则创建完成!');
 
   // ============================================
   // 告警规则初始化

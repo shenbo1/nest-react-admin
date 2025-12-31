@@ -43,6 +43,16 @@ export class MemberController {
   }
 
   /**
+   * 批量删除（放在 :id 路由之前）
+   */
+  @Delete('batch')
+  @RequirePermissions('mall:member:remove')
+  batchRemove(@Body('ids') ids: number[]) {
+    const userId = this.cls.get('user').id;
+    return this.memberService.batchRemove(ids, userId);
+  }
+
+  /**
    * 获取详情
    */
   @Get(':id')
@@ -62,6 +72,16 @@ export class MemberController {
   ) {
     const userId = this.cls.get('user').id;
     return this.memberService.update(id, updateDto, userId);
+  }
+
+  /**
+   * 切换状态
+   */
+  @Put(':id/status')
+  @RequirePermissions('mall:member:edit')
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    const userId = this.cls.get('user').id;
+    return this.memberService.toggleStatus(id, userId);
   }
 
   /**

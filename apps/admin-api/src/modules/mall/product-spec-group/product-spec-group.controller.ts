@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
+  Put,
   Post,
   Query,
 } from '@nestjs/common';
@@ -33,7 +33,7 @@ export class ProductSpecGroupController {
     return this.productSpecGroupService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateProductSpecGroupDto: UpdateProductSpecGroupDto,

@@ -47,6 +47,10 @@ export class ProductSkuService {
 
     const where: Prisma.ProductSKUWhereInput = {
       deleted: false,
+      // 过滤已删除商品的SKU
+      product: {
+        deleted: false,
+      },
       ...(productId && { productId }),
       ...(keyword && {
         OR: [
@@ -63,7 +67,15 @@ export class ProductSkuService {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          product: true,
+          product: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              mainImage: true,
+              status: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
       }),
@@ -82,10 +94,18 @@ export class ProductSkuService {
    * 获取单个SKU
    */
   async findOne(id: number) {
-    return this.prisma.productSKU.findUnique({
-      where: { id },
+    return this.prisma.productSKU.findFirst({
+      where: { id, deleted: false },
       include: {
-        product: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            mainImage: true,
+            status: true,
+          },
+        },
       },
     });
   }
@@ -101,23 +121,30 @@ export class ProductSkuService {
   }
 
   /**
-   * 删除SKU
+   * 删除SKU（软删除）
    */
   async remove(id: number) {
-    return this.prisma.productSKU.delete({
+    return this.prisma.productSKU.update({
       where: { id },
+      data: {
+        deleted: true,
+        deletedAt: new Date(),
+      },
     });
   }
 
   /**
-   * 批量删除SKU
+   * 批量删除SKU（软删除）
    */
   async bulkRemove(ids: number[]) {
-    return this.prisma.productSKU.deleteMany({
+    return this.prisma.productSKU.updateMany({
       where: {
-        id: {
-          in: ids,
-        },
+        id: { in: ids },
+        deleted: false,
+      },
+      data: {
+        deleted: true,
+        deletedAt: new Date(),
       },
     });
   }

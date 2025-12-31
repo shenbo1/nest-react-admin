@@ -38,9 +38,6 @@ export default function OrderPage() {
       setEditingRecord(null);
       actionRef.current?.reload();
     },
-    onError: (error: any) => {
-      message.error(error?.message || '操作失败');
-    },
   });
 
   // 删除
@@ -49,9 +46,6 @@ export default function OrderPage() {
     onSuccess: () => {
       message.success('删除成功');
       actionRef.current?.reload();
-    },
-    onError: (error: any) => {
-      message.error(error?.message || '删除失败');
     },
   });
 

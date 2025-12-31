@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Modal, Form, Input, InputNumber, Radio, Space, Tag, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { useState, useEffect, useRef } from 'react';
+import { message, Space, Tag, Popconfirm, Row, Col, Card, Typography } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  ProColumns,
+  ModalForm,
+  ProFormText,
+  ProFormDigit,
+  ProFormRadio,
+} from '@ant-design/pro-components';
+import { useMutation } from '@tanstack/react-query';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
+import ProTable, { ProTableRef } from '@/components/ProTable';
 import {
   getProductSpecGroups,
   createProductSpecGroup,
@@ -13,6 +22,8 @@ import {
   updateProductSku,
   deleteProductSku,
 } from '@/services/mall/product';
+
+const { Title } = Typography;
 
 interface SpecValue {
   id: number;
@@ -38,338 +49,427 @@ interface Sku {
   productId: number;
 }
 
-const ProductSKUManage: React.FC<{ productId: number }> = ({ productId }) => {
+interface Props {
+  productId: number;
+}
+
+const ProductSKUManage: React.FC<Props> = ({ productId }) => {
+  const specGroupTableRef = useRef<ProTableRef>(null);
+  const skuTableRef = useRef<ProTableRef>(null);
+
   const [specGroups, setSpecGroups] = useState<SpecGroup[]>([]);
-  const [skus, setSkus] = useState<Sku[]>([]);
-
-  const [specGroupModalVisible, setSpecGroupModalVisible] = useState(false);
-  const [skuModalVisible, setSkuModalVisible] = useState(false);
-
-  const [form] = Form.useForm();
-  const [skuForm] = Form.useForm();
-
+  const [specGroupModalOpen, setSpecGroupModalOpen] = useState(false);
+  const [skuModalOpen, setSkuModalOpen] = useState(false);
   const [editingSpecGroup, setEditingSpecGroup] = useState<SpecGroup | null>(null);
   const [editingSku, setEditingSku] = useState<Sku | null>(null);
 
-  // 规格组表格列配置
-  const specGroupColumns = [
-    {
-      title: '规格组名称',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: '排序',
-      dataIndex: 'sort',
-      key: 'sort',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_: any, record: SpecGroup) => (
-        <Space size="middle">
-          <PermissionButton type="link" permission={MALL.PRODUCT_SPEC_GROUP.EDIT} onClick={() => handleEditSpecGroup(record)}>编辑</PermissionButton>
-          <PermissionButton type="link" danger permission={MALL.PRODUCT_SPEC_GROUP.REMOVE} onClick={() => handleDeleteSpecGroup(record.id)}>删除</PermissionButton>
-        </Space>
-      ),
-    },
-  ];
-
-  // SKU表格列配置
-  const skuColumns = [
-    {
-      title: 'SKU编码',
-      dataIndex: 'skuCode',
-      key: 'skuCode',
-    },
-    {
-      title: '规格组合',
-      dataIndex: 'specCombination',
-      key: 'specCombination',
-      render: (specs: Record<string, string>) => (
-        <>
-          {Object.entries(specs).map(([key, value]) => (
-            <Tag key={key}>{key}: {value}</Tag>
-          ))}
-        </>
-      ),
-    },
-    {
-      title: '价格',
-      dataIndex: 'price',
-      key: 'price',
-      render: (price: number) => price.toFixed(2),
-    },
-    {
-      title: '库存',
-      dataIndex: 'stock',
-      key: 'stock',
-    },
-    {
-      title: '销量',
-      dataIndex: 'sales',
-      key: 'sales',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_: any, record: Sku) => (
-        <Space size="middle">
-          <PermissionButton type="link" permission={MALL.PRODUCT_SKU.EDIT} onClick={() => handleEditSku(record)}>编辑</PermissionButton>
-          <PermissionButton type="link" danger permission={MALL.PRODUCT_SKU.REMOVE} onClick={() => handleDeleteSku(record.id)}>删除</PermissionButton>
-        </Space>
-      ),
-    },
-  ];
-
-  // 加载数据
-  const fetchData = async () => {
+  // 加载规格组数据
+  const loadSpecGroups = async () => {
     try {
-      const [groupsRes, skusRes] = await Promise.all([
-        getProductSpecGroups({ productId }),
-        getProductSkus({ productId }),
-      ]);
-
-      setSpecGroups(groupsRes.data);
-      setSkus(skusRes.data);
-    } catch (error) {
-      message.error('数据加载失败');
-      console.error(error);
+      const res = await getProductSpecGroups({ productId });
+      setSpecGroups(res || []);
+    } catch {
+      // 忽略错误
     }
   };
 
   useEffect(() => {
-    fetchData();
+    loadSpecGroups();
   }, [productId]);
 
-  // 规格组管理
-  const handleAddSpecGroup = () => {
-    setEditingSpecGroup(null);
-    form.resetFields();
-    setSpecGroupModalVisible(true);
-  };
-
-  const handleEditSpecGroup = (record: SpecGroup) => {
-    setEditingSpecGroup(record);
-    form.setFieldsValue(record);
-    setSpecGroupModalVisible(true);
-  };
-
-  const handleDeleteSpecGroup = async (id: number) => {
-    try {
-      await deleteProductSpecGroup(id);
-      message.success('删除成功');
-      fetchData();
-    } catch (error) {
-      message.error('删除失败');
-      console.error(error);
-    }
-  };
-
-  const handleSpecGroupSubmit = async (values: any) => {
-    try {
-      const data = { ...values, productId };
-
+  // 规格组 CRUD
+  const specGroupSaveMutation = useMutation({
+    mutationFn: (data: any) => {
       if (editingSpecGroup) {
-        await updateProductSpecGroup(editingSpecGroup.id, data);
-        message.success('规格组更新成功');
-      } else {
-        await createProductSpecGroup(data);
-        message.success('规格组创建成功');
+        return updateProductSpecGroup(editingSpecGroup.id, data);
       }
+      return createProductSpecGroup({ ...data, productId });
+    },
+    onSuccess: () => {
+      message.success(editingSpecGroup ? '规格组更新成功' : '规格组创建成功');
+      setSpecGroupModalOpen(false);
+      setEditingSpecGroup(null);
+      specGroupTableRef.current?.reload();
+      loadSpecGroups();
+    },
+  });
 
-      setSpecGroupModalVisible(false);
-      fetchData();
-    } catch (error) {
-      message.error('操作失败');
-      console.error(error);
-    }
-  };
+  const specGroupDeleteMutation = useMutation({
+    mutationFn: deleteProductSpecGroup,
+    onSuccess: () => {
+      message.success('删除成功');
+      specGroupTableRef.current?.reload();
+      loadSpecGroups();
+    },
+  });
 
-  // SKU管理
-  const handleAddSku = () => {
-    setEditingSku(null);
-    skuForm.resetFields();
+  // SKU CRUD
+  const skuSaveMutation = useMutation({
+    mutationFn: (data: any) => {
+      if (editingSku) {
+        return updateProductSku(editingSku.id, data);
+      }
+      return createProductSku({ ...data, productId });
+    },
+    onSuccess: () => {
+      message.success(editingSku ? 'SKU更新成功' : 'SKU创建成功');
+      setSkuModalOpen(false);
+      setEditingSku(null);
+      skuTableRef.current?.reload();
+    },
+  });
 
-    // 初始化规格组合对象
+  const skuDeleteMutation = useMutation({
+    mutationFn: deleteProductSku,
+    onSuccess: () => {
+      message.success('删除成功');
+      skuTableRef.current?.reload();
+    },
+  });
+
+  // 规格组列配置
+  const specGroupColumns: ProColumns<SpecGroup>[] = [
+    {
+      title: '规格组名称',
+      dataIndex: 'name',
+      width: 150,
+    },
+    {
+      title: '规格值',
+      dataIndex: 'specValues',
+      render: (_, record) => {
+        const values = record.specValues || [];
+        if (values.length === 0) return '-';
+        return (
+          <Space wrap size="small">
+            {values.map((v) => (
+              <Tag key={v.id}>{v.name}</Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 80,
+      align: 'center',
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 150,
+      render: (_, record) => (
+        <Space>
+          <PermissionButton
+            type="link"
+            size="small"
+            permission={MALL.PRODUCT_SPEC_GROUP.EDIT}
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingSpecGroup(record);
+              setSpecGroupModalOpen(true);
+            }}
+          >
+            编辑
+          </PermissionButton>
+          <Popconfirm
+            title="确认删除吗？"
+            description="删除后将无法恢复"
+            onConfirm={() => specGroupDeleteMutation.mutate(record.id)}
+          >
+            <PermissionButton
+              type="link"
+              size="small"
+              danger
+              permission={MALL.PRODUCT_SPEC_GROUP.REMOVE}
+              icon={<DeleteOutlined />}
+            >
+              删除
+            </PermissionButton>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  // SKU 列配置
+  const skuColumns: ProColumns<Sku>[] = [
+    {
+      title: 'SKU编码',
+      dataIndex: 'skuCode',
+      width: 150,
+    },
+    {
+      title: '规格组合',
+      dataIndex: 'specCombination',
+      render: (specs: any) => {
+        if (!specs || typeof specs !== 'object') return '-';
+        return (
+          <Space wrap size="small">
+            {Object.entries(specs).map(([key, value]) => (
+              <Tag key={key} color="blue">
+                {key}: {String(value)}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: '价格',
+      dataIndex: 'price',
+      width: 100,
+      render: (price: any) => (
+        <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
+          ¥{Number(price).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: '库存',
+      dataIndex: 'stock',
+      width: 80,
+      render: (stock: any) => (
+        <span style={{ color: stock > 0 ? '#52c41a' : '#ff4d4f' }}>
+          {stock}
+        </span>
+      ),
+    },
+    {
+      title: '销量',
+      dataIndex: 'sales',
+      width: 80,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 150,
+      render: (_, record) => (
+        <Space>
+          <PermissionButton
+            type="link"
+            size="small"
+            permission={MALL.PRODUCT_SKU.EDIT}
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingSku(record);
+              setSkuModalOpen(true);
+            }}
+          >
+            编辑
+          </PermissionButton>
+          <Popconfirm
+            title="确认删除吗？"
+            description="删除后将无法恢复"
+            onConfirm={() => skuDeleteMutation.mutate(record.id)}
+          >
+            <PermissionButton
+              type="link"
+              size="small"
+              danger
+              permission={MALL.PRODUCT_SKU.REMOVE}
+              icon={<DeleteOutlined />}
+            >
+              删除
+            </PermissionButton>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  // 获取初始规格组合
+  const getInitialSpecCombination = () => {
     const initialSpecs: Record<string, string> = {};
-    specGroups.forEach(group => {
-      if (group.specValues.length > 0) {
+    specGroups.forEach((group) => {
+      if (group.specValues && group.specValues.length > 0) {
         initialSpecs[group.name] = group.specValues[0].name;
       }
     });
-
-    skuForm.setFieldsValue({
-      specCombination: initialSpecs,
-      price: 0,
-      stock: 0,
-    });
-
-    setSkuModalVisible(true);
-  };
-
-  const handleEditSku = (record: Sku) => {
-    setEditingSku(record);
-    skuForm.setFieldsValue(record);
-    setSkuModalVisible(true);
-  };
-
-  const handleDeleteSku = async (id: number) => {
-    try {
-      await deleteProductSku(id);
-      message.success('删除成功');
-      fetchData();
-    } catch (error) {
-      message.error('删除失败');
-      console.error(error);
-    }
-  };
-
-  const handleSkuSubmit = async (values: any) => {
-    try {
-      const data = { ...values, productId };
-
-      if (editingSku) {
-        await updateProductSku(editingSku.id, data);
-        message.success('SKU更新成功');
-      } else {
-        await createProductSku(data);
-        message.success('SKU创建成功');
-      }
-
-      setSkuModalVisible(false);
-      fetchData();
-    } catch (error) {
-      message.error('操作失败');
-      console.error(error);
-    }
+    return initialSpecs;
   };
 
   return (
     <div className="sku-manage">
-      <h3 style={{ marginBottom: 24 }}>商品规格与SKU管理</h3>
+      <Row gutter={[16, 16]}>
+        {/* 规格组管理 */}
+        <Col span={24}>
+          <Card size="small">
+            <Title level={5} style={{ marginBottom: 16 }}>规格组管理</Title>
+            <ProTable<SpecGroup>
+              actionRef={specGroupTableRef}
+              columns={specGroupColumns}
+              rowKey="id"
+              search={false}
+              options={false}
+              pagination={false}
+              request={async () => {
+                const res = await getProductSpecGroups({ productId });
+                return {
+                  data: res || [],
+                  total: res?.length || 0,
+                  success: true,
+                };
+              }}
+              toolBarRender={() => [
+                <PermissionButton
+                  key="add"
+                  type="primary"
+                  permission={MALL.PRODUCT_SPEC_GROUP.ADD}
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setEditingSpecGroup(null);
+                    setSpecGroupModalOpen(true);
+                  }}
+                >
+                  新增规格组
+                </PermissionButton>,
+              ]}
+            />
+          </Card>
+        </Col>
 
-      {/* 规格组管理 */}
-      <div style={{ marginBottom: 32 }}>
-        <PermissionButton type="primary" icon={<PlusOutlined />} permission={MALL.PRODUCT_SPEC_GROUP.ADD} onClick={handleAddSpecGroup} style={{ marginBottom: 16 }}>
-          新增规格组
-        </PermissionButton>
-        <Table
-          columns={specGroupColumns}
-          dataSource={specGroups}
-          rowKey="id"
-          pagination={false}
-          bordered
-        />
-      </div>
-
-      {/* SKU管理 */}
-      <div>
-        <PermissionButton type="primary" icon={<PlusOutlined />} permission={MALL.PRODUCT_SKU.ADD} onClick={handleAddSku} style={{ marginBottom: 16 }}>
-          新增SKU
-        </PermissionButton>
-        <Table
-          columns={skuColumns}
-          dataSource={skus}
-          rowKey="id"
-          pagination={false}
-          bordered
-        />
-      </div>
+        {/* SKU 管理 */}
+        <Col span={24}>
+          <Card size="small">
+            <Title level={5} style={{ marginBottom: 16 }}>SKU 管理</Title>
+            <ProTable<Sku>
+              actionRef={skuTableRef}
+              columns={skuColumns}
+              rowKey="id"
+              search={false}
+              options={false}
+              pagination={false}
+              request={async () => {
+                const res = await getProductSkus({ productId });
+                return {
+                  data: res?.data || [],
+                  total: res?.total || 0,
+                  success: true,
+                };
+              }}
+              toolBarRender={() => [
+                <PermissionButton
+                  key="add"
+                  type="primary"
+                  permission={MALL.PRODUCT_SKU.ADD}
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setEditingSku(null);
+                    setSkuModalOpen(true);
+                  }}
+                >
+                  新增SKU
+                </PermissionButton>,
+              ]}
+            />
+          </Card>
+        </Col>
+      </Row>
 
       {/* 规格组弹窗 */}
-      <Modal
+      <ModalForm
         title={editingSpecGroup ? '编辑规格组' : '新增规格组'}
-        open={specGroupModalVisible}
-        onOk={() => form.submit()}
-        onCancel={() => setSpecGroupModalVisible(false)}
+        open={specGroupModalOpen}
+        onOpenChange={setSpecGroupModalOpen}
+        initialValues={editingSpecGroup || { sort: 0 }}
+        onFinish={async (values) => {
+          await specGroupSaveMutation.mutateAsync(values);
+          return true;
+        }}
+        modalProps={{
+          destroyOnHidden: true,
+          maskClosable: false,
+          width: 500,
+        }}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSpecGroupSubmit}
-        >
-          <Form.Item
-            name="name"
-            label="规格组名称"
-            rules={[{ required: true, message: '请输入规格组名称' }]}
-          >
-            <Input placeholder="如：颜色、尺寸" />
-          </Form.Item>
+        <ProFormText
+          name="name"
+          label="规格组名称"
+          placeholder="如：颜色、尺寸"
+          rules={[{ required: true, message: '请输入规格组名称' }]}
+        />
+        <ProFormDigit
+          name="sort"
+          label="排序"
+          placeholder="请输入排序号"
+          min={0}
+          fieldProps={{ precision: 0 }}
+        />
+      </ModalForm>
 
-          <Form.Item
-            name="sort"
-            label="排序"
-            initialValue={0}
-          >
-            <InputNumber min={0} style={{ width: '100%' }} />
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* SKU弹窗 */}
-      <Modal
+      {/* SKU 弹窗 */}
+      <ModalForm
         title={editingSku ? '编辑SKU' : '新增SKU'}
-        open={skuModalVisible}
-        width={800}
-        onOk={() => skuForm.submit()}
-        onCancel={() => setSkuModalVisible(false)}
+        open={skuModalOpen}
+        onOpenChange={setSkuModalOpen}
+        initialValues={
+          editingSku || {
+            price: 0,
+            stock: 0,
+            specCombination: getInitialSpecCombination(),
+          }
+        }
+        onFinish={async (values) => {
+          await skuSaveMutation.mutateAsync(values);
+          return true;
+        }}
+        modalProps={{
+          destroyOnHidden: true,
+          maskClosable: false,
+          width: 600,
+        }}
       >
-        <Form
-          form={skuForm}
-          layout="vertical"
-          onFinish={handleSkuSubmit}
-        >
-          <Form.Item
-            name="skuCode"
-            label="SKU编码"
-            rules={[{ required: true, message: '请输入SKU编码' }]}
-          >
-            <Input placeholder="请输入SKU编码" />
-          </Form.Item>
-
-          {/* 规格组合选择 */}
-          {specGroups.map(group => (
-            <Form.Item
-              key={group.id}
-              label={group.name}
-              name={['specCombination', group.name]}
-              rules={[{ required: true, message: `请选择${group.name}` }]}
-            >
-              <Radio.Group>
-                {group.specValues.map(value => (
-                  <Radio key={value.id} value={value.name}>
-                    {value.name}
-                  </Radio>
-                ))}
-              </Radio.Group>
-            </Form.Item>
-          ))}
-
-          <Form.Item
-            name="price"
-            label="价格"
-            rules={[{ required: true, message: '请输入价格' }]}
-          >
-            <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            name="stock"
-            label="库存"
-            rules={[{ required: true, message: '请输入库存' }]}
-          >
-            <InputNumber min={0} style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            name="weight"
-            label="重量(kg)"
-          >
-            <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
-          </Form.Item>
-        </Form>
-      </Modal>
+        <ProFormText
+          name="skuCode"
+          label="SKU编码"
+          placeholder="请输入SKU编码"
+          rules={[{ required: true, message: '请输入SKU编码' }]}
+        />
+        {/* 规格组合选择 */}
+        {specGroups.map((group) => (
+          <ProFormRadio.Group
+            key={group.id}
+            name={['specCombination', group.name]}
+            label={group.name}
+            rules={[{ required: true, message: `请选择${group.name}` }]}
+            options={(group.specValues || []).map((v) => ({
+              label: v.name,
+              value: v.name,
+            }))}
+          />
+        ))}
+        <Row gutter={16}>
+          <Col span={12}>
+            <ProFormDigit
+              name="price"
+              label="价格"
+              placeholder="请输入价格"
+              min={0}
+              fieldProps={{ precision: 2 }}
+              rules={[{ required: true, message: '请输入价格' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormDigit
+              name="stock"
+              label="库存"
+              placeholder="请输入库存"
+              min={0}
+              fieldProps={{ precision: 0 }}
+              rules={[{ required: true, message: '请输入库存' }]}
+            />
+          </Col>
+        </Row>
+        <ProFormDigit
+          name="weight"
+          label="重量(kg)"
+          placeholder="请输入重量"
+          min={0}
+          fieldProps={{ precision: 2 }}
+        />
+      </ModalForm>
     </div>
   );
 };

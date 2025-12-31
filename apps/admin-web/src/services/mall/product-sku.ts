@@ -21,9 +21,9 @@ export interface ProductSpecValue {
   updatedAt: string;
 }
 
-// 获取规格组列表
+// 获取规格组列表（响应拦截器已解包，直接返回数组）
 export const getProductSpecGroups = (params: { productId: number }) => {
-  return request.get<{ data: ProductSpecGroup[] }>('/mall/spec-group', {
+  return request.get<ProductSpecGroup[]>('/mall/spec-group', {
     params,
   });
 };
@@ -85,17 +85,25 @@ export interface ProductSku {
   skuCode: string;
   specCombination: Record<string, string>;
   price: number;
+  costPrice?: number;
   stock: number;
   weight?: number;
   sales: number;
   images?: string[];
   createdAt: string;
   updatedAt: string;
+  product?: {
+    id: number;
+    name: string;
+    code: string;
+    mainImage?: string;
+    status: 'ON_SHELF' | 'OFF_SHELF' | 'DRAFT';
+  };
 }
 
-// 获取SKU列表
-export const getProductSkus = (params: { productId: number }) => {
-  return request.get<{ data: ProductSku[] }>('/mall/sku', {
+// 获取SKU列表（响应拦截器已解包）
+export const getProductSkus = (params: { productId?: number; page?: number; pageSize?: number }) => {
+  return request.get<{ data: ProductSku[]; total: number; page: number; pageSize: number }>('/mall/sku', {
     params,
   });
 };
@@ -133,6 +141,7 @@ export const updateProductSku = (id: number, data: {
   skuCode?: string;
   specCombination?: Record<string, string>;
   price?: number;
+  costPrice?: number;
   stock?: number;
   weight?: number;
   sales?: number;

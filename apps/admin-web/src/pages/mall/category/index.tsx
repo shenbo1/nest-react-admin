@@ -68,9 +68,6 @@ export default function CategoryPage() {
       queryClient.invalidateQueries({ queryKey: ['categoryListForSelect'] });
       actionRef.current?.reload();
     },
-    onError: (error: any) => {
-      message.error(error?.message || '操作失败');
-    },
   });
 
   // 删除
@@ -79,9 +76,6 @@ export default function CategoryPage() {
     onSuccess: () => {
       message.success('删除成功');
       actionRef.current?.reload();
-    },
-    onError: (error: any) => {
-      message.error(error?.message || '删除失败');
     },
   });
 
@@ -121,12 +115,18 @@ export default function CategoryPage() {
   const handleAdd = (parent?: CategoryTree) => {
     setEditingRecord(null);
     setParentCategory(parent || null);
+    // 先重置表单为默认值
+    form.resetFields();
+    form.setFieldsValue({
+      sort: 0,
+      status: 'ENABLED',
+      level: 1,
+    });
     if (parent) {
       setDisplayLevel(Math.min((parent.level || 1) + 1, 5));
       form.setFieldValue('parentId', parent.id);
     } else {
       setDisplayLevel(1);
-      form.setFieldValue('parentId', undefined);
     }
     setModalOpen(true);
   };
@@ -295,7 +295,16 @@ export default function CategoryPage() {
               : '新增商品分类'
         }
         open={modalOpen}
-        onOpenChange={setModalOpen}
+        onOpenChange={(open) => {
+          setModalOpen(open);
+          if (!open) {
+            // 关闭弹窗时重置表单和状态
+            form.resetFields();
+            setEditingRecord(null);
+            setParentCategory(null);
+            setDisplayLevel(1);
+          }
+        }}
         form={form}
         initialValues={
           editingRecord

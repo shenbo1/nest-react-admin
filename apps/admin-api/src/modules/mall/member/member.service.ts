@@ -16,6 +16,34 @@ export class MemberService {
    * 创建
    */
   async create(dto: CreateMemberDto, userId: number) {
+    // 检查用户名是否已存在
+    const existingByUsername = await this.prisma.member.findFirst({
+      where: { username: dto.username, deleted: false },
+    });
+    if (existingByUsername) {
+      throw new ConflictException('用户名已存在');
+    }
+
+    // 检查手机号是否已存在
+    if (dto.phone) {
+      const existingByPhone = await this.prisma.member.findFirst({
+        where: { phone: dto.phone, deleted: false },
+      });
+      if (existingByPhone) {
+        throw new ConflictException('手机号已存在');
+      }
+    }
+
+    // 检查邮箱是否已存在
+    if (dto.email) {
+      const existingByEmail = await this.prisma.member.findFirst({
+        where: { email: dto.email, deleted: false },
+      });
+      if (existingByEmail) {
+        throw new ConflictException('邮箱已存在');
+      }
+    }
+
     return this.prisma.member.create({
       data: {
         ...dto,
@@ -75,6 +103,36 @@ export class MemberService {
   async update(id: number, dto: UpdateMemberDto, userId: number) {
     await this.findOne(id);
 
+    // 检查用户名是否已被其他会员使用
+    if (dto.username) {
+      const existingByUsername = await this.prisma.member.findFirst({
+        where: { username: dto.username, deleted: false, id: { not: id } },
+      });
+      if (existingByUsername) {
+        throw new ConflictException('用户名已存在');
+      }
+    }
+
+    // 检查手机号是否已被其他会员使用
+    if (dto.phone) {
+      const existingByPhone = await this.prisma.member.findFirst({
+        where: { phone: dto.phone, deleted: false, id: { not: id } },
+      });
+      if (existingByPhone) {
+        throw new ConflictException('手机号已存在');
+      }
+    }
+
+    // 检查邮箱是否已被其他会员使用
+    if (dto.email) {
+      const existingByEmail = await this.prisma.member.findFirst({
+        where: { email: dto.email, deleted: false, id: { not: id } },
+      });
+      if (existingByEmail) {
+        throw new ConflictException('邮箱已存在');
+      }
+    }
+
     return this.prisma.member.update({
       where: { id },
       data: {
@@ -95,6 +153,39 @@ export class MemberService {
       data: {
         deleted: true,
         deletedAt: new Date(),
+        updatedBy: String(userId),
+      },
+    });
+  }
+
+  /**
+   * 批量删除（软删除）
+   */
+  async batchRemove(ids: number[], userId: number) {
+    return this.prisma.member.updateMany({
+      where: {
+        id: { in: ids },
+        deleted: false,
+      },
+      data: {
+        deleted: true,
+        deletedAt: new Date(),
+        updatedBy: String(userId),
+      },
+    });
+  }
+
+  /**
+   * 切换状态
+   */
+  async toggleStatus(id: number, userId: number) {
+    const member = await this.findOne(id);
+    const newStatus = member.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+
+    return this.prisma.member.update({
+      where: { id },
+      data: {
+        status: newStatus,
         updatedBy: String(userId),
       },
     });

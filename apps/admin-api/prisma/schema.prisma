@@ -1136,7 +1136,7 @@ model Product {
   /// 排序
   sort          Int                @default(0)
   /// 销售状态
-  status        ProductStatus      @default(ON_SHELF) @map("status")
+  status        ProductStatus      @default(DRAFT) @map("status")
   /// 备注
   remark        String?            @db.VarChar(500)
   /// 创建者ID

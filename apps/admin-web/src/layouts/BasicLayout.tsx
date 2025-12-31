@@ -20,6 +20,7 @@ import {
   ClockCircleOutlined,
   MonitorOutlined,
   ShopOutlined,
+  CrownOutlined,
   AppstoreOutlined,
   TagsOutlined,
   ShoppingCartOutlined,
@@ -37,7 +38,7 @@ import {
 } from '@ant-design/icons';
 import { useUserStore } from '@/stores/user';
 import { getProfile, getRouters, logout as logoutApi } from '@/services/system/auth';
-import { DASHBOARD, SYSTEM, MALL, WORKFLOW } from '@/constants/permissions';
+import { DASHBOARD, SYSTEM, MALL, MEMBER, WORKFLOW } from '@/constants/permissions';
 
 const { Header, Sider, Content } = Layout;
 
@@ -203,24 +204,6 @@ const defaultMenuItems = [
         permission: MALL.PRODUCT.LIST,
       },
       {
-        key: '/mall/product-spec-group',
-        icon: <TagsOutlined />,
-        label: '商品规格组',
-        permission: MALL.PRODUCT_SPEC_GROUP.LIST,
-      },
-      {
-        key: '/mall/product-spec-value',
-        icon: <TagsOutlined />,
-        label: '商品规格值',
-        permission: MALL.PRODUCT_SPEC_VALUE.LIST,
-      },
-      {
-        key: '/mall/product-sku',
-        icon: <ShoppingCartOutlined />,
-        label: 'SKU管理',
-        permission: MALL.PRODUCT_SKU.LIST,
-      },
-      {
         key: '/mall/category',
         icon: <TagsOutlined />,
         label: '分类管理',
@@ -233,16 +216,42 @@ const defaultMenuItems = [
         permission: MALL.ORDER.LIST,
       },
       {
-        key: '/mall/member',
-        icon: <UserOutlined />,
-        label: '会员管理',
-        permission: MALL.MEMBER.LIST,
-      },
-      {
         key: '/mall/banner',
         icon: <PictureOutlined />,
         label: '运营配置',
         permission: MALL.BANNER.LIST,
+      },
+      {
+        key: '/mall/spec',
+        icon: <TagsOutlined />,
+        label: '规格管理',
+        permission: MALL.PRODUCT_SPEC_GROUP.LIST,
+      },
+      {
+        key: '/mall/sku',
+        icon: <ShoppingCartOutlined />,
+        label: 'SKU管理',
+        permission: MALL.PRODUCT_SKU.LIST,
+      },
+    ],
+  },
+  {
+    key: '/member',
+    icon: <TeamOutlined />,
+    label: '会员管理',
+    permission: MEMBER.MANAGE,
+    children: [
+      {
+        key: '/member/list',
+        icon: <UserOutlined />,
+        label: '会员列表',
+        permission: MEMBER.MEMBER.LIST,
+      },
+      {
+        key: '/member/level',
+        icon: <CrownOutlined />,
+        label: '会员等级',
+        permission: MEMBER.LEVEL.LIST,
       },
     ],
   },

@@ -163,6 +163,14 @@ export const MALL = {
     QUERY: 'mall:order:query',
     EXPORT: 'mall:order:export',
   },
+  BANNER: {
+    LIST: 'mall:banner:list',
+    ADD: 'mall:banner:add',
+    EDIT: 'mall:banner:edit',
+    REMOVE: 'mall:banner:remove',
+    QUERY: 'mall:banner:query',
+    EXPORT: 'mall:banner:export',
+  },
   MEMBER: {
     LIST: 'mall:member:list',
     ADD: 'mall:member:add',
@@ -171,13 +179,32 @@ export const MALL = {
     QUERY: 'mall:member:query',
     EXPORT: 'mall:member:export',
   },
-  BANNER: {
-    LIST: 'mall:banner:list',
-    ADD: 'mall:banner:add',
-    EDIT: 'mall:banner:edit',
-    REMOVE: 'mall:banner:remove',
-    QUERY: 'mall:banner:query',
-    EXPORT: 'mall:banner:export',
+  MEMBER_LEVEL: {
+    LIST: 'mall:member-level:list',
+    ADD: 'mall:member-level:add',
+    EDIT: 'mall:member-level:edit',
+    REMOVE: 'mall:member-level:remove',
+    QUERY: 'mall:member-level:query',
+  },
+} as const;
+
+// 会员管理权限
+export const MEMBER = {
+  MANAGE: 'member:manage',
+  MEMBER: {
+    LIST: 'member:member:list',
+    ADD: 'member:member:add',
+    EDIT: 'member:member:edit',
+    REMOVE: 'member:member:remove',
+    QUERY: 'member:member:query',
+    EXPORT: 'member:member:export',
+  },
+  LEVEL: {
+    LIST: 'member:level:list',
+    ADD: 'member:level:add',
+    EDIT: 'member:level:edit',
+    REMOVE: 'member:level:remove',
+    QUERY: 'member:level:query',
   },
 } as const;
 
@@ -240,6 +267,7 @@ export const ALL_PERMISSIONS = {
   ...DASHBOARD,
   ...SYSTEM,
   ...MALL,
+  ...MEMBER,
   ...ARTICLE,
   ...WORKFLOW,
 } as const;
@@ -264,13 +292,15 @@ export const MENU_PERMISSIONS = {
   '/monitor/alert': 'system:alert:manage',
   '/mall': MALL.MANAGE,
   '/mall/product': MALL.PRODUCT.LIST,
-  '/mall/spec-group': MALL.PRODUCT_SPEC_GROUP.LIST,
-  '/mall/spec-value': MALL.PRODUCT_SPEC_VALUE.LIST,
+  '/mall/spec': MALL.PRODUCT_SPEC_GROUP.LIST,
   '/mall/sku': MALL.PRODUCT_SKU.LIST,
   '/mall/category': MALL.CATEGORY.LIST,
   '/mall/order': MALL.ORDER.LIST,
-  '/mall/member': MALL.MEMBER.LIST,
   '/mall/banner': MALL.BANNER.LIST,
+
+  '/member': MEMBER.MANAGE,
+  '/member/list': MEMBER.MEMBER.LIST,
+  '/member/level': MEMBER.LEVEL.LIST,
 
   '/article': ARTICLE.LIST,
 
@@ -302,13 +332,14 @@ export const ROUTE_PERMISSIONS = {
   '/monitor/log': 'system:log-monitor:query',
   '/monitor/alert': 'system:alert:manage',
   '/mall/product': MALL.PRODUCT.LIST,
-  '/mall/spec-group': MALL.PRODUCT_SPEC_GROUP.LIST,
-  '/mall/spec-value': MALL.PRODUCT_SPEC_VALUE.LIST,
+  '/mall/spec': MALL.PRODUCT_SPEC_GROUP.LIST,
   '/mall/sku': MALL.PRODUCT_SKU.LIST,
   '/mall/category': MALL.CATEGORY.LIST,
   '/mall/order': MALL.ORDER.LIST,
-  '/mall/member': MALL.MEMBER.LIST,
   '/mall/banner': MALL.BANNER.LIST,
+
+  '/member/list': MEMBER.MEMBER.LIST,
+  '/member/level': MEMBER.LEVEL.LIST,
 
   '/article': ARTICLE.LIST,
 

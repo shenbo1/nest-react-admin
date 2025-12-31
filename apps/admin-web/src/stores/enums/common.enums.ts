@@ -9,9 +9,9 @@ export enum BannerTypeEnums {
 }
 
 export enum GenderEnums {
-  未知 = 0,
-  男 = 1,
-  女 = 2,
+  男 = 'MALE',
+  女 = 'FEMALE',
+  未知 = 'UNKNOWN',
 }
 
 export enum MemberLevelEnums {

@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 import { Spin } from 'antd';
 import BasicLayout from './layouts/BasicLayout';
 import AuthRoute from './components/AuthRoute';
-import { DASHBOARD, SYSTEM, MALL, ARTICLE, WORKFLOW } from './constants/permissions';
+import { DASHBOARD, SYSTEM, MALL, MEMBER, ARTICLE, WORKFLOW } from './constants/permissions';
 
 // 懒加载页面
 const Login = lazy(() => import('./pages/login'));
@@ -21,12 +21,14 @@ const Codegen = lazy(() => import('./pages/system/codegen'));
 const JobList = lazy(() => import('./pages/system/job'));
 const JobMonitor = lazy(() => import('./pages/system/job-monitor'));
 const ProductList = lazy(() => import('./pages/mall/product'));
+const ProductEdit = lazy(() => import('./pages/mall/product/edit'));
+const ProductDetail = lazy(() => import('./pages/mall/product/detail'));
 const CategoryList = lazy(() => import('./pages/mall/category'));
 const OrderList = lazy(() => import('./pages/mall/order'));
 const MemberList = lazy(() => import('./pages/mall/member'));
+const MemberLevelList = lazy(() => import('./pages/mall/member-level'));
 const BannerList = lazy(() => import('./pages/mall/banner'));
-const ProductSpecGroupList = lazy(() => import('./pages/mall/product-spec-group'));
-const ProductSpecValueList = lazy(() => import('./pages/mall/product-spec-value'));
+const ProductSpecManageList = lazy(() => import('./pages/mall/product-spec-group'));
 const ProductSkuList = lazy(() => import('./pages/mall/product-sku'));
 const ArticleList = lazy(() => import('./pages/article'));
 const CacheList = lazy(() => import('./pages/system/cache'));
@@ -239,6 +241,30 @@ function App() {
                 }
               />
               <Route
+                path="product/add"
+                element={
+                  <AuthRoute requiredPermission={MALL.PRODUCT.ADD}>
+                    <ProductEdit />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="product/edit/:id"
+                element={
+                  <AuthRoute requiredPermission={MALL.PRODUCT.EDIT}>
+                    <ProductEdit />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="product/detail/:id"
+                element={
+                  <AuthRoute requiredPermission={MALL.PRODUCT.LIST}>
+                    <ProductDetail />
+                  </AuthRoute>
+                }
+              />
+              <Route
                 path="category"
                 element={
                   <AuthRoute requiredPermission={MALL.CATEGORY.LIST}>
@@ -255,14 +281,6 @@ function App() {
                 }
               />
               <Route
-                path="member"
-                element={
-                  <AuthRoute requiredPermission={MALL.MEMBER.LIST}>
-                    <MemberList />
-                  </AuthRoute>
-                }
-              />
-              <Route
                 path="banner"
                 element={
                   <AuthRoute requiredPermission={MALL.BANNER.LIST}>
@@ -271,18 +289,10 @@ function App() {
                 }
               />
               <Route
-                path="spec-group"
+                path="spec"
                 element={
                   <AuthRoute requiredPermission={MALL.PRODUCT_SPEC_GROUP.LIST}>
-                    <ProductSpecGroupList />
-                  </AuthRoute>
-                }
-              />
-              <Route
-                path="spec-value"
-                element={
-                  <AuthRoute requiredPermission={MALL.PRODUCT_SPEC_VALUE.LIST}>
-                    <ProductSpecValueList />
+                    <ProductSpecManageList />
                   </AuthRoute>
                 }
               />
@@ -295,6 +305,27 @@ function App() {
                 }
               />
             </Route>
+
+            {/* 会员管理模块 */}
+            <Route path="member">
+              <Route
+                path="list"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.MEMBER.LIST}>
+                    <MemberList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="level"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.LEVEL.LIST}>
+                    <MemberLevelList />
+                  </AuthRoute>
+                }
+              />
+            </Route>
+
             <Route
               path="article"
               element={

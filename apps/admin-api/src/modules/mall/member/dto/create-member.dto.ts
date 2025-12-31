@@ -37,9 +37,7 @@ export class CreateMemberDto {
 
   @IsOptional()
   @IsInt()
-  @Min(1)
-  @Max(5)
-  level?: number;
+  memberLevelId?: number;
 
   @IsOptional()
   @IsInt()

@@ -46,7 +46,7 @@ export interface BannerForm {
 export const bannerApi = {
   /** 获取运营配置列表 */
   list(params?: BannerQuery) {
-    return request.get<{ list: Banner[]; total: number }>('/mall/banner', { params });
+    return request.get<{ data: Banner[]; total: number }>('/mall/banner', { params });
   },
 
   /** 获取运营配置详情 */

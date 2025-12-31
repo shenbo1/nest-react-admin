@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { message, Modal, Space, Tag, Avatar } from 'antd';
+import { message, Modal, Space, Avatar, Switch, Tag } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -16,20 +16,29 @@ import {
   ProFormDigit,
   ProFormDatePicker,
   ProFormGroup,
+  ProFormSelect,
 } from '@ant-design/pro-components';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { memberApi, Member, MemberForm } from '@/services/mall/member';
+import { memberLevelApi } from '@/services/mall/member-level';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
-import { DictRadio, DictSelect } from '@/components/DictSelect';
+import { DictRadio } from '@/components/DictSelect';
 import { ImageUpload } from '@/components/ImageUpload';
-import { StatusEnums, GenderEnums, MemberLevelEnums } from '@/stores/enums/common.enums';
+import { StatusEnums, GenderEnums } from '@/stores/enums/common.enums';
 
 export default function MemberPage() {
   const actionRef = useRef<ProTableRef>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Member | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
+
+  // 获取会员等级选项
+  const { data: levelOptions = [] } = useQuery({
+    queryKey: ['memberLevelOptions'],
+    queryFn: () => memberLevelApi.options(),
+  });
 
   // 创建/更新
   const saveMutation = useMutation({
@@ -45,9 +54,6 @@ export default function MemberPage() {
       setEditingRecord(null);
       actionRef.current?.reload();
     },
-    onError: (error: any) => {
-      message.error(error?.message || '操作失败');
-    },
   });
 
   // 删除
@@ -57,8 +63,24 @@ export default function MemberPage() {
       message.success('删除成功');
       actionRef.current?.reload();
     },
-    onError: (error: any) => {
-      message.error(error?.message || '删除失败');
+  });
+
+  // 批量删除
+  const batchDeleteMutation = useMutation({
+    mutationFn: memberApi.batchDelete,
+    onSuccess: () => {
+      message.success('批量删除成功');
+      setSelectedRowKeys([]);
+      actionRef.current?.reload();
+    },
+  });
+
+  // 切换状态
+  const toggleStatusMutation = useMutation({
+    mutationFn: memberApi.toggleStatus,
+    onSuccess: () => {
+      message.success('状态切换成功');
+      actionRef.current?.reload();
     },
   });
 
@@ -68,6 +90,19 @@ export default function MemberPage() {
       content: '确定要删除这条记录吗？删除后无法恢复。',
       okType: 'danger',
       onOk: () => deleteMutation.mutate(id),
+    });
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择要删除的会员');
+      return;
+    }
+    Modal.confirm({
+      title: '确认批量删除',
+      content: `确定要删除选中的 ${selectedRowKeys.length} 条记录吗？删除后无法恢复。`,
+      okType: 'danger',
+      onOk: () => batchDeleteMutation.mutate(selectedRowKeys),
     });
   };
 
@@ -81,7 +116,11 @@ export default function MemberPage() {
     setModalOpen(true);
   };
 
-  const getGenderText = (gender: number) => {
+  const handleToggleStatus = (id: number) => {
+    toggleStatusMutation.mutate(id);
+  };
+
+  const getGenderText = (gender: string) => {
     switch (gender) {
       case GenderEnums.男:
         return '男';
@@ -92,10 +131,17 @@ export default function MemberPage() {
     }
   };
 
-  const getLevelColor = (level: number) => {
-    if (level >= MemberLevelEnums.钻石会员) return 'red';
-    if (level >= MemberLevelEnums.金牌会员) return 'gold';
-    if (level >= MemberLevelEnums.银牌会员) return 'blue';
+  const getLevelInfo = (memberLevelId?: number) => {
+    if (!memberLevelId) return null;
+    return levelOptions.find((item) => item.id === memberLevelId);
+  };
+
+  const getLevelColor = (level?: number) => {
+    if (!level) return 'default';
+    if (level >= 5) return 'red';
+    if (level >= 4) return 'gold';
+    if (level >= 3) return 'orange';
+    if (level >= 2) return 'blue';
     return 'default';
   };
 
@@ -104,6 +150,9 @@ export default function MemberPage() {
       title: '会员信息',
       dataIndex: 'username',
       width: 250,
+      fieldProps: {
+        placeholder: '请输入用户名',
+      },
       render: (_, record) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Avatar src={record.avatar} icon={<UserOutlined />} />
@@ -118,6 +167,14 @@ export default function MemberPage() {
           </div>
         </div>
       ),
+    },
+    {
+      title: '手机号',
+      dataIndex: 'phone',
+      hideInTable: true,
+      fieldProps: {
+        placeholder: '请输入手机号',
+      },
     },
     {
       title: '邮箱',
@@ -136,15 +193,19 @@ export default function MemberPage() {
     },
     {
       title: '会员等级',
-      dataIndex: 'level',
-      width: 100,
+      dataIndex: 'memberLevelId',
+      width: 120,
       align: 'center',
-      render: (level: any) => (
-        <Tag color={getLevelColor(level)} icon={<CrownOutlined />}>
-          LV.{level || 1}
-        </Tag>
-      ),
       search: false,
+      render: (_, record) => {
+        const levelInfo = getLevelInfo(record.memberLevelId);
+        if (!levelInfo) return <Tag>未设置</Tag>;
+        return (
+          <Tag color={getLevelColor(levelInfo.level)} icon={<CrownOutlined />}>
+            {levelInfo.name}
+          </Tag>
+        );
+      },
     },
     {
       title: '积分',
@@ -174,10 +235,20 @@ export default function MemberPage() {
       title: '状态',
       dataIndex: 'status',
       width: 100,
+      valueType: 'select',
       valueEnum: {
-        1: { text: '启用', status: 'Success' },
-        0: { text: '禁用', status: 'Error' },
+        ENABLED: { text: '启用', status: 'Success' },
+        DISABLED: { text: '禁用', status: 'Error' },
       },
+      render: (_, record) => (
+        <Switch
+          checked={record.status === 'ENABLED'}
+          checkedChildren="启用"
+          unCheckedChildren="禁用"
+          loading={toggleStatusMutation.isPending}
+          onChange={() => handleToggleStatus(record.id)}
+        />
+      ),
     },
     {
       title: '创建时间',
@@ -224,9 +295,25 @@ export default function MemberPage() {
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
-        scroll={{ x: 1400 }}
+        scroll={{ x: 1500 }}
         api="/mall/member"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys: React.Key[]) => setSelectedRowKeys(keys as number[]),
+        }}
         toolBarRender={() => [
+          selectedRowKeys.length > 0 && (
+            <PermissionButton
+              key="batchDelete"
+              permission={MALL.MEMBER.REMOVE}
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleBatchDelete}
+              loading={batchDeleteMutation.isPending}
+            >
+              批量删除 ({selectedRowKeys.length})
+            </PermissionButton>
+          ),
           <PermissionButton
             key="add"
             permission={MALL.MEMBER.ADD}
@@ -250,9 +337,8 @@ export default function MemberPage() {
         onOpenChange={setModalOpen}
         initialValues={
           editingRecord || {
-            level: MemberLevelEnums.普通会员,
             points: 0,
-            status: 1,
+            status: StatusEnums.启用,
             gender: GenderEnums.未知,
           }
         }
@@ -289,14 +375,24 @@ export default function MemberPage() {
             label="手机号"
             placeholder="请输入手机号"
             colProps={{ span: 12 }}
-            fieldProps={{ type: 'tel' }}
+            rules={[
+              {
+                pattern: /^1[3-9]\d{9}$/,
+                message: '请输入正确的手机号格式',
+              },
+            ]}
           />
           <ProFormText
             name="email"
             label="邮箱"
             placeholder="请输入邮箱"
             colProps={{ span: 12 }}
-            fieldProps={{ type: 'mail' }}
+            rules={[
+              {
+                type: 'email',
+                message: '请输入正确的邮箱格式',
+              },
+            ]}
           />
           <DictRadio
             name="gender"
@@ -313,12 +409,18 @@ export default function MemberPage() {
         </ProFormGroup>
 
         <ProFormGroup title="会员信息">
-          <DictSelect
-            name="level"
+          <ProFormSelect
+            name="memberLevelId"
             label="会员等级"
-            enum={MemberLevelEnums}
             placeholder="请选择会员等级"
             colProps={{ span: 12 }}
+            options={levelOptions.map((item) => ({
+              label: item.name,
+              value: item.id,
+            }))}
+            fieldProps={{
+              allowClear: true,
+            }}
           />
           <ProFormDigit
             name="points"

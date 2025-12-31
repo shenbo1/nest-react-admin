@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -13,11 +13,9 @@ export class ProductService {
    * 创建商品
    */
   async create(dto: CreateProductDto, userId: number) {
-    // 处理图片和规格数据
+    // Prisma 自动处理 Json 类型，无需手动 stringify
     const data: any = {
       ...dto,
-      mainImages: dto.images ? JSON.stringify(dto.images) : null,
-      specs: dto.specs ? JSON.stringify(dto.specs) : null,
       createdBy: String(userId),
     };
 
@@ -54,21 +52,32 @@ export class ProductService {
               code: true,
             },
           },
-          /// 关联的规格组
+          /// 关联的规格组（包含规格值）
           specGroups: {
-            select: {
-              id: true,
-              name: true,
-              sort: true,
+            where: { deleted: false },
+            include: {
+              specValues: {
+                where: { deleted: false },
+                orderBy: { sort: 'asc' },
+              },
             },
+            orderBy: { sort: 'asc' },
           },
           /// 关联的 SKU 列表
           skus: {
+            where: { deleted: false },
             select: {
               id: true,
+              skuCode: true,
+              specCombination: true,
               price: true,
+              costPrice: true,
               stock: true,
+              sales: true,
+              weight: true,
+              images: true,
             },
+            orderBy: { createdAt: 'asc' },
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -76,12 +85,12 @@ export class ProductService {
       this.prisma.product.count({ where }),
     ]);
 
-    // 处理JSON字段
+    // 处理JSON字段 - Prisma自动处理Json类型，无需手动解析
     const processedList = list.map(item => ({
       ...item,
       mainImage: item.mainImage || null,
-      images: item.images ? JSON.parse(item.images as any) : [],
-      specs: item.specs ? JSON.parse(item.specs as any) : null,
+      images: item.images || [],
+      specs: item.specs || null,
     }));
 
     return {
@@ -108,12 +117,15 @@ export class ProductService {
         },
         /// 关联的 SKU 列表
         skus: {
+          where: { deleted: false },
           orderBy: { createdAt: 'asc' },
         },
         /// 关联的规格组
         specGroups: {
+          where: { deleted: false },
           include: {
             specValues: {
+              where: { deleted: false },
               orderBy: { sort: 'asc' },
             },
           },
@@ -125,17 +137,17 @@ export class ProductService {
       throw new NotFoundException('商品不存在');
     }
 
-    // 处理 JSON 字段
+    // 处理 JSON 字段 - Prisma自动处理Json类型，无需手动解析
     return {
       ...record,
       mainImage: record.mainImage || null,
-      images: record.images ? JSON.parse(record.images as any) : [],
-      specs: record.specs ? JSON.parse(record.specs as any) : null,
+      images: record.images || [],
+      specs: record.specs || null,
       /// 处理 SKU 中的 JSON 字段
       skus: record.skus.map(sku => ({
         ...sku,
-        specCombination: sku.specCombination ? JSON.parse(sku.specCombination as any) : {},
-        images: sku.images ? JSON.parse(sku.images as any) : [],
+        specCombination: sku.specCombination || {},
+        images: sku.images || [],
       })),
     };
   }
@@ -144,13 +156,20 @@ export class ProductService {
    * 更新商品
    */
   async update(id: number, dto: UpdateProductDto, userId: number) {
-    await this.findOne(id);
+    const product = await this.findOne(id);
 
-    // 处理图片和规格数据
+    // 上架商品只允许修改状态（下架操作）
+    if (product.status === 'ON_SHELF') {
+      // 如果只是修改状态，允许操作（用于下架）
+      const isStatusChangeOnly = Object.keys(dto).length === 1 && dto.status !== undefined;
+      if (!isStatusChangeOnly) {
+        throw new BadRequestException('上架中的商品不能编辑，请先下架');
+      }
+    }
+
+    // Prisma 自动处理 Json 类型，无需手动 stringify
     const data: any = {
       ...dto,
-      ...(dto.images && { mainImages: JSON.stringify(dto.images) }),
-      ...(dto.specs && { specs: JSON.stringify(dto.specs) }),
       updatedBy: String(userId),
     };
 
@@ -164,16 +183,46 @@ export class ProductService {
    * 删除商品（软删除）
    */
   async remove(id: number, userId: number) {
-    await this.findOne(id);
+    const product = await this.findOne(id);
 
-    return this.prisma.product.update({
-      where: { id },
-      data: {
-        deleted: true,
-        deletedAt: new Date(),
-        updatedBy: String(userId),
-      },
-    });
+    // 上架商品不能删除
+    if (product.status === 'ON_SHELF') {
+      throw new BadRequestException('上架中的商品不能删除，请先下架');
+    }
+
+    // 软删除商品及其关联的规格组、规格值、SKU
+    const now = new Date();
+    await this.prisma.$transaction([
+      // 软删除 SKU
+      this.prisma.productSKU.updateMany({
+        where: { productId: id, deleted: false },
+        data: { deleted: true, deletedAt: now },
+      }),
+      // 软删除规格值
+      this.prisma.productSpecValue.updateMany({
+        where: {
+          specGroup: { productId: id },
+          deleted: false,
+        },
+        data: { deleted: true, deletedAt: now },
+      }),
+      // 软删除规格组
+      this.prisma.productSpecGroup.updateMany({
+        where: { productId: id, deleted: false },
+        data: { deleted: true, deletedAt: now },
+      }),
+      // 软删除商品
+      this.prisma.product.update({
+        where: { id },
+        data: {
+          deleted: true,
+          deletedAt: now,
+          updatedBy: String(userId),
+        },
+      }),
+    ]);
+
+    return { success: true };
   }
 
   /**
@@ -317,6 +366,7 @@ export class ProductService {
       }
 
       // 使用 createMany 批量创建 SKU，性能更好
+      // Prisma 自动处理 Json 类型，无需手动 stringify
       const skuData = original.skus.map((sku, index) => {
         // 构建新的规格组合
         let newSpecCombination: Record<string, string> = {};
@@ -330,12 +380,12 @@ export class ProductService {
         return {
           productId: newProduct.id,
           skuCode: `${newCode}-SKU-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`,
-          specCombination: JSON.stringify(newSpecCombination),
+          specCombination: newSpecCombination,
           price: sku.price,
           stock: sku.stock,
           sales: 0,
           weight: sku.weight,
-          images: sku.images ? JSON.stringify(sku.images) : Prisma.DbNull,
+          images: sku.images || Prisma.DbNull,
           lowStockAlert: sku.lowStockAlert || 10, // 使用原有的低库存预警值
           costPrice: sku.costPrice, // 复制成本价
         };

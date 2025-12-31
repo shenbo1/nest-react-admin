@@ -1,100 +1,303 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Table,
-  Space,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Popconfirm,
-  Card,
-  Select,
-  Row,
-  Col,
-  Tag,
-  Descriptions
-} from 'antd';
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { message, Space, Popconfirm, Tag, Modal, Descriptions, Row, Col, InputNumber, Input, Select } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  SearchOutlined,
-  ReloadOutlined,
-  EyeOutlined
 } from '@ant-design/icons';
+import {
+  ProColumns,
+  ModalForm,
+  ProFormText,
+  ProFormDigit,
+  ProFormSelect,
+} from '@ant-design/pro-components';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { PermissionButton } from '@/components/PermissionButton';
 import { MALL } from '@/constants/permissions';
+import ProTable, { ProTableRef } from '@/components/ProTable';
 import {
   getProductSkus,
+  getProductSpecGroups,
   createProductSku,
   bulkCreateProductSkus,
   updateProductSku,
   deleteProductSku,
-  getProductSpecGroups,
   ProductSku as Sku,
   ProductSpecGroup as SpecGroup,
 } from '@/services/mall/product-sku';
+import { productApi } from '@/services/mall/product';
 
-const { Option } = Select;
-
-const ProductSkuList: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<Sku[]>([]);
-  const [products] = useState<{id: number, name: string, code: string}[]>([]);
-  const [specGroups, setSpecGroups] = useState<SpecGroup[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [bulkModalVisible, setBulkModalVisible] = useState(false);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
+export default function ProductSkuPage() {
+  const navigate = useNavigate();
+  const actionRef = useRef<ProTableRef>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Sku | null>(null);
   const [currentRecord, setCurrentRecord] = useState<Sku | null>(null);
-  const [form] = Form.useForm();
-  const [bulkForm] = Form.useForm();
-  const [searchForm] = Form.useForm();
-  const [generatedSkus, setGeneratedSkus] = useState<Sku[]>([]);
 
-  // 表格列配置
-  const columns = [
+  // 新增弹窗状态
+  const [addProductId, setAddProductId] = useState<number | null>(null);
+  const [addSpecGroups, setAddSpecGroups] = useState<SpecGroup[]>([]);
+
+  // 批量添加状态
+  const [bulkProductId, setBulkProductId] = useState<number | null>(null);
+  const [bulkBaseSkuCode, setBulkBaseSkuCode] = useState('');
+  const [bulkPrice, setBulkPrice] = useState(0);
+  const [bulkStock, setBulkStock] = useState(0);
+  const [bulkSelectedSpecs, setBulkSelectedSpecs] = useState<Record<string, string>>({});
+  const [bulkSpecGroups, setBulkSpecGroups] = useState<SpecGroup[]>([]);
+
+  // 获取商品列表
+  const { data: productList } = useQuery({
+    queryKey: ['productListForSelect'],
+    queryFn: () => productApi.list({ page: 1, pageSize: 1000 }),
+  });
+
+  // 创建/更新
+  const saveMutation = useMutation({
+    mutationFn: (data: any) => {
+      if (editingRecord) {
+        return updateProductSku(editingRecord.id, data);
+      }
+      return createProductSku(data);
+    },
+    onSuccess: () => {
+      message.success(editingRecord ? '更新成功' : '创建成功');
+      setModalOpen(false);
+      setEditingRecord(null);
+      actionRef.current?.reload();
+    },
+  });
+
+  // 批量创建
+  const bulkSaveMutation = useMutation({
+    mutationFn: bulkCreateProductSkus,
+    onSuccess: () => {
+      message.success('批量创建成功');
+      setBulkModalOpen(false);
+      resetBulkForm();
+      actionRef.current?.reload();
+    },
+  });
+
+  // 删除
+  const deleteMutation = useMutation({
+    mutationFn: deleteProductSku,
+    onSuccess: () => {
+      message.success('删除成功');
+      actionRef.current?.reload();
+    },
+  });
+
+  const handleEdit = async (record: Sku) => {
+    setEditingRecord(record);
+    // 编辑时加载该商品的规格组
+    if (record.productId) {
+      const res = await getProductSpecGroups({ productId: record.productId });
+      // 响应拦截器已解包，res 就是规格组数组
+      setAddSpecGroups(Array.isArray(res) ? res : []);
+      setAddProductId(record.productId);
+    }
+    setModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingRecord(null);
+    setAddProductId(null);
+    setAddSpecGroups([]);
+    setModalOpen(true);
+  };
+
+  // 新增弹窗中选择商品时加载规格组
+  const handleAddProductChange = async (productId: number) => {
+    setAddProductId(productId);
+    if (productId) {
+      const res = await getProductSpecGroups({ productId });
+      // 响应拦截器已解包，res 就是规格组数组
+      setAddSpecGroups(Array.isArray(res) ? res : []);
+    } else {
+      setAddSpecGroups([]);
+    }
+  };
+
+  const handleView = (record: Sku) => {
+    setCurrentRecord(record);
+    setDetailModalOpen(true);
+  };
+
+  const resetBulkForm = () => {
+    setBulkProductId(null);
+    setBulkBaseSkuCode('');
+    setBulkPrice(0);
+    setBulkStock(0);
+    setBulkSelectedSpecs({});
+    setBulkSpecGroups([]);
+  };
+
+  const handleBulkAdd = () => {
+    resetBulkForm();
+    setBulkModalOpen(true);
+  };
+
+  // 当选择商品时加载该商品的规格组
+  const handleBulkProductChange = async (productId: number) => {
+    setBulkProductId(productId);
+    setBulkSelectedSpecs({});
+    if (productId) {
+      const res = await getProductSpecGroups({ productId });
+      // 响应拦截器已解包，res 就是规格组数组
+      setBulkSpecGroups(Array.isArray(res) ? res : []);
+    } else {
+      setBulkSpecGroups([]);
+    }
+  };
+
+  // 生成 SKU 组合
+  const generateSkuCombinations = () => {
+    const groups = bulkSpecGroups.filter(g => bulkSelectedSpecs[g.name]);
+    if (groups.length === 0) return [];
+
+    const combinations: Record<string, string>[] = [];
+
+    function generate(index: number, current: Record<string, string>) {
+      if (index === groups.length) {
+        combinations.push({ ...current });
+        return;
+      }
+
+      const group = groups[index];
+      const selectedValue = bulkSelectedSpecs[group.name];
+      const values = group.specValues
+        ?.filter(v => v.name === selectedValue)
+        .map(v => v.name) || [];
+
+      if (values.length === 0) {
+        // 如果没有匹配的选中值，使用所有值
+        const allValues = group.specValues?.map(v => v.name) || [];
+        for (const value of allValues) {
+          current[group.name] = value;
+          generate(index + 1, current);
+        }
+      } else {
+        for (const value of values) {
+          current[group.name] = value;
+          generate(index + 1, current);
+        }
+      }
+    }
+
+    generate(0, {});
+
+    return combinations.map((combo, index) => ({
+      productId: bulkProductId!,
+      skuCode: bulkBaseSkuCode ? `${bulkBaseSkuCode}-${index + 1}` : `SKU-${Date.now()}-${index + 1}`,
+      specCombination: combo,
+      price: bulkPrice,
+      stock: bulkStock,
+      sales: 0,
+    }));
+  };
+
+  const handleBulkSubmit = () => {
+    if (!bulkProductId) {
+      message.warning('请选择商品');
+      return;
+    }
+    const skus = generateSkuCombinations();
+    if (skus.length === 0) {
+      message.warning('请选择规格');
+      return;
+    }
+    bulkSaveMutation.mutate(skus);
+  };
+
+  // 解析规格组合
+  const parseSpecCombination = (specs: Record<string, string> | string) => {
+    let parsedSpecs = specs;
+    if (typeof specs === 'string') {
+      try {
+        parsedSpecs = JSON.parse(specs);
+      } catch {
+        return <span style={{ color: '#999' }}>{specs}</span>;
+      }
+    }
+    if (!parsedSpecs || typeof parsedSpecs !== 'object') return '-';
+    return (
+      <Space size="small" wrap>
+        {Object.entries(parsedSpecs).map(([key, value]) => (
+          <Tag key={key} color="blue">
+            {key}: {String(value)}
+          </Tag>
+        ))}
+      </Space>
+    );
+  };
+
+  const columns: ProColumns<Sku>[] = [
     {
       title: 'ID',
       dataIndex: 'id',
-      key: 'id',
       width: 80,
+      search: false,
+    },
+    {
+      title: '商品',
+      dataIndex: 'productId',
+      width: 180,
+      render: (_, record) => (
+        <a onClick={() => navigate(`/mall/product/detail/${record.productId}`)}>
+          {record.product?.name || record.productId}
+        </a>
+      ),
+      renderFormItem: () => (
+        <ProFormSelect
+          name="productId"
+          placeholder="请选择商品"
+          options={(productList?.data || []).map((p: any) => ({
+            label: p.name,
+            value: p.id,
+          }))}
+          fieldProps={{ allowClear: true }}
+        />
+      ),
     },
     {
       title: 'SKU编码',
       dataIndex: 'skuCode',
-      key: 'skuCode',
+      width: 150,
+      render: (_, record) => (
+        <a onClick={() => handleView(record)} style={{ cursor: 'pointer' }}>
+          {record.skuCode}
+        </a>
+      ),
     },
     {
       title: '规格组合',
       dataIndex: 'specCombination',
-      key: 'specCombination',
-      render: (specs: Record<string, string>) => (
-        <Space size="small">
-          {Object.entries(specs).map(([key, value]) => (
-            <Tag key={key} color="blue">
-              {key}: {value}
-            </Tag>
-          ))}
-        </Space>
-      ),
+      width: 250,
+      search: false,
+      render: (_, record) => parseSpecCombination(record.specCombination),
     },
     {
       title: '价格',
       dataIndex: 'price',
-      key: 'price',
-      render: (price: number) => (
+      width: 100,
+      search: false,
+      render: (price: any) => (
         <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
-          ¥{price.toFixed(2)}
+          ¥{Number(price).toFixed(2)}
         </span>
       ),
     },
     {
       title: '库存',
       dataIndex: 'stock',
-      key: 'stock',
-      render: (stock: number) => (
+      width: 80,
+      search: false,
+      render: (stock: any) => (
         <span style={{ color: stock > 0 ? '#52c41a' : '#ff4d4f' }}>
           {stock}
         </span>
@@ -103,578 +306,349 @@ const ProductSkuList: React.FC = () => {
     {
       title: '销量',
       dataIndex: 'sales',
-      key: 'sales',
+      width: 80,
+      search: false,
     },
     {
       title: '重量(kg)',
       dataIndex: 'weight',
-      key: 'weight',
-      render: (weight?: number) => weight?.toFixed(2) || '-',
+      width: 100,
+      search: false,
+      render: (weight: any) => weight ? Number(weight).toFixed(2) : '-',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      width: 180,
+      valueType: 'dateTime',
+      search: false,
     },
     {
       title: '操作',
-      key: 'action',
+      valueType: 'option',
       width: 220,
-      render: (_: any, record: Sku) => (
-        <Space size="small">
-          <PermissionButton
-            type="text"
-            icon={<EyeOutlined />}
-            permission={MALL.PRODUCT_SKU.QUERY}
-            onClick={() => handleView(record)}
-          >
-            详情
-          </PermissionButton>
-          <PermissionButton
-            type="text"
-            icon={<EditOutlined />}
-            permission={MALL.PRODUCT_SKU.EDIT}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </PermissionButton>
-          <Popconfirm
-            title="确认删除吗？"
-            description="删除后无法恢复"
-            onConfirm={() => handleDelete(record.id)}
-            okText="删除"
-            cancelText="取消"
-          >
-            <PermissionButton
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              permission={MALL.PRODUCT_SKU.REMOVE}
-            >
-              删除
-            </PermissionButton>
-          </Popconfirm>
-        </Space>
-      ),
+      fixed: 'right',
+      render: (_, record) => {
+        // 只有商品未上架状态才能编辑和删除
+        const canEdit = record.product?.status !== 'ON_SHELF';
+        return (
+          <Space>
+            {canEdit && (
+              <PermissionButton
+                permission={MALL.PRODUCT_SKU.EDIT}
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              >
+                编辑
+              </PermissionButton>
+            )}
+            {canEdit && (
+              <Popconfirm
+                title="确认删除吗？"
+                description="删除后无法恢复"
+                onConfirm={() => deleteMutation.mutate(record.id)}
+                okText="删除"
+                cancelText="取消"
+              >
+                <PermissionButton
+                  permission={MALL.PRODUCT_SKU.REMOVE}
+                  type="link"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                >
+                  删除
+                </PermissionButton>
+              </Popconfirm>
+            )}
+            {!canEdit && <span style={{ color: '#999' }}>已上架</span>}
+          </Space>
+        );
+      },
     },
   ];
 
-  // 加载数据
-  const loadData = async (params?: any) => {
-    setLoading(true);
-    try {
-      const res = await getProductSkus(params || {});
-      setData(res.data || []);
-
-      // 获取规格组
-      const groupsRes = await getProductSpecGroups({ productId: 0 });
-      setSpecGroups(groupsRes.data || []);
-
-      // 获取商品列表（需要根据你的实际情况实现）
-      // 这里假设有一个getProducts函数
-      // const productsRes = await getProducts({ productId: 0 });
-      // setProducts(productsRes.data);
-    } catch (error) {
-      message.error('加载数据失败');
-      console.error(error);
-      setData([]);
-      setSpecGroups([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 搜索
-  const handleSearch = (values: any) => {
-    loadData(values);
-  };
-
-  // 重置搜索
-  const handleReset = () => {
-    searchForm.resetFields();
-    loadData();
-  };
-
-  // 添加
-  const handleAdd = () => {
-    setEditingRecord(null);
-    form.resetFields();
-    form.setFieldsValue({
-      price: 0,
-      stock: 0,
-      sales: 0,
-      specCombination: getInitialSpecCombination(),
-    });
-    setModalVisible(true);
-  };
-
-  // 批量添加
-  const handleBulkAdd = () => {
-    const initialSpecs = getInitialSpecCombination();
-    bulkForm.setFieldsValue({
-      baseSkuCode: '',
-      price: 0,
-      stock: 0,
-      specCombination: initialSpecs,
-    });
-    generateSkuCombinations(initialSpecs);
-    setBulkModalVisible(true);
-  };
-
-  // 编辑
-  const handleEdit = (record: Sku) => {
-    setEditingRecord(record);
-    form.setFieldsValue(record);
-    setModalVisible(true);
-  };
-
-  // 查看详情
-  const handleView = (record: Sku) => {
-    setCurrentRecord(record);
-    setDetailModalVisible(true);
-  };
-
-  // 删除
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteProductSku(id);
-      message.success('删除成功');
-      loadData();
-    } catch (error) {
-      message.error('删除失败');
-      console.error(error);
-    }
-  };
-
-  // 获取初始规格组合
-  const getInitialSpecCombination = () => {
-    const combination: Record<string, string> = {};
-    specGroups.forEach(group => {
-      if (group.specValues.length > 0) {
-        combination[group.name] = group.specValues[0].name;
-      }
-    });
-    return combination;
-  };
-
-  // 生成SKU组合
-  const generateSkuCombinations = (specs: Record<string, string>) => {
-    const groups = specGroups.filter(group => specs[group.name]);
-
-    if (groups.length === 0) {
-      setGeneratedSkus([]);
-      return;
-    }
-
-    // 获取每个规格组可选的规格值
-    const valueOptions: string[][] = [];
-    groups.forEach(group => {
-      const groupName = group.name;
-      const selectedValue = specs[groupName];
-      const values = group.specValues
-        .filter(value => value.name === selectedValue)
-        .map(value => value.name);
-      valueOptions.push(values);
-    });
-
-    // 生成所有组合
-    const combinations: Record<string, string>[] = [];
-
-    function generate(index: number, current: Record<string, string>) {
-      if (index === groups.length) {
-        combinations.push({...current});
-        return;
-      }
-
-      const group = groups[index];
-      const groupName = group.name;
-      const selectedValue = specs[groupName];
-      const values = group.specValues
-        .filter(value => value.name === selectedValue)
-        .map(value => value.name);
-
-      for (const value of values) {
-        current[groupName] = value;
-        generate(index + 1, current);
-      }
-    }
-
-    generate(0, {});
-
-    // 生成SKU对象
-    const skus = combinations.map((combo, index) => ({
-      id: 0,
-      productId: 1, // 需要根据实际情况设置
-      skuCode: `SKU${index + 1}`,
-      specCombination: combo,
-      price: 0,
-      stock: 0,
-      sales: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }));
-
-    setGeneratedSkus(skus);
-  };
-
-  // 提交表单（单个）
-  const handleSubmit = async (values: any) => {
-    try {
-      if (editingRecord) {
-        await updateProductSku(editingRecord.id, values);
-        message.success('更新成功');
-      } else {
-        await createProductSku(values);
-        message.success('创建成功');
-      }
-      setModalVisible(false);
-      loadData();
-    } catch (error) {
-      message.error('操作失败');
-      console.error(error);
-    }
-  };
-
-  // 批量提交
-  const handleBulkSubmit = async () => {
-    try {
-      if (generatedSkus.length === 0) {
-        message.warning('没有可创建的SKU');
-        return;
-      }
-
-      const values = bulkForm.getFieldsValue();
-      const skusToCreate = generatedSkus.map((sku, index) => ({
-        ...sku,
-        skuCode: values.baseSkuCode ? `${values.baseSkuCode}-${index + 1}` : sku.skuCode,
-        price: values.price,
-        stock: values.stock,
-      }));
-
-      await bulkCreateProductSkus(skusToCreate);
-      message.success(`成功创建 ${skusToCreate.length} 个SKU`);
-      setBulkModalVisible(false);
-      bulkForm.resetFields();
-      setGeneratedSkus([]);
-      loadData();
-    } catch (error) {
-      message.error('批量创建失败');
-      console.error(error);
-    }
-  };
-
-  // 规格组改变时的处理
-  const handleSpecGroupChange = () => {
-    const formValues = form.getFieldsValue();
-    if (formValues.specCombination) {
-      // 重新生成规格组合
-      generateSkuCombinations(formValues.specCombination);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const generatedSkus = generateSkuCombinations();
 
   return (
-    <div className="product-sku-list">
-      <Card
-        title="商品SKU管理"
-        extra={
-          <Space>
-            <PermissionButton
-              icon={<PlusOutlined />}
-              permission={MALL.PRODUCT_SKU.ADD}
-              onClick={handleBulkAdd}
-            >
-              批量添加
-            </PermissionButton>
-            <PermissionButton
-              type="primary"
-              icon={<PlusOutlined />}
-              permission={MALL.PRODUCT_SKU.ADD}
-              onClick={handleAdd}
-            >
-              新增SKU
-            </PermissionButton>
-          </Space>
-        }
-      >
-        {/* 搜索表单 */}
-        <Form
-          form={searchForm}
-          layout="inline"
-          onFinish={handleSearch}
-          style={{ marginBottom: 24 }}
-        >
-          <Row gutter={16} style={{ width: '100%' }}>
-            <Col span={6}>
-              <Form.Item name="productId" label="商品">
-                <Select placeholder="请选择商品" allowClear style={{ width: '100%' }}>
-                  {products.map(product => (
-                    <Option key={product.id} value={product.id}>
-                      {product.name} ({product.code})
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="skuCode" label="SKU编码">
-                <Input placeholder="请输入SKU编码" />
-              </Form.Item>
-            </Col>
-            <Col span={12} style={{ textAlign: 'right' }}>
-              <Space>
-                <PermissionButton
-                  type="primary"
-                  icon={<SearchOutlined />}
-                  permission={MALL.PRODUCT_SKU.QUERY}
-                  htmlType="submit"
-                >
-                  搜索
-                </PermissionButton>
-                <PermissionButton
-                  icon={<ReloadOutlined />}
-                  permission={MALL.PRODUCT_SKU.QUERY}
-                  onClick={handleReset}
-                >
-                  重置
-                </PermissionButton>
-              </Space>
-            </Col>
-          </Row>
-        </Form>
-
-        {/* 数据表格 */}
-        <Table
-          columns={columns}
-          dataSource={data}
-          rowKey="id"
-          loading={loading}
-          bordered
-          pagination={{
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条记录`,
-          }}
-        />
-      </Card>
+    <>
+      <ProTable<Sku>
+        headerTitle="商品SKU管理"
+        actionRef={actionRef}
+        columns={columns}
+        rowKey="id"
+        scroll={{ x: 1400 }}
+        request={async (params) => {
+          const { current, pageSize, productId } = params;
+          // 使用后端分页
+          const res = await getProductSkus({
+            productId: productId || undefined,
+            page: current,
+            pageSize,
+          });
+          return {
+            data: res.data || [],
+            total: res.total || 0,
+            success: true,
+          };
+        }}
+        toolBarRender={() => [
+          <PermissionButton
+            key="bulk-add"
+            permission={MALL.PRODUCT_SKU.ADD}
+            icon={<PlusOutlined />}
+            onClick={handleBulkAdd}
+          >
+            批量添加
+          </PermissionButton>,
+          <PermissionButton
+            key="add"
+            permission={MALL.PRODUCT_SKU.ADD}
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            新增SKU
+          </PermissionButton>,
+        ]}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+      />
 
       {/* 新增/编辑弹窗 */}
-      <Modal
+      <ModalForm
         title={editingRecord ? '编辑SKU' : '新增SKU'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        onOk={() => form.submit()}
-        destroyOnHidden
-        width={800}
+        open={modalOpen}
+        onOpenChange={(open) => {
+          setModalOpen(open);
+          if (!open) {
+            setAddProductId(null);
+            setAddSpecGroups([]);
+          }
+        }}
+        initialValues={editingRecord || { price: 0, stock: 0, sales: 0 }}
+        onFinish={async (values) => {
+          await saveMutation.mutateAsync(values);
+          return true;
+        }}
+        modalProps={{
+          destroyOnHidden: true,
+          maskClosable: false,
+          width: 600,
+        }}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="skuCode"
-                label="SKU编码"
-                rules={[{ required: true, message: '请输入SKU编码' }]}
-              >
-                <Input placeholder="请输入SKU编码" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="price"
-                label="价格"
-                rules={[{ required: true, message: '请输入价格' }]}
-              >
-                <InputNumber
-                  min={0}
-                  step={0.01}
-                  style={{ width: '100%' }}
-                  placeholder="请输入价格"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="stock"
-                label="库存"
-                rules={[{ required: true, message: '请输入库存' }]}
-              >
-                <InputNumber
-                  min={0}
-                  style={{ width: '100%' }}
-                  placeholder="请输入库存"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="weight"
-                label="重量(kg)"
-              >
-                <InputNumber
-                  min={0}
-                  step={0.01}
-                  style={{ width: '100%' }}
-                  placeholder="请输入重量"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {specGroups.map(group => (
-            <Form.Item
-              key={group.id}
-              name={['specCombination', group.name]}
-              label={group.name}
-              rules={[{ required: true, message: `请选择${group.name}` }]}
-            >
-              <Select
-                placeholder={`请选择${group.name}`}
-                onChange={handleSpecGroupChange}
-              >
-                {group.specValues.map(value => (
-                  <Option key={value.id} value={value.name}>
-                    {value.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ))}
-        </Form>
-      </Modal>
+        <ProFormSelect
+          name="productId"
+          label="商品"
+          placeholder="请选择商品"
+          rules={[{ required: true, message: '请选择商品' }]}
+          options={(productList?.data || []).map((p: any) => ({
+            label: p.name,
+            value: p.id,
+          }))}
+          disabled={!!editingRecord}
+          fieldProps={{
+            onChange: (value: number) => {
+              if (!editingRecord) {
+                handleAddProductChange(value);
+              }
+            },
+          }}
+        />
+        <ProFormText
+          name="skuCode"
+          label="SKU编码"
+          placeholder="请输入SKU编码"
+          rules={[{ required: true, message: '请输入SKU编码' }]}
+        />
+        <Row gutter={16}>
+          <Col span={12}>
+            <ProFormDigit
+              name="price"
+              label="价格"
+              placeholder="请输入价格"
+              min={0}
+              fieldProps={{ precision: 2 }}
+              rules={[{ required: true, message: '请输入价格' }]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormDigit
+              name="stock"
+              label="库存"
+              placeholder="请输入库存"
+              min={0}
+              fieldProps={{ precision: 0 }}
+              rules={[{ required: true, message: '请输入库存' }]}
+            />
+          </Col>
+        </Row>
+        <ProFormDigit
+          name="weight"
+          label="重量(kg)"
+          placeholder="请输入重量"
+          min={0}
+          fieldProps={{ precision: 2 }}
+        />
+        {/* 规格组合选择 - 根据选中商品动态加载 */}
+        {addSpecGroups.map((group: SpecGroup) => (
+          <ProFormSelect
+            key={group.id}
+            name={['specCombination', group.name]}
+            label={group.name}
+            placeholder={`请选择${group.name}`}
+            options={(group.specValues || []).map(v => ({
+              label: v.name,
+              value: v.name,
+            }))}
+          />
+        ))}
+        {!addProductId && !editingRecord && (
+          <div style={{ color: '#999', textAlign: 'center', padding: '16px 0' }}>
+            请先选择商品，再配置规格组合
+          </div>
+        )}
+      </ModalForm>
 
       {/* 批量添加弹窗 */}
       <Modal
         title="批量添加SKU"
-        open={bulkModalVisible}
-        onCancel={() => setBulkModalVisible(false)}
+        open={bulkModalOpen}
+        onCancel={() => setBulkModalOpen(false)}
         onOk={handleBulkSubmit}
-        destroyOnHidden
+        confirmLoading={bulkSaveMutation.isPending}
         width={900}
       >
-        <Form
-          form={bulkForm}
-          layout="vertical"
-        >
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item
-                name="baseSkuCode"
-                label="基础SKU编码"
-              >
-                <Input placeholder="如：PRODUCT-001" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="price"
-                label="价格"
-                rules={[{ required: true, message: '请输入价格' }]}
-              >
-                <InputNumber
-                  min={0}
-                  step={0.01}
-                  style={{ width: '100%' }}
-                  placeholder="请输入价格"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="stock"
-                label="库存"
-                rules={[{ required: true, message: '请输入库存' }]}
-              >
-                <InputNumber
-                  min={0}
-                  style={{ width: '100%' }}
-                  placeholder="请输入库存"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          {/* 规格组合选择 */}
-          {specGroups.map(group => (
-            <Form.Item
-              key={group.id}
-              name={['specCombination', group.name]}
-              label={group.name}
+        <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Col span={8}>
+            <div style={{ marginBottom: 8 }}>商品</div>
+            <Select
+              value={bulkProductId || undefined}
+              onChange={handleBulkProductChange}
+              placeholder="请选择商品"
+              style={{ width: '100%' }}
+              allowClear
             >
-              <Select
-                placeholder={`请选择${group.name}`}
-                onChange={(value) => {
-                  const formValues = bulkForm.getFieldsValue();
-                  const currentSpecs = formValues.specCombination || {};
-                  currentSpecs[group.name] = value;
-                  generateSkuCombinations(currentSpecs);
-                }}
-              >
-                <Option value="">请选择</Option>
-                {group.specValues.map(value => (
-                  <Option key={value.id} value={value.name}>
-                    {value.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ))}
+              {(productList?.data || []).map((p: any) => (
+                <Select.Option key={p.id} value={p.id}>
+                  {p.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Col>
+          <Col span={8}>
+            <div style={{ marginBottom: 8 }}>基础SKU编码</div>
+            <Input
+              value={bulkBaseSkuCode}
+              onChange={(e) => setBulkBaseSkuCode(e.target.value)}
+              placeholder="如：PRODUCT-001"
+            />
+          </Col>
+        </Row>
+        <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Col span={8}>
+            <div style={{ marginBottom: 8 }}>价格</div>
+            <InputNumber
+              value={bulkPrice}
+              onChange={(v) => setBulkPrice(v || 0)}
+              min={0}
+              precision={2}
+              style={{ width: '100%' }}
+              placeholder="请输入价格"
+            />
+          </Col>
+          <Col span={8}>
+            <div style={{ marginBottom: 8 }}>库存</div>
+            <InputNumber
+              value={bulkStock}
+              onChange={(v) => setBulkStock(v || 0)}
+              min={0}
+              precision={0}
+              style={{ width: '100%' }}
+              placeholder="请输入库存"
+            />
+          </Col>
+        </Row>
 
-          {/* 预览生成的SKU */}
-          {generatedSkus.length > 0 && (
-            <div style={{ marginTop: 24 }}>
-              <h4>将生成的SKU（{generatedSkus.length} 个）</h4>
-              <div style={{ maxHeight: 300, overflow: 'auto', border: '1px solid #f0f0f0', padding: 12 }}>
-                {generatedSkus.slice(0, 10).map((sku, index) => (
-                  <div key={index} style={{ marginBottom: 8 }}>
-                    <strong>SKU {index + 1}:</strong> {sku.skuCode}
-                    <br />
-                    <span style={{ color: '#666' }}>
-                      规格: {Object.entries(sku.specCombination).map(([k, v]) => `${k}:${v}`).join(', ')}
-                    </span>
-                  </div>
-                ))}
-                {generatedSkus.length > 10 && (
-                  <div style={{ color: '#666', textAlign: 'center' }}>
-                    还有 {generatedSkus.length - 10} 个SKU...
-                  </div>
-                )}
-              </div>
+        {/* 规格组合选择 */}
+        {bulkSpecGroups.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>选择规格</div>
+            <Row gutter={16}>
+              {bulkSpecGroups.map((group) => (
+                <Col span={8} key={group.id} style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 4 }}>{group.name}</div>
+                  <Select
+                    value={bulkSelectedSpecs[group.name] || undefined}
+                    onChange={(value) => setBulkSelectedSpecs(prev => ({ ...prev, [group.name]: value }))}
+                    placeholder={`请选择${group.name}`}
+                    style={{ width: '100%' }}
+                    allowClear
+                  >
+                    {(group.specValues || []).map(v => (
+                      <Select.Option key={v.id} value={v.name}>
+                        {v.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        )}
+
+        {/* 预览生成的 SKU */}
+        {generatedSkus.length > 0 && (
+          <div style={{ marginTop: 16, padding: 16, background: '#f5f5f5', borderRadius: 8 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>
+              将生成的 SKU（{generatedSkus.length} 个）
             </div>
-          )}
-        </Form>
+            <div style={{ maxHeight: 200, overflow: 'auto' }}>
+              {generatedSkus.slice(0, 10).map((sku, index) => (
+                <div key={index} style={{ marginBottom: 8 }}>
+                  <strong>SKU {index + 1}:</strong> {sku.skuCode}
+                  <br />
+                  <span style={{ color: '#666' }}>
+                    规格: {Object.entries(sku.specCombination).map(([k, v]) => `${k}:${v}`).join(', ')}
+                  </span>
+                </div>
+              ))}
+              {generatedSkus.length > 10 && (
+                <div style={{ color: '#666', textAlign: 'center' }}>
+                  还有 {generatedSkus.length - 10} 个 SKU...
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* 详情弹窗 */}
       <Modal
         title="SKU详情"
-        open={detailModalVisible}
-        onCancel={() => setDetailModalVisible(false)}
+        open={detailModalOpen}
+        onCancel={() => setDetailModalOpen(false)}
         footer={null}
-        destroyOnHidden
+        width={600}
       >
         {currentRecord && (
           <Descriptions bordered column={2}>
             <Descriptions.Item label="SKU ID">{currentRecord.id}</Descriptions.Item>
             <Descriptions.Item label="SKU编码">{currentRecord.skuCode}</Descriptions.Item>
-            <Descriptions.Item label="商品ID">{currentRecord.productId}</Descriptions.Item>
-            <Descriptions.Item label="价格">¥{currentRecord.price.toFixed(2)}</Descriptions.Item>
+            <Descriptions.Item label="商品">{currentRecord.product?.name || currentRecord.productId}</Descriptions.Item>
+            <Descriptions.Item label="价格">¥{Number(currentRecord.price).toFixed(2)}</Descriptions.Item>
             <Descriptions.Item label="库存">{currentRecord.stock}</Descriptions.Item>
             <Descriptions.Item label="销量">{currentRecord.sales}</Descriptions.Item>
             {currentRecord.weight && (
-              <Descriptions.Item label="重量">{currentRecord.weight.toFixed(2)} kg</Descriptions.Item>
+              <Descriptions.Item label="重量">{Number(currentRecord.weight).toFixed(2)} kg</Descriptions.Item>
             )}
             <Descriptions.Item label="规格组合" span={2}>
-              <Space size="small">
-                {Object.entries(currentRecord.specCombination).map(([key, value]) => (
-                  <Tag key={key} color="blue">
-                    {key}: {value}
-                  </Tag>
-                ))}
-              </Space>
+              {parseSpecCombination(currentRecord.specCombination)}
             </Descriptions.Item>
             <Descriptions.Item label="创建时间">
               {new Date(currentRecord.createdAt).toLocaleString()}
@@ -685,8 +659,6 @@ const ProductSkuList: React.FC = () => {
           </Descriptions>
         )}
       </Modal>
-    </div>
+    </>
   );
-};
-
-export default ProductSkuList;
+}

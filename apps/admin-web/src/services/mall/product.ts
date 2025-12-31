@@ -16,6 +16,7 @@ import {
   deleteProductSpecGroup,
   deleteProductSpecValue,
   deleteProductSku,
+  bulkDeleteProductSkus,
 } from '@/services/mall/product-sku';
 
 // 导出所有SKU相关API
@@ -36,6 +37,7 @@ export {
   deleteProductSpecGroup,
   deleteProductSpecValue,
   deleteProductSku,
+  bulkDeleteProductSkus,
 };
 
 export type ProductStatus = 'ON_SHELF' | 'OFF_SHELF' | 'DRAFT';
@@ -100,22 +102,27 @@ export interface ProductQuery {
 
 export interface ProductForm {
   name: string;
-  code?: string;
-  categoryId?: number;
+  /// 商品编码（必填）
+  code: string;
+  /// 商品分类（必填）
+  categoryId: number;
   content?: string;
-  /// 商品主图（单张）
-  mainImage?: string;
+  /// 商品主图（必填）
+  mainImage: string;
   /// 商品附图/轮播图列表
   images?: string[];
-  originalPrice?: number;
-  /// 默认现价
-  defaultPrice?: number;
-  /// 默认库存
-  defaultStock?: number;
-  sales?: number;
-  unit?: string;
-  /// 默认重量(kg)
-  defaultWeight?: number;
+  /// 原价（必填）
+  originalPrice: number;
+  /// 默认现价（必填）
+  defaultPrice: number;
+  /// 默认库存（必填）
+  defaultStock: number;
+  /// 销量（必填）
+  sales: number;
+  /// 单位（必填）
+  unit: string;
+  /// 默认重量(kg)（必填）
+  defaultWeight: number;
   specs?: any;
   sort?: number;
   /// 销售状态
@@ -126,7 +133,7 @@ export interface ProductForm {
 export const productApi = {
   /** 获取商品管理列表 */
   list(params?: ProductQuery) {
-    return request.get<{ list: Product[]; total: number }>('/mall/product', { params });
+    return request.get<{ data: Product[]; total: number; page: number; pageSize: number }>('/mall/product', { params });
   },
 
   /** 获取商品管理详情 */

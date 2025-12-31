@@ -1,9 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import { z } from 'zod';
 import { ClsModule } from 'nestjs-cls';
-import { join } from 'path';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SystemModule } from './modules/system/system.module';
@@ -12,6 +10,7 @@ import { ProductModule } from './modules/mall/product/product.module';
 import { CategoryModule } from './modules/mall/category/category.module';
 import { OrderModule } from './modules/mall/order/order.module';
 import { MemberModule } from './modules/mall/member/member.module';
+import { MemberLevelModule } from './modules/mall/member-level/member-level.module';
 import { BannerModule } from './modules/mall/banner/banner.module';
 import { ProductSpecGroupModule } from './modules/mall/product-spec-group/product-spec-group.module';
 import { ProductSpecValueModule } from './modules/mall/product-spec-value/product-spec-value.module';
@@ -87,11 +86,7 @@ function validateEnv(env: Record<string, unknown>) {
     // Redis 缓存模块
     RedisModule,
 
-    // 静态文件服务
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'public'),
-      serveRoot: '/upload',
-    }),
+    // 静态文件服务已通过 UploadController 处理，无需 ServeStaticModule
 
     // 业务模块
     AuthModule,
@@ -101,6 +96,7 @@ function validateEnv(env: Record<string, unknown>) {
     CategoryModule,
     OrderModule,
     MemberModule,
+    MemberLevelModule,
     BannerModule,
     ProductSpecGroupModule,
     ProductSpecValueModule,

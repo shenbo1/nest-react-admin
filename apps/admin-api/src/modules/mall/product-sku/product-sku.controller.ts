@@ -93,13 +93,13 @@ export class ProductSkuController {
     return this.productSkuService.update(+id, updateProductSkuDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productSkuService.remove(+id);
-  }
-
   @Delete('bulk')
   bulkRemove(@Body() body: { ids: number[] }) {
     return this.productSkuService.bulkRemove(body.ids);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.productSkuService.remove(+id);
   }
 }

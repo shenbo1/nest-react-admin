@@ -7,13 +7,13 @@ export interface Member {
   phone?: string;
   email?: string;
   avatar?: string;
-  gender?: string;
+  gender?: 'MALE' | 'FEMALE' | 'UNKNOWN';
   birthday?: string;
-  level: number;
+  memberLevelId?: number;
   points: number;
   balance?: number;
   totalAmount?: number;
-  status: number;
+  status: 'ENABLED' | 'DISABLED';
   lastLoginTime?: string;
   lastLoginIp?: string;
   remark?: string;
@@ -25,7 +25,7 @@ export interface MemberQuery {
   page?: number;
   pageSize?: number;
   username?: string;
-  status?: number;
+  status?: 'ENABLED' | 'DISABLED';
   phone?: string;
 }
 
@@ -35,12 +35,12 @@ export interface MemberForm {
   phone?: string;
   email?: string;
   avatar?: string;
-  gender?: string;
+  gender?: 'MALE' | 'FEMALE' | 'UNKNOWN';
   birthday?: string;
-  level?: number;
+  memberLevelId?: number;
   points?: number;
   balance?: number;
-  status?: number;
+  status?: 'ENABLED' | 'DISABLED';
   remark?: string;
 }
 
@@ -68,5 +68,15 @@ export const memberApi = {
   /** 删除会员管理 */
   delete(id: number) {
     return request.delete(`/mall/member/${id}`);
+  },
+
+  /** 批量删除会员 */
+  batchDelete(ids: number[]) {
+    return request.delete('/mall/member/batch', { data: { ids } });
+  },
+
+  /** 切换会员状态 */
+  toggleStatus(id: number) {
+    return request.put<Member>(`/mall/member/${id}/status`);
   },
 };

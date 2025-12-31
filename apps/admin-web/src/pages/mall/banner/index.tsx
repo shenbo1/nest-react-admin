@@ -27,6 +27,7 @@ import ProTable, { ProTableRef } from '@/components/ProTable';
 import { generateKeyFromName } from '@/utils/name-key';
 import { DictEnums } from '@/stores/enums/dict.enums';
 import { BannerTypeEnums, StatusEnums } from '@/stores/enums/common.enums';
+import dayjs from 'dayjs';
 
 export default function BannerPage() {
   const actionRef = useRef<ProTableRef>(null);
@@ -51,9 +52,6 @@ export default function BannerPage() {
       setEditingRecord(null);
       actionRef.current?.reload();
     },
-    onError: (error: any) => {
-      message.error(error?.message || '操作失败');
-    },
   });
 
   // 删除
@@ -62,9 +60,6 @@ export default function BannerPage() {
     onSuccess: () => {
       message.success('删除成功');
       actionRef.current?.reload();
-    },
-    onError: (error: any) => {
-      message.error(error?.message || '删除失败');
     },
   });
 
@@ -97,9 +92,15 @@ export default function BannerPage() {
   const handleEdit = (record: Banner) => {
     setEditingRecord(record);
 
-    // 直接设置表单值，ProFormDateRangePicker 会自动将 startTime 和 endTime 转换为日期对象
-    form.setFieldsValue(record);
+    // 处理日期数据回显
+    const formValues: any = { ...record };
+    if (record.startTime && record.endTime) {
+      formValues.time = [dayjs(record.startTime), dayjs(record.endTime)];
+    } else {
+      formValues.time = undefined;
+    }
 
+    form.setFieldsValue(formValues);
     setModalOpen(true);
   };
 
@@ -139,45 +140,25 @@ export default function BannerPage() {
               border: '1px solid #d9d9d9',
               borderRadius: 4,
               overflow: 'hidden',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              background: '#fafafa',
             }}
           >
             {record.type === 1 && record.image ? (
               <Image
                 src={record.image}
                 alt={record.name}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  cursor: 'pointer',
-                }}
-                onClick={() => {
-                  setPreviewImage(record.image!);
-                  setPreviewVisible(true);
-                }}
+                width={80}
+                height={60}
+                style={{ objectFit: 'cover' }}
+                preview={{ mask: '预览' }}
               />
             ) : record.type === 1 ? (
-              <PictureOutlined
-                style={{
-                  fontSize: 24,
-                  color: '#999',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '100%',
-                }}
-              />
+              <PictureOutlined style={{ fontSize: 24, color: '#999' }} />
             ) : (
-              <VideoCameraOutlined
-                style={{
-                  fontSize: 24,
-                  color: '#999',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '100%',
-                }}
-              />
+              <VideoCameraOutlined style={{ fontSize: 24, color: '#999' }} />
             )}
           </div>
           <div style={{ flex: 1 }}>
@@ -302,22 +283,8 @@ export default function BannerPage() {
     },
   ];
 
-  // 预览图片URL
-  const [previewImage, setPreviewImage] = useState<string>('');
-  const [previewVisible, setPreviewVisible] = useState<boolean>(false);
-
   return (
     <>
-      {/* 图片预览模态框 */}
-      <Modal
-        visible={previewVisible}
-        footer={null}
-        onCancel={() => setPreviewVisible(false)}
-        width={600}
-      >
-        <img alt="预览" style={{ width: '100%' }} src={previewImage} />
-      </Modal>
-
       <ProTable<Banner>
         headerTitle="轮播图管理"
         actionRef={actionRef}
@@ -356,16 +323,13 @@ export default function BannerPage() {
           }
         }
         onFinish={async (values) => {
-          // 处理日期格式，将 Date 对象转换为 ISO 字符串
+          // 处理日期格式，将 dayjs 对象转换为 ISO 字符串
           const processFormValues: any = { ...values };
-          if (processFormValues.time && processFormValues.time.length > 0) {
+          if (processFormValues.time && processFormValues.time.length === 2) {
             const [startTime, endTime] = processFormValues.time;
-            processFormValues.startTime = new Date(
-              `${startTime} 00:00:00`,
-            ).toISOString();
-            processFormValues.endTime = new Date(
-              `${endTime} 23:59:59`,
-            ).toISOString();
+            processFormValues.startTime = dayjs(startTime).startOf('day').toISOString();
+            processFormValues.endTime = dayjs(endTime).endOf('day').toISOString();
+            delete processFormValues.time;
           }
           await saveMutation.mutateAsync(processFormValues as BannerForm);
           return true;
