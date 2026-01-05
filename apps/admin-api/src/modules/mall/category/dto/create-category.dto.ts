@@ -36,4 +36,9 @@ export class CreateCategoryDto {
   @IsString()
   @MaxLength(500)
   remark?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  image?: string;
 }

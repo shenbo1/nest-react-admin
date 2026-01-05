@@ -17,10 +17,14 @@ import { existsSync } from 'fs';
 import { UploadService } from './upload.service';
 import { RequirePermissions, Public } from '@/common/decorators';
 import { UPLOAD_DIR, FILE_UPLOAD_DIR, isImageFile, isAllowedFile } from './upload.module';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('upload')
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(
+    private readonly uploadService: UploadService,
+    private readonly cls: ClsService,
+  ) {}
 
   /**
    * 上传图片
@@ -35,7 +39,8 @@ export class UploadController {
     if (!isImageFile(file.mimetype)) {
       throw new BadRequestException('只支持 jpg、jpeg、png、gif、webp、svg 格式的图片');
     }
-    return this.uploadService.getFileUrl(file, 'image');
+    const userId = this.cls.get('user')?.id;
+    return this.uploadService.getFileUrl(file, 'image', userId);
   }
 
   /**
@@ -51,7 +56,8 @@ export class UploadController {
     if (!isAllowedFile(file.mimetype)) {
       throw new BadRequestException('不支持该文件格式，允许的格式：图片、PDF、Word、Excel、PPT、TXT、CSV、ZIP、RAR、7Z');
     }
-    return this.uploadService.getFileUrl(file, 'file');
+    const userId = this.cls.get('user')?.id;
+    return this.uploadService.getFileUrl(file, 'file', userId);
   }
 
   /**

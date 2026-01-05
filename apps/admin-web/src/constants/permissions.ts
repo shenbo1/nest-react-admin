@@ -113,6 +113,11 @@ export const SYSTEM = {
     QUERY: 'system:session:query',
     KICK: 'system:session:kick',
   },
+  FILE: {
+    LIST: 'system:file:list',
+    QUERY: 'system:file:query',
+    REMOVE: 'system:file:remove',
+  },
 } as const;
 
 // 商城管理权限
@@ -171,21 +176,6 @@ export const MALL = {
     QUERY: 'mall:banner:query',
     EXPORT: 'mall:banner:export',
   },
-  MEMBER: {
-    LIST: 'mall:member:list',
-    ADD: 'mall:member:add',
-    EDIT: 'mall:member:edit',
-    REMOVE: 'mall:member:remove',
-    QUERY: 'mall:member:query',
-    EXPORT: 'mall:member:export',
-  },
-  MEMBER_LEVEL: {
-    LIST: 'mall:member-level:list',
-    ADD: 'mall:member-level:add',
-    EDIT: 'mall:member-level:edit',
-    REMOVE: 'mall:member-level:remove',
-    QUERY: 'mall:member-level:query',
-  },
 } as const;
 
 // 会员管理权限
@@ -206,6 +196,32 @@ export const MEMBER = {
     REMOVE: 'member:level:remove',
     QUERY: 'member:level:query',
   },
+  ADDRESS: {
+    LIST: 'member:address:list',
+    ADD: 'member:address:add',
+    EDIT: 'member:address:edit',
+    REMOVE: 'member:address:remove',
+    QUERY: 'member:address:query',
+  },
+  INVOICE: {
+    LIST: 'member:invoice:list',
+    ADD: 'member:invoice:add',
+    EDIT: 'member:invoice:edit',
+    REMOVE: 'member:invoice:remove',
+    QUERY: 'member:invoice:query',
+  },
+  LOGIN_LOG: {
+    LIST: 'member:login-log:list',
+    REMOVE: 'member:login-log:remove',
+  },
+  BALANCE_LOG: {
+    LIST: 'member:balance-log:list',
+    ADJUST: 'member:balance-log:adjust',
+  },
+  POINT_LOG: {
+    LIST: 'member:point-log:list',
+    ADJUST: 'member:point-log:adjust',
+  },
 } as const;
 
 // article管理权限
@@ -216,6 +232,21 @@ export const ARTICLE = {
   REMOVE: 'article:remove',
   QUERY: 'article:query',
   EXPORT: 'article:export',
+} as const;
+
+// 数据权限
+export const DATA = {
+  MANAGE: 'data:manage',
+  SENSITIVE: {
+    MANAGE: 'data:sensitive:manage',
+    ALL: 'data:sensitive:all',
+    PHONE: 'data:sensitive:phone',
+    EMAIL: 'data:sensitive:email',
+    IDCARD: 'data:sensitive:idcard',
+    BANKCARD: 'data:sensitive:bankcard',
+    NAME: 'data:sensitive:name',
+    ADDRESS: 'data:sensitive:address',
+  },
 } as const;
 
 // 工作流权限
@@ -262,6 +293,98 @@ export const WORKFLOW = {
   },
 } as const;
 
+// 营销管理权限
+export const MARKETING = {
+  MANAGE: 'marketing:manage',
+  // 优惠券模板
+  COUPON_TEMPLATE: {
+    LIST: 'marketing:coupon-template:list',
+    ADD: 'marketing:coupon-template:add',
+    EDIT: 'marketing:coupon-template:edit',
+    REMOVE: 'marketing:coupon-template:remove',
+    QUERY: 'marketing:coupon-template:query',
+    DISABLE: 'marketing:coupon-template:disable',
+    GRANT: 'marketing:coupon-template:grant',
+  },
+  // 用户优惠券
+  MEMBER_COUPON: {
+    LIST: 'marketing:member-coupon:list',
+    QUERY: 'marketing:member-coupon:query',
+    DISABLE: 'marketing:member-coupon:disable',
+    USE: 'marketing:member-coupon:use',
+  },
+  // 满减活动
+  FULL_REDUCTION: {
+    LIST: 'marketing:full-reduction:list',
+    ADD: 'marketing:full-reduction:add',
+    EDIT: 'marketing:full-reduction:edit',
+    REMOVE: 'marketing:full-reduction:remove',
+    QUERY: 'marketing:full-reduction:query',
+    DISABLE: 'marketing:full-reduction:disable',
+  },
+  // 促销活动
+  PROMOTION: {
+    LIST: 'marketing:promotion:list',
+    ADD: 'marketing:promotion:add',
+    EDIT: 'marketing:promotion:edit',
+    REMOVE: 'marketing:promotion:remove',
+    QUERY: 'marketing:promotion:query',
+    DISABLE: 'marketing:promotion:disable',
+  },
+  // 促销商品
+  PROMOTION_PRODUCT: {
+    LIST: 'marketing:promotion-product:list',
+    ADD: 'marketing:promotion-product:add',
+    EDIT: 'marketing:promotion-product:edit',
+    REMOVE: 'marketing:promotion-product:remove',
+    QUERY: 'marketing:promotion-product:query',
+  },
+  // 拼团订单
+  GROUP_BUY_ORDER: {
+    LIST: 'marketing:group-buy-order:list',
+    QUERY: 'marketing:group-buy-order:query',
+    CANCEL: 'marketing:group-buy-order:cancel',
+    MANUAL_FINISH: 'marketing:group-buy-order:manual-finish',
+  },
+  // 拼团成员
+  GROUP_BUY_MEMBER: {
+    LIST: 'marketing:group-buy-member:list',
+    QUERY: 'marketing:group-buy-member:query',
+  },
+  // 积分规则
+  POINT_RULE: {
+    LIST: 'marketing:point-rule:list',
+    ADD: 'marketing:point-rule:add',
+    EDIT: 'marketing:point-rule:edit',
+    REMOVE: 'marketing:point-rule:remove',
+    QUERY: 'marketing:point-rule:query',
+    DISABLE: 'marketing:point-rule:disable',
+  },
+  // 积分商品
+  POINT_PRODUCT: {
+    LIST: 'marketing:point-product:list',
+    ADD: 'marketing:point-product:add',
+    EDIT: 'marketing:point-product:edit',
+    REMOVE: 'marketing:point-product:remove',
+    QUERY: 'marketing:point-product:query',
+    DISABLE: 'marketing:point-product:disable',
+    OFFLINE: 'marketing:point-product:offline',
+  },
+  // 积分兑换记录
+  POINT_EXCHANGE: {
+    LIST: 'marketing:point-exchange:list',
+    QUERY: 'marketing:point-exchange:query',
+    SHIP: 'marketing:point-exchange:ship',
+    CANCEL: 'marketing:point-exchange:cancel',
+    COMPLETE: 'marketing:point-exchange:complete',
+  },
+  // 签到记录
+  SIGN_IN: {
+    LIST: 'marketing:sign-in:list',
+    QUERY: 'marketing:sign-in:query',
+  },
+} as const;
+
 // 所有权限
 export const ALL_PERMISSIONS = {
   ...DASHBOARD,
@@ -269,7 +392,9 @@ export const ALL_PERMISSIONS = {
   ...MALL,
   ...MEMBER,
   ...ARTICLE,
+  ...DATA,
   ...WORKFLOW,
+  ...MARKETING,
 } as const;
 
 // 菜单权限映射
@@ -301,6 +426,11 @@ export const MENU_PERMISSIONS = {
   '/member': MEMBER.MANAGE,
   '/member/list': MEMBER.MEMBER.LIST,
   '/member/level': MEMBER.LEVEL.LIST,
+  '/member/address': MEMBER.ADDRESS.LIST,
+  '/member/invoice': MEMBER.INVOICE.LIST,
+  '/member/login-log': MEMBER.LOGIN_LOG.LIST,
+  '/member/balance-log': MEMBER.BALANCE_LOG.LIST,
+  '/member/point-log': MEMBER.POINT_LOG.LIST,
 
   '/article': ARTICLE.LIST,
 
@@ -314,6 +444,20 @@ export const MENU_PERMISSIONS = {
   '/workflow/task/pending': WORKFLOW.TASK.LIST,
   '/workflow/task/completed': WORKFLOW.TASK.LIST,
   '/workflow/copy': WORKFLOW.COPY.LIST,
+
+  // 营销管理
+  '/marketing': MARKETING.MANAGE,
+  '/marketing/coupon-template': MARKETING.COUPON_TEMPLATE.LIST,
+  '/marketing/member-coupon': MARKETING.MEMBER_COUPON.LIST,
+  '/marketing/full-reduction': MARKETING.FULL_REDUCTION.LIST,
+  '/marketing/promotion': MARKETING.PROMOTION.LIST,
+  '/marketing/promotion-product': MARKETING.PROMOTION_PRODUCT.LIST,
+  '/marketing/group-buy-order': MARKETING.GROUP_BUY_ORDER.LIST,
+  '/marketing/group-buy-member': MARKETING.GROUP_BUY_MEMBER.LIST,
+  '/marketing/point-rule': MARKETING.POINT_RULE.LIST,
+  '/marketing/point-product': MARKETING.POINT_PRODUCT.LIST,
+  '/marketing/point-exchange': MARKETING.POINT_EXCHANGE.LIST,
+  '/marketing/sign-in': MARKETING.SIGN_IN.LIST,
 } as const;
 
 // 路由权限要求
@@ -340,6 +484,11 @@ export const ROUTE_PERMISSIONS = {
 
   '/member/list': MEMBER.MEMBER.LIST,
   '/member/level': MEMBER.LEVEL.LIST,
+  '/member/address': MEMBER.ADDRESS.LIST,
+  '/member/invoice': MEMBER.INVOICE.LIST,
+  '/member/login-log': MEMBER.LOGIN_LOG.LIST,
+  '/member/balance-log': MEMBER.BALANCE_LOG.LIST,
+  '/member/point-log': MEMBER.POINT_LOG.LIST,
 
   '/article': ARTICLE.LIST,
 
@@ -351,6 +500,19 @@ export const ROUTE_PERMISSIONS = {
   '/workflow/task/pending': WORKFLOW.TASK.LIST,
   '/workflow/task/completed': WORKFLOW.TASK.LIST,
   '/workflow/copy': WORKFLOW.COPY.LIST,
+
+  // 营销管理
+  '/marketing/coupon-template': MARKETING.COUPON_TEMPLATE.LIST,
+  '/marketing/member-coupon': MARKETING.MEMBER_COUPON.LIST,
+  '/marketing/full-reduction': MARKETING.FULL_REDUCTION.LIST,
+  '/marketing/promotion': MARKETING.PROMOTION.LIST,
+  '/marketing/promotion-product': MARKETING.PROMOTION_PRODUCT.LIST,
+  '/marketing/group-buy-order': MARKETING.GROUP_BUY_ORDER.LIST,
+  '/marketing/group-buy-member': MARKETING.GROUP_BUY_MEMBER.LIST,
+  '/marketing/point-rule': MARKETING.POINT_RULE.LIST,
+  '/marketing/point-product': MARKETING.POINT_PRODUCT.LIST,
+  '/marketing/point-exchange': MARKETING.POINT_EXCHANGE.LIST,
+  '/marketing/sign-in': MARKETING.SIGN_IN.LIST,
 } as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[keyof typeof ALL_PERMISSIONS];

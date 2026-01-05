@@ -72,6 +72,7 @@
     "@nestjs/testing": "^11.1.9",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.1",
+    "@types/ms": "^2.1.0",
     "@types/node": "^22.15.29",
     "@types/os-utils": "^0.0.4",
     "@types/passport-jwt": "^4.0.1",

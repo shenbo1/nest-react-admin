@@ -16,6 +16,7 @@ import { DatabaseMonitorModule } from './database-monitor/database-monitor.modul
 import { ApiMonitorModule } from './api-monitor/api-monitor.module';
 import { LogMonitorModule } from './log-monitor/log-monitor.module';
 import { AlertModule } from './alert/alert.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AlertModule } from './alert/alert.module';
     ApiMonitorModule,
     LogMonitorModule,
     AlertModule,
+    FileModule,
   ],
 })
 export class SystemModule {}

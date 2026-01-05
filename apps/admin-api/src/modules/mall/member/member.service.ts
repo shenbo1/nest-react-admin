@@ -7,6 +7,7 @@ import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { QueryMemberDto } from './dto/query-member.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class MemberService {
@@ -44,9 +45,13 @@ export class MemberService {
       }
     }
 
+    // 加密密码
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
     return this.prisma.member.create({
       data: {
         ...dto,
+        password: hashedPassword,
         createdBy: String(userId),
       },
     });
@@ -72,6 +77,7 @@ export class MemberService {
         skip,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
+        omit: { password: true },
       }),
       this.prisma.member.count({ where }),
     ]);
@@ -90,6 +96,7 @@ export class MemberService {
   async findOne(id: number) {
     const record = await this.prisma.member.findFirst({
       where: { id, deleted: false },
+      omit: { password: true },
     });
     if (!record) {
       throw new NotFoundException('记录不存在');
@@ -133,12 +140,15 @@ export class MemberService {
       }
     }
 
+    // 如果更新了密码，需要加密
+    const updateData: any = { ...dto, updatedBy: String(userId) };
+    if (dto.password) {
+      updateData.password = await bcrypt.hash(dto.password, 10);
+    }
+
     return this.prisma.member.update({
       where: { id },
-      data: {
-        ...dto,
-        updatedBy: String(userId),
-      },
+      data: updateData,
     });
   }
 

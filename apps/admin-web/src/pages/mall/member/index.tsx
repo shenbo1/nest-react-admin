@@ -22,7 +22,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { memberApi, Member, MemberForm } from '@/services/mall/member';
 import { memberLevelApi } from '@/services/mall/member-level';
 import { PermissionButton } from '@/components/PermissionButton';
-import { MALL } from '@/constants/permissions';
+import { MEMBER } from '@/constants/permissions';
 import ProTable, { ProTableRef } from '@/components/ProTable';
 import { DictRadio } from '@/components/DictSelect';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -265,7 +265,7 @@ export default function MemberPage() {
       render: (_, record) => (
         <Space>
           <PermissionButton
-            permission={MALL.MEMBER.EDIT}
+            permission={MEMBER.MEMBER.EDIT}
             type="link"
             size="small"
             icon={<EditOutlined />}
@@ -274,7 +274,7 @@ export default function MemberPage() {
             编辑
           </PermissionButton>
           <PermissionButton
-            permission={MALL.MEMBER.REMOVE}
+            permission={MEMBER.MEMBER.REMOVE}
             type="link"
             size="small"
             danger
@@ -305,7 +305,7 @@ export default function MemberPage() {
           selectedRowKeys.length > 0 && (
             <PermissionButton
               key="batchDelete"
-              permission={MALL.MEMBER.REMOVE}
+              permission={MEMBER.MEMBER.REMOVE}
               danger
               icon={<DeleteOutlined />}
               onClick={handleBatchDelete}
@@ -316,7 +316,7 @@ export default function MemberPage() {
           ),
           <PermissionButton
             key="add"
-            permission={MALL.MEMBER.ADD}
+            permission={MEMBER.MEMBER.ADD}
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleAdd}
@@ -343,6 +343,10 @@ export default function MemberPage() {
           }
         }
         onFinish={async (values) => {
+          // 转换日期格式为 ISO 8601
+          if (values.birthday) {
+            values.birthday = new Date(values.birthday).toISOString();
+          }
           await saveMutation.mutateAsync(values);
           return true;
         }}

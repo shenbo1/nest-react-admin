@@ -27,7 +27,7 @@ export class MemberLevelController {
    * 创建会员等级
    */
   @Post()
-  @RequirePermissions('mall:member-level:add')
+  @RequirePermissions('member:level:add')
   create(@Body() createDto: CreateMemberLevelDto) {
     const userId = this.cls.get('user').id;
     return this.memberLevelService.create(createDto, userId);
@@ -38,7 +38,7 @@ export class MemberLevelController {
    * 注意：此路由必须放在 :id 路由之前，否则 'options' 会被当作 id 参数
    */
   @Get('options')
-  @RequirePermissions('mall:member:list')
+  @RequirePermissions('member:member:list')
   findOptions() {
     return this.memberLevelService.findOptions();
   }
@@ -47,7 +47,7 @@ export class MemberLevelController {
    * 分页查询列表
    */
   @Get()
-  @RequirePermissions('mall:member-level:list')
+  @RequirePermissions('member:level:list')
   findAll(@Query() query: QueryMemberLevelDto) {
     return this.memberLevelService.findAll(query);
   }
@@ -56,7 +56,7 @@ export class MemberLevelController {
    * 获取详情
    */
   @Get(':id')
-  @RequirePermissions('mall:member-level:query')
+  @RequirePermissions('member:level:query')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.memberLevelService.findOne(id);
   }
@@ -65,7 +65,7 @@ export class MemberLevelController {
    * 更新
    */
   @Put(':id')
-  @RequirePermissions('mall:member-level:edit')
+  @RequirePermissions('member:level:edit')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateMemberLevelDto,
@@ -78,7 +78,7 @@ export class MemberLevelController {
    * 删除
    */
   @Delete(':id')
-  @RequirePermissions('mall:member-level:remove')
+  @RequirePermissions('member:level:remove')
   remove(@Param('id', ParseIntPipe) id: number) {
     const userId = this.cls.get('user').id;
     return this.memberLevelService.remove(id, userId);

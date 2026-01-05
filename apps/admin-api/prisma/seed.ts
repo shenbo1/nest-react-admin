@@ -733,6 +733,7 @@ const menus = [
   menu(24, 10, '任务监控', '/system/job-monitor', 'system/job-monitor/index', 'MonitorOutlined', 'system:job:monitor', 10),
   menu(25, 10, '缓存管理', '/system/cache', 'system/cache/index', 'CloudOutlined', 'system:cache:query', 11),
   menu(26, 10, '在线用户', '/system/session', 'system/session/index', 'SyncOutlined', 'system:session:query', 12),
+  menu(27, 10, '文件管理', '/system/file', 'system/file/index', 'FolderOutlined', 'system:file:list', 13),
 
   // ============================================
   // 日志管理模块 (一级目录)
@@ -767,6 +768,11 @@ const menus = [
   dir(500, 0, '会员管理', '/member', 'TeamOutlined', 'member:manage', 5),
   menu(501, 500, '会员列表', '/member/list', 'member/index', 'UserOutlined', 'member:member:list', 1),
   menu(502, 500, '会员等级', '/member/level', 'member-level/index', 'CrownOutlined', 'member:level:list', 2),
+  menu(503, 500, '收货地址', '/member/address', 'member-address/index', 'EnvironmentOutlined', 'member:address:list', 3),
+  menu(504, 500, '发票信息', '/member/invoice', 'member-invoice/index', 'FileTextOutlined', 'member:invoice:list', 4),
+  menu(505, 500, '登录日志', '/member/login-log', 'member-login-log/index', 'LoginOutlined', 'member:login-log:list', 5),
+  menu(506, 500, '余额流水', '/member/balance-log', 'member-balance-log/index', 'WalletOutlined', 'member:balance-log:list', 6),
+  menu(507, 500, '积分流水', '/member/point-log', 'member-point-log/index', 'GiftOutlined', 'member:point-log:list', 7),
 
   // ============================================
   // 文章管理模块
@@ -821,6 +827,10 @@ const menus = [
   button(303, 26, '会话查询', 'system:session:query'),
   button(304, 26, '踢出用户', 'system:session:kick'),
 
+  // 文件管理按钮
+  button(320, 27, '文件查询', 'system:file:query'),
+  button(321, 27, '文件删除', 'system:file:remove'),
+
   // 操作日志按钮
   button(180, 31, '操作日志查询', 'system:operlog:query'),
   button(181, 31, '操作日志删除', 'system:operlog:remove'),
@@ -857,6 +867,39 @@ const menus = [
   // 会员等级按钮
   buttons(520, 502, '会员等级', 'member:level', { query: true, add: true, edit: true, remove: true }),
 
+  // 收货地址按钮
+  buttons(530, 503, '收货地址', 'member:address', { query: true, add: true, edit: true, remove: true }),
+
+  // 发票信息按钮
+  buttons(540, 504, '发票信息', 'member:invoice', { query: true, add: true, edit: true, remove: true }),
+
+  // 登录日志按钮
+  button(550, 505, '查询', 'member:login-log:list'),
+  button(551, 505, '删除', 'member:login-log:remove'),
+
+  // 余额流水按钮
+  button(560, 506, '查询', 'member:balance-log:list'),
+  button(561, 506, '调整', 'member:balance-log:adjust'),
+
+  // 积分流水按钮
+  button(570, 507, '查询', 'member:point-log:list'),
+  button(571, 507, '调整', 'member:point-log:adjust'),
+
+  // ============================================
+  // 数据权限模块
+  // ============================================
+  dir(600, 0, '数据权限', '/data', 'SafetyCertificateOutlined', 'data:manage', 7),
+  menu(601, 600, '敏感数据权限', '/data/sensitive', 'data/sensitive/index', 'EyeInvisibleOutlined', 'data:sensitive:manage', 1),
+
+  // 敏感数据权限按钮
+  button(610, 601, '查看所有敏感数据', 'data:sensitive:all'),
+  button(611, 601, '查看完整手机号', 'data:sensitive:phone'),
+  button(612, 601, '查看完整邮箱', 'data:sensitive:email'),
+  button(613, 601, '查看完整身份证', 'data:sensitive:idcard'),
+  button(614, 601, '查看完整银行卡号', 'data:sensitive:bankcard'),
+  button(615, 601, '查看完整姓名', 'data:sensitive:name'),
+  button(616, 601, '查看完整地址', 'data:sensitive:address'),
+
   // 文章管理按钮
   buttons(310, 301, '文章', 'article', { query: true, add: true, edit: true, remove: true, export: true }),
 
@@ -876,6 +919,90 @@ const menus = [
   // 抄送记录权限（整合到任务管理中）
   button(450, 404, '抄送查询', 'workflow:copy:query'),
   button(451, 404, '抄送标记已读', 'workflow:copy:read'),
+
+  // ============================================
+  // 营销管理模块
+  // ============================================
+  dir(700, 0, '营销管理', '/marketing', 'GiftOutlined', 'marketing:manage', 8),
+
+  // 优惠券模板
+  menu(701, 700, '优惠券模板', '/marketing/coupon-template', 'marketing/coupon-template/index', 'CouponOutlined', 'marketing:coupon-template:list', 1),
+
+  // 用户优惠券
+  menu(702, 700, '用户优惠券', '/marketing/member-coupon', 'marketing/member-coupon/index', 'IdcardOutlined', 'marketing:member-coupon:list', 2),
+
+  // 满减活动
+  menu(703, 700, '满减活动', '/marketing/full-reduction', 'marketing/full-reduction/index', 'PartitionOutlined', 'marketing:full-reduction:list', 3),
+
+  // 促销活动
+  menu(704, 700, '促销活动', '/marketing/promotion', 'marketing/promotion/index', 'ThunderboltOutlined', 'marketing:promotion:list', 4),
+
+  // 促销商品
+  menu(705, 700, '促销商品', '/marketing/promotion-product', 'marketing/promotion-product/index', 'AppstoreOutlined', 'marketing:promotion-product:list', 5),
+
+  // 拼团订单
+  menu(706, 700, '拼团订单', '/marketing/group-buy-order', 'marketing/group-buy-order/index', 'TeamOutlined', 'marketing:group-buy-order:list', 6),
+
+  // 拼团成员
+  menu(707, 700, '拼团成员', '/marketing/group-buy-member', 'marketing/group-buy-member/index', 'UserOutlined', 'marketing:group-buy-member:list', 7),
+
+  // 积分规则
+  menu(708, 700, '积分规则', '/marketing/point-rule', 'marketing/point-rule/index', 'SettingOutlined', 'marketing:point-rule:list', 8),
+
+  // 积分商品
+  menu(709, 700, '积分商品', '/marketing/point-product', 'marketing/point-product/index', 'ShoppingCartOutlined', 'marketing:point-product:list', 9),
+
+  // 积分兑换记录
+  menu(710, 700, '兑换记录', '/marketing/point-exchange', 'marketing/point-exchange/index', 'FileTextOutlined', 'marketing:point-exchange:list', 10),
+
+  // 签到记录
+  menu(711, 700, '签到记录', '/marketing/sign-in', 'marketing/sign-in/index', 'CalendarOutlined', 'marketing:sign-in:list', 11),
+
+  // ============================================
+  // 营销管理按钮权限
+  // ============================================
+
+  // 优惠券模板按钮
+  buttons(720, 701, '优惠券模板', 'marketing:coupon-template', { query: true, add: true, edit: true, remove: true, disable: true }),
+  button(726, 701, '发放优惠券', 'marketing:coupon-template:grant'),
+
+  // 用户优惠券按钮
+  button(730, 702, '查询', 'marketing:member-coupon:query'),
+  button(731, 702, '禁用', 'marketing:member-coupon:disable'),
+  button(732, 702, '核销', 'marketing:member-coupon:use'),
+
+  // 满减活动按钮
+  buttons(740, 703, '满减活动', 'marketing:full-reduction', { query: true, add: true, edit: true, remove: true, disable: true }),
+
+  // 促销活动按钮
+  buttons(750, 704, '促销活动', 'marketing:promotion', { query: true, add: true, edit: true, remove: true, disable: true }),
+
+  // 促销商品按钮
+  buttons(760, 705, '促销商品', 'marketing:promotion-product', { query: true, add: true, edit: true, remove: true }),
+
+  // 拼团订单按钮
+  button(770, 706, '查询', 'marketing:group-buy-order:query'),
+  button(771, 706, '取消', 'marketing:group-buy-order:cancel'),
+  button(772, 706, '手动成团', 'marketing:group-buy-order:manual-finish'),
+
+  // 拼团成员按钮
+  button(780, 707, '查询', 'marketing:group-buy-member:query'),
+
+  // 积分规则按钮
+  buttons(790, 708, '积分规则', 'marketing:point-rule', { query: true, add: true, edit: true, remove: true, disable: true }),
+
+  // 积分商品按钮
+  buttons(800, 709, '积分商品', 'marketing:point-product', { query: true, add: true, edit: true, remove: true, disable: true }),
+  button(806, 709, '下架', 'marketing:point-product:offline'),
+
+  // 积分兑换记录按钮
+  button(810, 710, '查询', 'marketing:point-exchange:query'),
+  button(811, 710, '发货', 'marketing:point-exchange:ship'),
+  button(812, 710, '取消', 'marketing:point-exchange:cancel'),
+  button(813, 710, '完成', 'marketing:point-exchange:complete'),
+
+  // 签到记录按钮
+  button(820, 711, '查询', 'marketing:sign-in:query'),
 ];
 
   // 扁平化所有菜单（展平 buttons 返回的数组）

@@ -15,6 +15,11 @@ import { BannerModule } from './modules/mall/banner/banner.module';
 import { ProductSpecGroupModule } from './modules/mall/product-spec-group/product-spec-group.module';
 import { ProductSpecValueModule } from './modules/mall/product-spec-value/product-spec-value.module';
 import { ProductSkuModule } from './modules/mall/product-sku/product-sku.module';
+import { MemberAddressModule } from './modules/mall/member-address/member-address.module';
+import { MemberInvoiceModule } from './modules/mall/member-invoice/member-invoice.module';
+import { MemberLoginLogModule } from './modules/mall/member-login-log/member-login-log.module';
+import { MemberBalanceLogModule } from './modules/mall/member-balance-log/member-balance-log.module';
+import { MemberPointLogModule } from './modules/mall/member-point-log/member-point-log.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { PrometheusModule } from 'nestjs-prometheus';
 import { BullmqModule } from './common/bullmq/bullmq.module';
@@ -22,8 +27,11 @@ import { RedisModule } from './common/redis/redis.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { MetricsMiddleware } from './common/middleware/metrics.middleware';
 import { OperLogInterceptor } from './common/interceptors/operlog.interceptor';
+import { SensitiveInterceptor } from './common/interceptors/sensitive.interceptor';
 import { ArticleModule } from './modules/article/article.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
+import { CouponTemplateModule } from './modules/marketing/coupon-template/coupon-template.module';
+import { MemberCouponModule } from './modules/marketing/member-coupon/member-coupon.module';
 import { appConfigs } from '@/config';
 
 // Zod 环境变量验证 schema
@@ -101,14 +109,25 @@ function validateEnv(env: Record<string, unknown>) {
     ProductSpecGroupModule,
     ProductSpecValueModule,
     ProductSkuModule,
+    MemberAddressModule,
+    MemberInvoiceModule,
+    MemberLoginLogModule,
+    MemberBalanceLogModule,
+    MemberPointLogModule,
     UploadModule,
     ArticleModule,
     WorkflowModule,
+    CouponTemplateModule,
+    MemberCouponModule,
   ],
   providers: [
     {
       provide: 'APP_INTERCEPTOR',
       useClass: OperLogInterceptor,
+    },
+    {
+      provide: 'APP_INTERCEPTOR',
+      useClass: SensitiveInterceptor,
     },
   ],
 })

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { message, Modal, Space, Tag, Switch } from 'antd';
+import { message, Modal, Space, Tag, Switch, Image } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   PlusOutlined,
@@ -30,6 +30,7 @@ import { StatusEnums } from '@/stores/enums/common.enums';
 import { DictRadio } from '@/components/DictSelect';
 import { generateKeyFromName } from '@/utils/name-key';
 import { useForm } from 'antd/es/form/Form';
+import { ImageUpload } from '@/components/ImageUpload';
 
 export default function CategoryPage() {
   const actionRef = useRef<ProTableRef>(null);
@@ -40,6 +41,7 @@ export default function CategoryPage() {
     null,
   );
   const [form] = useForm();
+  const [resetImageUpload, setResetImageUpload] = useState(false);
   const queryClient = useQueryClient();
 
   // 获取分类列表（用于选择父分类）
@@ -117,6 +119,11 @@ export default function CategoryPage() {
     setParentCategory(parent || null);
     // 先重置表单为默认值
     form.resetFields();
+    // 重置图片上传组件
+    setResetImageUpload(true);
+    setTimeout(() => {
+      setResetImageUpload(false);
+    }, 0);
     form.setFieldsValue({
       sort: 0,
       status: 'ENABLED',
@@ -137,6 +144,25 @@ export default function CategoryPage() {
   };
 
   const columns: ProColumns<CategoryTree>[] = [
+    {
+      title: '分类图片',
+      dataIndex: 'image',
+      width: 80,
+      search: false,
+      align: 'center',
+      render: (_, record) =>
+        record.image ? (
+          <Image
+            src={record.image}
+            alt={record.name}
+            width={40}
+            height={40}
+            style={{ objectFit: 'cover', borderRadius: 4 }}
+          />
+        ) : (
+          <span style={{ color: '#999' }}>-</span>
+        ),
+    },
     {
       title: '分类名称',
       dataIndex: 'name',
@@ -387,6 +413,15 @@ export default function CategoryPage() {
             enum={StatusEnums}
             colProps={{ span: 12 }}
           />
+        </ProFormGroup>
+
+        <ProFormGroup title="分类图片">
+          <ProFormText
+            name="image"
+            label="分类图片"
+            hidden
+          />
+          <ImageUpload name="image" reset={resetImageUpload} />
         </ProFormGroup>
 
         <ProFormGroup title="分类详情">

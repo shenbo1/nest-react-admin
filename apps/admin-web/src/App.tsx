@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 import { Spin } from 'antd';
 import BasicLayout from './layouts/BasicLayout';
 import AuthRoute from './components/AuthRoute';
-import { DASHBOARD, SYSTEM, MALL, MEMBER, ARTICLE, WORKFLOW } from './constants/permissions';
+import { DASHBOARD, SYSTEM, MALL, MEMBER, ARTICLE, WORKFLOW, MARKETING } from './constants/permissions';
 
 // 懒加载页面
 const Login = lazy(() => import('./pages/login'));
@@ -30,9 +30,15 @@ const MemberLevelList = lazy(() => import('./pages/mall/member-level'));
 const BannerList = lazy(() => import('./pages/mall/banner'));
 const ProductSpecManageList = lazy(() => import('./pages/mall/product-spec-group'));
 const ProductSkuList = lazy(() => import('./pages/mall/product-sku'));
+const MemberAddressList = lazy(() => import('./pages/mall/member-address'));
+const MemberInvoiceList = lazy(() => import('./pages/mall/member-invoice'));
+const MemberLoginLogList = lazy(() => import('./pages/mall/member-login-log'));
+const MemberBalanceLogList = lazy(() => import('./pages/mall/member-balance-log'));
+const MemberPointLogList = lazy(() => import('./pages/mall/member-point-log'));
 const ArticleList = lazy(() => import('./pages/article'));
 const CacheList = lazy(() => import('./pages/system/cache'));
 const SessionList = lazy(() => import('./pages/system/session'));
+const FileList = lazy(() => import('./pages/system/file'));
 const DatabaseMonitor = lazy(() => import('./pages/system/database-monitor'));
 const ApiMonitor = lazy(() => import('./pages/system/api-monitor'));
 const LogMonitor = lazy(() => import('./pages/system/log-monitor'));
@@ -47,6 +53,10 @@ const StartFlow = lazy(() => import('./pages/workflow/instance/start'));
 const TaskPending = lazy(() => import('./pages/workflow/task'));
 // CopyRecordList 已整合到 TaskPending 页面中
 const WorkflowCategoryList = lazy(() => import('./pages/workflow/category'));
+
+// 营销模块
+const CouponTemplateList = lazy(() => import('./pages/marketing/coupon-template'));
+const MemberCouponList = lazy(() => import('./pages/marketing/member-coupon'));
 
 const Loading = () => (
   <div className="flex items-center justify-center h-full">
@@ -171,6 +181,14 @@ function App() {
                 element={
                   <AuthRoute requiredPermission={SYSTEM.SESSION.QUERY}>
                     <SessionList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="file"
+                element={
+                  <AuthRoute requiredPermission={SYSTEM.FILE.LIST}>
+                    <FileList />
                   </AuthRoute>
                 }
               />
@@ -324,6 +342,46 @@ function App() {
                   </AuthRoute>
                 }
               />
+              <Route
+                path="address"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.ADDRESS.LIST}>
+                    <MemberAddressList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="invoice"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.INVOICE.LIST}>
+                    <MemberInvoiceList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="login-log"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.LOGIN_LOG.LIST}>
+                    <MemberLoginLogList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="balance-log"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.BALANCE_LOG.LIST}>
+                    <MemberBalanceLogList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="point-log"
+                element={
+                  <AuthRoute requiredPermission={MEMBER.POINT_LOG.LIST}>
+                    <MemberPointLogList />
+                  </AuthRoute>
+                }
+              />
             </Route>
 
             <Route
@@ -390,6 +448,26 @@ function App() {
                 element={
                   <AuthRoute requiredPermission={WORKFLOW.TASK.LIST}>
                     <TaskPending />
+                  </AuthRoute>
+                }
+              />
+            </Route>
+
+            {/* 营销管理模块 */}
+            <Route path="marketing">
+              <Route
+                path="coupon-template"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.COUPON_TEMPLATE.LIST}>
+                    <CouponTemplateList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="member-coupon"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.MEMBER_COUPON.LIST}>
+                    <MemberCouponList />
                   </AuthRoute>
                 }
               />

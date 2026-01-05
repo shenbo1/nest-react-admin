@@ -126,6 +126,7 @@ model SysUser {
   deletedAt DateTime?     @map("deleted_at")
   dept      SysDept?      @relation(fields: [deptId], references: [id])
   roles     SysUserRole[]
+  files     SysFile[]
 
   @@unique([username, deleted])
   @@index([deptId])
@@ -142,6 +143,40 @@ model SysUserRole {
 
   @@id([userId, roleId])
   @@map("sys_user_role")
+}
+
+/// 文件管理表
+model SysFile {
+  id           Int       @id @default(autoincrement())
+  /// 存储文件名
+  filename     String    @db.VarChar(255)
+  /// 原始文件名
+  originalName String    @map("original_name") @db.VarChar(255)
+  /// 文件MIME类型
+  mimetype     String    @db.VarChar(100)
+  /// 文件大小(字节)
+  size         Int
+  /// 访问URL
+  url          String    @db.VarChar(500)
+  /// 文件类型: image/file
+  fileType     String    @map("file_type") @db.VarChar(20)
+  /// 上传人ID
+  uploadedBy   Int?      @map("uploaded_by")
+  /// 上传人
+  uploader     SysUser?  @relation(fields: [uploadedBy], references: [id])
+  /// 创建时间
+  createdAt    DateTime  @default(now()) @map("created_at")
+  /// 更新时间
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  /// 是否删除
+  deleted      Boolean   @default(false)
+  /// 删除时间
+  deletedAt    DateTime? @map("deleted_at")
+
+  @@index([fileType])
+  @@index([uploadedBy])
+  @@index([deleted])
+  @@map("sys_file")
 }
 
 /// 运营配置表
@@ -275,6 +310,8 @@ model Member {
   id            Int       @id @default(autoincrement())
   /// 用户名
   username      String    @unique @db.VarChar(50)
+  /// 密码
+  password      String    @default("") @db.VarChar(100)
   /// 昵称
   nickname      String?   @db.VarChar(100)
   /// 手机号
@@ -295,6 +332,8 @@ model Member {
   balance       Decimal?  @db.Decimal(10, 2)
   /// 累计消费
   totalAmount   Decimal?  @map("total_amount") @db.Decimal(10, 2)
+  /// 成长值
+  growth        Int       @default(0)
   /// 状态
   status        Status    @default(ENABLED)
   /// 最后登录时间
@@ -328,6 +367,8 @@ model Member {
   @@index([phone])
   @@index([email])
   @@index([memberLevelId])
+  @@index([status])
+  @@index([deleted])
   @@map("member")
 }
 
@@ -2363,4 +2404,725 @@ enum WfLogAction {
   TERMINATE   @map("terminate")
   /// 自动处理
   AUTO        @map("auto")
+}
+
+// ================================
+// 营销管理系统模型
+// ================================
+
+/// 优惠券类型
+enum CouponType {
+  /// 满减券
+  FULL_REDUCTION @map("full_reduction")
+  /// 折扣券
+  DISCOUNT       @map("discount")
+  /// 无门槛券
+  NO_THRESHOLD   @map("no_threshold")
+}
+
+/// 优惠券有效期类型
+enum CouponValidType {
+  /// 固定时间段
+  FIXED  @map("fixed")
+  /// 领取后N天
+  DAYS   @map("days")
+}
+
+/// 优惠券适用范围类型
+enum CouponScopeType {
+  /// 全场通用
+  ALL       @map("all")
+  /// 指定分类
+  CATEGORY  @map("category")
+  /// 指定商品
+  PRODUCT   @map("product")
+}
+
+/// 优惠券来源类型
+enum CouponSource {
+  /// 用户领取
+  USER_CLAIM   @map("user_claim")
+  /// 系统发放
+  SYSTEM_GRANT @map("system_grant")
+  /// 注册赠送
+  REGISTER     @map("register")
+  /// 首单赠送
+  FIRST_ORDER  @map("first_order")
+  /// 活动赠送
+  ACTIVITY     @map("activity")
+}
+
+/// 用户优惠券状态
+enum MemberCouponStatus {
+  /// 未使用
+  UNUSED   @map("unused")
+  /// 已使用
+  USED     @map("used")
+  /// 已过期
+  EXPIRED  @map("expired")
+  /// 已冻结
+  FROZEN   @map("frozen")
+}
+
+/// 促销活动状态
+enum PromotionStatus {
+  /// 未开始
+  NOT_STARTED @map("not_started")
+  /// 进行中
+  RUNNING     @map("running")
+  /// 已结束
+  ENDED       @map("ended")
+  /// 已禁用
+  DISABLED    @map("disabled")
+}
+
+/// 促销活动类型
+enum PromotionType {
+  /// 秒杀
+  FLASH_SALE   @map("flash_sale")
+  /// 限时折扣
+  TIME_DISCOUNT @map("time_discount")
+  /// 拼团
+  GROUP_BUY    @map("group_buy")
+}
+
+/// 满减规则类型
+enum FullReductionRuleType {
+  /// 满额减
+  AMOUNT    @map("amount")
+  /// 满件减
+  COUNT     @map("count")
+  /// 满额折
+  DISCOUNT  @map("discount")
+}
+
+/// 满减活动适用范围类型
+enum FullReductionScopeType {
+  /// 全场通用
+  ALL       @map("all")
+  /// 指定分类
+  CATEGORY  @map("category")
+  /// 指定商品
+  PRODUCT   @map("product")
+}
+
+/// 拼团订单状态
+enum GroupBuyOrderStatus {
+  /// 待成团
+  WAITING   @map("waiting")
+  /// 已成团
+  SUCCESS   @map("success")
+  /// 拼团失败
+  FAILED    @map("failed")
+  /// 已取消
+  CANCELLED @map("cancelled")
+}
+
+/// 拼团成员支付状态
+enum GroupBuyPayStatus {
+  /// 未支付
+  UNPAID    @map("unpaid")
+  /// 已支付
+  PAID      @map("paid")
+  /// 已退款
+  REFUNDED  @map("refunded")
+}
+
+/// 积分规则类型
+enum PointRuleType {
+  /// 签到
+  SIGN_IN    @map("sign_in")
+  /// 消费
+  CONSUME    @map("consume")
+  /// 注册
+  REGISTER   @map("register")
+  /// 首单
+  FIRST_ORDER @map("first_order")
+  /// 生日
+  BIRTHDAY   @map("birthday")
+}
+
+/// 积分商品类型
+enum PointProductType {
+  /// 实物商品
+  PHYSICAL  @map("physical")
+  /// 虚拟商品
+  VIRTUAL   @map("virtual")
+  /// 优惠券
+  COUPON    @map("coupon")
+}
+
+/// 积分兑换记录状态
+enum PointExchangeStatus {
+  /// 待发货
+  PENDING    @map("pending")
+  /// 已发货
+  SHIPPED    @map("shipped")
+  /// 已完成
+  COMPLETED  @map("completed")
+  /// 已取消
+  CANCELLED  @map("cancelled")
+}
+
+/// 优惠券模板表
+model CouponTemplate {
+  id              Int              @id @default(autoincrement())
+  /// 优惠券名称
+  name            String           @db.VarChar(100)
+  /// 优惠券编码（唯一）
+  code            String           @unique @db.VarChar(50)
+  /// 优惠券类型
+  type            CouponType
+  /// 面额或折扣值
+  value           Decimal          @db.Decimal(10, 2)
+  /// 使用门槛金额
+  minAmount       Decimal          @db.Decimal(10, 2)
+  /// 最大折扣金额（折扣券专用）
+  maxDiscount     Decimal?         @db.Decimal(10, 2) @map("max_discount")
+  /// 发行总量（-1表示无限量）
+  totalCount      Int              @map("total_count")
+  /// 每人限领数量
+  perLimitCount   Int              @map("per_limit_count")
+  /// 领取开始时间
+  receiveStartTime DateTime?       @map("receive_start_time")
+  /// 领取结束时间
+  receiveEndTime   DateTime?       @map("receive_end_time")
+  /// 有效期类型
+  validType       CouponValidType  @map("valid_type")
+  /// 使用开始时间（FIXED模式）
+  validStartTime  DateTime?        @map("valid_start_time")
+  /// 使用结束时间（FIXED模式）
+  validEndTime    DateTime?        @map("valid_end_time")
+  /// 有效天数（DAYS模式）
+  validDays       Int?             @map("valid_days")
+  /// 适用范围类型
+  scopeType       CouponScopeType  @map("scope_type")
+  /// 适用范围ID列表
+  scopeIds        Json?            @map("scope_ids")
+  /// 是否可叠加使用
+  stackable       Boolean          @default(false)
+  /// 状态
+  status          Status           @default(ENABLED)
+  /// 使用说明
+  description     String?          @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?          @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime         @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?          @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean          @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?        @map("deleted_at")
+  /// 用户优惠券
+  memberCoupons   MemberCoupon[]
+
+  @@index([status])
+  @@index([deleted])
+  @@map("marketing_coupon_template")
+}
+
+/// 会员优惠券表
+model MemberCoupon {
+  id              Int                @id @default(autoincrement())
+  /// 会员ID
+  memberId        Int                @map("member_id")
+  /// 优惠券模板ID
+  templateId      Int                @map("template_id")
+  /// 优惠券码（唯一）
+  couponCode      String             @unique @db.VarChar(50)
+  /// 来源
+  source          CouponSource
+  /// 来源ID（活动ID、订单ID等）
+  sourceId        Int?               @map("source_id")
+  /// 发放人ID（系统发放时）
+  grantBy         Int?               @map("grant_by")
+  /// 状态
+  status          MemberCouponStatus @default(UNUSED)
+  /// 领取/发放时间
+  receiveTime     DateTime           @default(now()) @map("receive_time")
+  /// 有效开始时间
+  validStartTime  DateTime           @map("valid_start_time")
+  /// 有效结束时间
+  validEndTime    DateTime           @map("valid_end_time")
+  /// 使用时间
+  useTime         DateTime?          @map("use_time")
+  /// 使用的订单ID
+  orderId         Int?               @map("order_id")
+  /// 使用的订单号
+  orderNo         String?            @db.VarChar(50) @map("order_no")
+  /// 实际抵扣金额
+  discountAmount  Decimal?           @db.Decimal(10, 2) @map("discount_amount")
+  /// 创建者ID
+  createdBy       String?            @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime           @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?            @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean            @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?          @map("deleted_at")
+  /// 优惠券模板
+  template        CouponTemplate     @relation(fields: [templateId], references: [id])
+
+  @@index([memberId])
+  @@index([templateId])
+  @@index([status])
+  @@index([orderId])
+  @@index([deleted])
+  @@map("marketing_member_coupon")
+}
+
+/// 满减活动表
+model FullReductionActivity {
+  id              Int                      @id @default(autoincrement())
+  /// 活动名称
+  name            String                   @db.VarChar(100)
+  /// 活动编码（唯一）
+  code            String                   @unique @db.VarChar(50)
+  /// 满减规则
+  rules           Json
+  /// 是否可与优惠券叠加
+  stackable       Boolean                  @default(false)
+  /// 优先级（数字越大优先级越高）
+  priority        Int                      @default(0)
+  /// 是否与其他满减活动互斥
+  exclusive       Boolean                  @default(true)
+  /// 开始时间
+  startTime       DateTime                 @map("start_time")
+  /// 结束时间
+  endTime         DateTime                 @map("end_time")
+  /// 适用范围类型
+  scopeType       FullReductionScopeType   @map("scope_type")
+  /// 适用范围ID列表
+  scopeIds        Json?                    @map("scope_ids")
+  /// 限定会员等级ID列表
+  memberLevelIds  Json?                    @map("member_level_ids")
+  /// 每人限参与次数（0表示不限）
+  limitPerMember  Int                      @default(0) @map("limit_per_member")
+  /// 是否仅限首单
+  firstOrderOnly  Boolean                  @default(false) @map("first_order_only")
+  /// 状态
+  status          PromotionStatus          @default(NOT_STARTED)
+  /// 活动描述
+  description     String?                  @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?                  @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?                  @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean                  @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?                @map("deleted_at")
+
+  @@index([status])
+  @@index([startTime, endTime])
+  @@index([deleted])
+  @@map("marketing_full_reduction_activity")
+}
+
+/// 促销活动表
+model Promotion {
+  id              Int               @id @default(autoincrement())
+  /// 活动名称
+  name            String            @db.VarChar(100)
+  /// 活动编码（唯一）
+  code            String            @unique @db.VarChar(50)
+  /// 活动类型
+  type            PromotionType
+  /// 开始时间
+  startTime       DateTime          @map("start_time")
+  /// 结束时间
+  endTime         DateTime          @map("end_time")
+  /// 状态
+  status          PromotionStatus   @default(NOT_STARTED)
+  /// 封面图
+  coverImage      String?           @db.VarChar(500) @map("cover_image")
+  /// 规则配置（拼团专用：成团人数、有效时长等）
+  ruleConfig      Json?             @map("rule_config")
+  /// 预热开始时间
+  warmUpTime      DateTime?         @map("warm_up_time")
+  /// 是否显示倒计时
+  showCountdown   Boolean           @default(true) @map("show_countdown")
+  /// 限定会员等级ID列表
+  memberLevelIds  Json?             @map("member_level_ids")
+  /// 每人限购次数（0不限）
+  limitPerMember  Int               @default(0) @map("limit_per_member")
+  /// 优先级
+  priority        Int               @default(0)
+  /// 活动描述
+  description     String?           @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?           @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime          @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?           @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean           @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?         @map("deleted_at")
+  /// 活动商品
+  promotionProducts PromotionProduct[]
+  /// 拼团订单
+  groupBuyOrders  GroupBuyOrder[]
+
+  @@index([status])
+  @@index([type])
+  @@index([startTime, endTime])
+  @@index([deleted])
+  @@map("marketing_promotion")
+}
+
+/// 促销活动商品表
+model PromotionProduct {
+  id              Int           @id @default(autoincrement())
+  /// 活动ID
+  promotionId     Int           @map("promotion_id")
+  /// 商品ID
+  productId       Int           @map("product_id")
+  /// SKU ID（精确到规格）
+  skuId           Int?          @map("sku_id")
+  /// 原价
+  originalPrice   Decimal       @db.Decimal(10, 2) @map("original_price")
+  /// 活动价
+  activityPrice   Decimal       @db.Decimal(10, 2) @map("activity_price")
+  /// 活动库存
+  activityStock   Int           @map("activity_stock")
+  /// 已售数量
+  soldCount       Int           @default(0) @map("sold_count")
+  /// 每人限购数量
+  limitCount      Int           @default(0) @map("limit_count")
+  /// 排序
+  sort            Int           @default(0)
+  /// 状态
+  status          Status        @default(ENABLED)
+  /// 创建者ID
+  createdBy       String?       @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime      @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?       @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean       @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?     @map("deleted_at")
+  /// 促销活动
+  promotion       Promotion     @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId])
+  @@index([productId])
+  @@index([skuId])
+  @@index([status])
+  @@index([deleted])
+  @@map("marketing_promotion_product")
+}
+
+/// 拼团订单表
+model GroupBuyOrder {
+  id                  Int                @id @default(autoincrement())
+  /// 团单号（唯一）
+  groupNo             String             @unique @db.VarChar(50) @map("group_no")
+  /// 活动ID
+  promotionId         Int                @map("promotion_id")
+  /// 活动商品ID
+  promotionProductId  Int                @map("promotion_product_id")
+  /// 商品ID
+  productId           Int                @map("product_id")
+  /// SKU ID
+  skuId               Int?               @map("sku_id")
+  /// 团长会员ID
+  leaderId            Int                @map("leader_id")
+  /// 成团所需人数
+  requiredCount       Int                @map("required_count")
+  /// 当前已参团人数
+  currentCount        Int                @default(1) @map("current_count")
+  /// 拼团价格
+  groupPrice          Decimal            @db.Decimal(10, 2) @map("group_price")
+  /// 状态
+  status              GroupBuyOrderStatus @default(WAITING)
+  /// 开团时间
+  startTime           DateTime           @default(now()) @map("start_time")
+  /// 截止时间
+  expireTime          DateTime           @map("expire_time")
+  /// 成团时间
+  successTime         DateTime?          @map("success_time")
+  /// 失败原因
+  failReason          String?            @db.VarChar(200) @map("fail_reason")
+  /// 创建者ID
+  createdBy           String?            @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt           DateTime           @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy           String?            @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted             Boolean            @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt           DateTime?          @map("deleted_at")
+  /// 促销活动
+  promotion           Promotion          @relation(fields: [promotionId], references: [id])
+  /// 拼团成员
+  members             GroupBuyMember[]
+
+  @@index([promotionId])
+  @@index([productId])
+  @@index([leaderId])
+  @@index([status])
+  @@index([expireTime])
+  @@index([deleted])
+  @@map("marketing_group_buy_order")
+}
+
+/// 拼团成员表
+model GroupBuyMember {
+  id              Int               @id @default(autoincrement())
+  /// 团单ID
+  groupOrderId    Int               @map("group_order_id")
+  /// 会员ID
+  memberId        Int               @map("member_id")
+  /// 是否团长
+  isLeader        Boolean           @default(false) @map("is_leader")
+  /// 参团订单ID
+  orderId         Int?              @map("order_id")
+  /// 参团订单号
+  orderNo         String?           @db.VarChar(50) @map("order_no")
+  /// 支付状态
+  payStatus       GroupBuyPayStatus @default(UNPAID) @map("pay_status")
+  /// 支付时间
+  payTime         DateTime?         @map("pay_time")
+  /// 退款时间
+  refundTime      DateTime?         @map("refund_time")
+  /// 退款原因
+  refundReason    String?           @db.VarChar(200) @map("refund_reason")
+  /// 参团时间
+  joinTime        DateTime          @default(now()) @map("join_time")
+  /// 创建者ID
+  createdBy       String?           @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime          @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?           @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean           @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?         @map("deleted_at")
+  /// 拼团订单
+  groupOrder      GroupBuyOrder     @relation(fields: [groupOrderId], references: [id], onDelete: Cascade)
+
+  @@index([groupOrderId])
+  @@index([memberId])
+  @@index([payStatus])
+  @@index([deleted])
+  @@map("marketing_group_buy_member")
+}
+
+/// 积分规则表
+model PointRule {
+  id              Int           @id @default(autoincrement())
+  /// 规则编码（唯一）
+  code            String        @unique @db.VarChar(50)
+  /// 规则名称
+  name            String        @db.VarChar(100)
+  /// 规则类型
+  type            PointRuleType
+  /// 基础赠送积分
+  points          Int
+  /// 消费金额单位（CONSUME类型：每消费X元送points积分）
+  consumeUnit     Decimal?      @db.Decimal(10, 2) @map("consume_unit")
+  /// 额外规则（如连续签到奖励）
+  extraRules      Json?         @map("extra_rules")
+  /// 每日上限（0表示不限）
+  dailyLimit      Int           @default(0) @map("daily_limit")
+  /// 总上限（0表示不限）
+  totalLimit      Int           @default(0) @map("total_limit")
+  /// 积分有效期（天，0表示永不过期）
+  validDays       Int           @default(0) @map("valid_days")
+  /// 规则生效开始时间
+  startTime       DateTime?     @map("start_time")
+  /// 规则生效结束时间
+  endTime         DateTime?     @map("end_time")
+  /// 状态
+  status          Status        @default(ENABLED)
+  /// 规则说明
+  description     String?       @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?       @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime      @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?       @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean       @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?     @map("deleted_at")
+
+  @@index([type])
+  @@index([status])
+  @@index([deleted])
+  @@map("marketing_point_rule")
+}
+
+/// 积分商品表
+model PointProduct {
+  id              Int               @id @default(autoincrement())
+  /// 商品名称
+  name            String            @db.VarChar(100)
+  /// 商品编码（唯一）
+  code            String            @unique @db.VarChar(50)
+  /// 商品图片
+  image           String?           @db.VarChar(500)
+  /// 兑换所需积分
+  points          Int
+  /// 积分+金额模式的金额
+  price           Decimal?          @db.Decimal(10, 2)
+  /// 库存
+  stock           Int
+  /// 已兑换数量
+  exchangedCount  Int               @default(0) @map("exchanged_count")
+  /// 每人限兑数量（0不限）
+  limitCount      Int               @default(0) @map("limit_count")
+  /// 兑换开始时间
+  startTime       DateTime?         @map("start_time")
+  /// 兑换结束时间
+  endTime         DateTime?         @map("end_time")
+  /// 商品类型
+  productType     PointProductType  @map("product_type")
+  /// 关联商品ID（实物商品）
+  relatedProductId Int?             @map("related_product_id")
+  /// 关联优惠券模板ID
+  relatedCouponId  Int?             @map("related_coupon_id")
+  /// 虚拟商品内容（如兑换码）
+  virtualContent  String?           @db.VarChar(500) @map("virtual_content")
+  /// 排序
+  sort            Int               @default(0)
+  /// 状态
+  status          Status            @default(ENABLED)
+  /// 商品描述
+  description     String?           @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?           @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime          @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?           @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean           @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?         @map("deleted_at")
+  /// 兑换记录
+  exchangeRecords PointExchangeRecord[]
+
+  @@index([status])
+  @@index([productType])
+  @@index([deleted])
+  @@map("marketing_point_product")
+}
+
+/// 积分兑换记录表
+model PointExchangeRecord {
+  id              Int                @id @default(autoincrement())
+  /// 兑换单号（唯一）
+  exchangeNo      String             @unique @db.VarChar(50) @map("exchange_no")
+  /// 会员ID
+  memberId        Int                @map("member_id")
+  /// 积分商品ID
+  pointProductId  Int                @map("point_product_id")
+  /// 商品名称（冗余，防止商品修改）
+  productName     String             @db.VarChar(100) @map("product_name")
+  /// 商品类型
+  productType     PointProductType   @map("product_type")
+  /// 兑换数量
+  quantity        Int
+  /// 消耗积分
+  points          Int
+  /// 支付金额（积分+金额模式）
+  price           Decimal?           @db.Decimal(10, 2)
+  /// 状态
+  status          PointExchangeStatus @default(PENDING)
+  /// 收货地址（实物商品）
+  addressInfo     Json?              @map("address_info")
+  /// 物流信息
+  shippingInfo    Json?              @map("shipping_info")
+  /// 虚拟商品内容
+  virtualContent  String?            @db.VarChar(500) @map("virtual_content")
+  /// 备注
+  remark          String?            @db.VarChar(500)
+  /// 创建者ID
+  createdBy       String?            @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime           @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?            @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean            @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime?          @map("deleted_at")
+  /// 积分商品
+  pointProduct    PointProduct       @relation(fields: [pointProductId], references: [id])
+
+  @@index([memberId])
+  @@index([pointProductId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deleted])
+  @@map("marketing_point_exchange_record")
+}
+
+/// 会员签到记录表
+model MemberSignIn {
+  id              Int       @id @default(autoincrement())
+  /// 会员ID
+  memberId        Int       @map("member_id")
+  /// 签到日期
+  signDate        DateTime  @map("sign_date") @db.Date
+  /// 获得积分（含奖励）
+  points          Int
+  /// 基础积分
+  basePoints      Int       @map("base_points")
+  /// 连续签到奖励积分
+  bonusPoints     Int       @map("bonus_points")
+  /// 连续签到天数
+  consecutiveDays Int       @map("consecutive_days")
+  /// 创建者ID
+  createdBy       String?   @map("created_by") @db.VarChar(64)
+  /// 创建时间
+  createdAt       DateTime  @default(now()) @map("created_at")
+  /// 更新者ID
+  updatedBy       String?   @map("updated_by") @db.VarChar(64)
+  /// 更新时间
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  /// 删除标记
+  deleted         Boolean   @default(false) @map("deleted")
+  /// 删除时间
+  deletedAt       DateTime? @map("deleted_at")
+
+  @@unique([memberId, signDate])
+  @@index([memberId])
+  @@index([signDate])
+  @@index([deleted])
+  @@map("marketing_member_sign_in")
 }

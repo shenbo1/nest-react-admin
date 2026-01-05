@@ -27,7 +27,7 @@ export class MemberController {
    * 创建member
    */
   @Post()
-  @RequirePermissions('mall:member:add')
+  @RequirePermissions('member:member:add')
   create(@Body() createDto: CreateMemberDto) {
     const userId = this.cls.get('user').id;
     return this.memberService.create(createDto, userId);
@@ -37,7 +37,7 @@ export class MemberController {
    * 分页查询列表
    */
   @Get()
-  @RequirePermissions('mall:member:list')
+  @RequirePermissions('member:member:list')
   findAll(@Query() query: QueryMemberDto) {
     return this.memberService.findAll(query);
   }
@@ -46,7 +46,7 @@ export class MemberController {
    * 批量删除（放在 :id 路由之前）
    */
   @Delete('batch')
-  @RequirePermissions('mall:member:remove')
+  @RequirePermissions('member:member:remove')
   batchRemove(@Body('ids') ids: number[]) {
     const userId = this.cls.get('user').id;
     return this.memberService.batchRemove(ids, userId);
@@ -56,7 +56,7 @@ export class MemberController {
    * 获取详情
    */
   @Get(':id')
-  @RequirePermissions('mall:member:query')
+  @RequirePermissions('member:member:query')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.memberService.findOne(id);
   }
@@ -65,7 +65,7 @@ export class MemberController {
    * 更新
    */
   @Put(':id')
-  @RequirePermissions('mall:member:edit')
+  @RequirePermissions('member:member:edit')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateMemberDto,
@@ -78,7 +78,7 @@ export class MemberController {
    * 切换状态
    */
   @Put(':id/status')
-  @RequirePermissions('mall:member:edit')
+  @RequirePermissions('member:member:edit')
   toggleStatus(@Param('id', ParseIntPipe) id: number) {
     const userId = this.cls.get('user').id;
     return this.memberService.toggleStatus(id, userId);
@@ -88,7 +88,7 @@ export class MemberController {
    * 删除
    */
   @Delete(':id')
-  @RequirePermissions('mall:member:remove')
+  @RequirePermissions('member:member:remove')
   remove(@Param('id', ParseIntPipe) id: number) {
     const userId = this.cls.get('user').id;
     return this.memberService.remove(id, userId);

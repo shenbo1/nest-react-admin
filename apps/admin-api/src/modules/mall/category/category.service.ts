@@ -71,6 +71,7 @@ export class CategoryService {
         sort: true,
         status: true,
         content: true,
+        image: true,
         createdAt: true,
         updatedAt: true,
       },
