@@ -57,6 +57,15 @@ const WorkflowCategoryList = lazy(() => import('./pages/workflow/category'));
 // 营销模块
 const CouponTemplateList = lazy(() => import('./pages/marketing/coupon-template'));
 const MemberCouponList = lazy(() => import('./pages/marketing/member-coupon'));
+const PointRuleList = lazy(() => import('./pages/marketing/point-rule'));
+const PointProductList = lazy(() => import('./pages/marketing/point-product'));
+const FullReductionList = lazy(() => import('./pages/marketing/full-reduction'));
+const PointExchangeList = lazy(() => import('./pages/marketing/point-exchange'));
+const PromotionList = lazy(() => import('./pages/marketing/promotion'));
+const PromotionProductList = lazy(() => import('./pages/marketing/promotion-product'));
+const GroupBuyOrderList = lazy(() => import('./pages/marketing/group-buy-order'));
+const GroupBuyMemberList = lazy(() => import('./pages/marketing/group-buy-member'));
+const SignInList = lazy(() => import('./pages/marketing/sign-in'));
 
 const Loading = () => (
   <div className="flex items-center justify-center h-full">
@@ -468,6 +477,78 @@ function App() {
                 element={
                   <AuthRoute requiredPermission={MARKETING.MEMBER_COUPON.LIST}>
                     <MemberCouponList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="point-rule"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.POINT_RULE.LIST}>
+                    <PointRuleList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="point-product"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.POINT_PRODUCT.LIST}>
+                    <PointProductList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="full-reduction"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.FULL_REDUCTION.LIST}>
+                    <FullReductionList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="point-exchange"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.POINT_EXCHANGE.LIST}>
+                    <PointExchangeList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="promotion"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.PROMOTION.LIST}>
+                    <PromotionList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="promotion-product"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.PROMOTION_PRODUCT.LIST}>
+                    <PromotionProductList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="group-buy-order"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.GROUP_BUY_ORDER.LIST}>
+                    <GroupBuyOrderList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="group-buy-member"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.GROUP_BUY_MEMBER.LIST}>
+                    <GroupBuyMemberList />
+                  </AuthRoute>
+                }
+              />
+              <Route
+                path="sign-in"
+                element={
+                  <AuthRoute requiredPermission={MARKETING.SIGN_IN.LIST}>
+                    <SignInList />
                   </AuthRoute>
                 }
               />

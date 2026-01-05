@@ -1276,7 +1276,7 @@ model ProductSKU {
   /// 商品ID
   productId       Int      @map("product_id")
   /// SKU编码
-  skuCode         String  @map("sku_code") @unique @db.VarChar(50)
+  skuCode         String  @map("sku_code") @unique @db.VarChar(100)
   /// 规格组合 {"color": "红色", "size": "M"}
   specCombination Json     @map("spec_combination") @db.Json
   /// SKU价格

@@ -32,6 +32,15 @@ import { ArticleModule } from './modules/article/article.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
 import { CouponTemplateModule } from './modules/marketing/coupon-template/coupon-template.module';
 import { MemberCouponModule } from './modules/marketing/member-coupon/member-coupon.module';
+import { PointRuleModule } from './modules/marketing/point-rule/point-rule.module';
+import { PointProductModule } from './modules/marketing/point-product/point-product.module';
+import { FullReductionModule } from './modules/marketing/full-reduction/full-reduction.module';
+import { PointExchangeModule } from './modules/marketing/point-exchange/point-exchange.module';
+import { PromotionModule } from './modules/marketing/promotion/promotion.module';
+import { PromotionProductModule } from './modules/marketing/promotion-product/promotion-product.module';
+import { GroupBuyOrderModule } from './modules/marketing/group-buy-order/group-buy-order.module';
+import { GroupBuyMemberModule } from './modules/marketing/group-buy-member/group-buy-member.module';
+import { SignInModule } from './modules/marketing/sign-in/sign-in.module';
 import { appConfigs } from '@/config';
 
 // Zod 环境变量验证 schema
@@ -119,6 +128,15 @@ function validateEnv(env: Record<string, unknown>) {
     WorkflowModule,
     CouponTemplateModule,
     MemberCouponModule,
+    PointRuleModule,
+    PointProductModule,
+    FullReductionModule,
+    PointExchangeModule,
+    PromotionModule,
+    PromotionProductModule,
+    GroupBuyOrderModule,
+    GroupBuyMemberModule,
+    SignInModule,
   ],
   providers: [
     {
